@@ -1,23 +1,16 @@
 [
   {
-    "id": "camo-green",
-    "name": "Camo Green Skin",
-    "imageUrl": "/designs/camo-green.jpg",
-    "price": "₹2,499",
-    "category": "car-skin"
-  },
-  {
-    "id": "carbon-fiber",
-    "name": "Carbon Fiber Wrap",
-    "imageUrl": "/designs/carbon-fiber.jpg",
-    "price": "₹3,199",
-    "category": "car-skin"
-  },
-  {
-    "id": "matte-black",
-    "name": "Matte Black Skin",
-    "imageUrl": "/designs/matte-black.jpg",
+    "id": "panther-skin",
+    "name": "Panther Skin",
+    "imageUrl": "/designs/panther-skin.jpg",
     "price": "₹2,899",
+    "category": "car-skin"
+  },
+  {
+    "id": "jaguar-skin",
+    "name": "Jaguar Skin",
+    "imageUrl": "/designs/jaguar-skin.jpg",
+    "price": "₹2,499",
     "category": "car-skin"
   },
   {
