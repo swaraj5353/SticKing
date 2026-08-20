@@ -3,30 +3,56 @@
     "id": "camo-green",
     "name": "Camo Green Skin",
     "imageUrl": "/designs/camo-green.jpg",
-    "price": "₹2,499"
+    "price": "₹2,499",
+    "category": "car-skin"
   },
   {
     "id": "carbon-fiber",
     "name": "Carbon Fiber Wrap",
     "imageUrl": "/designs/carbon-fiber.jpg",
-    "price": "₹3,199"
-  },
-  {
-    "id": "racing-stripes",
-    "name": "Red Racing Stripes",
-    "imageUrl": "/designs/racing-stripes.jpg",
-    "price": "₹1,799"
+    "price": "₹3,199",
+    "category": "car-skin"
   },
   {
     "id": "matte-black",
     "name": "Matte Black Skin",
     "imageUrl": "/designs/matte-black.jpg",
-    "price": "₹2,899"
+    "price": "₹2,899",
+    "category": "car-skin"
+  },
+  {
+    "id": "paw-print-window",
+    "name": "Paw Print Window Decal",
+    "imageUrl": "/designs/paw-print-window.jpg",
+    "price": "₹499",
+    "category": "windshield-window"
+  },
+  {
+    "id": "tribal-windshield",
+    "name": "Tribal Windshield Strip",
+    "imageUrl": "/designs/tribal-windshield.jpg",
+    "price": "₹599",
+    "category": "windshield-window"
+  },
+  {
+    "id": "racing-stripes",
+    "name": "Red Racing Stripes",
+    "imageUrl": "/designs/racing-stripes.jpg",
+    "price": "₹1,799",
+    "category": "body-sticker"
   },
   {
     "id": "flame-decal",
     "name": "Flame Decal Set",
     "imageUrl": "/designs/flame-decal.jpg",
-    "price": "₹1,299"
+    "price": "₹1,299",
+    "category": "body-sticker"
+  },
+  {
+    "id": "lion-body-graphic",
+    "name": "Lion Body Graphic",
+    "imageUrl": "/designs/lion-body-graphic.jpg",
+    "price": "₹1,999",
+    "category": "body-sticker"
   }
 ]
