@@ -2,14 +2,14 @@
   {
     "id": "panther-skin",
     "name": "Panther Skin",
-    "imageUrl": "/designs/panther-skin.jpg",
+    "imageUrl": "/designs/panther-skin.png",
     "price": "₹2,899",
     "category": "car-skin"
   },
   {
     "id": "jaguar-skin",
     "name": "Jaguar Skin",
-    "imageUrl": "/designs/jaguar-skin.jpg",
+    "imageUrl": "/designs/jaguar-skin.png",
     "price": "₹2,499",
     "category": "car-skin"
   },
