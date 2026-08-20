@@ -58,8 +58,8 @@
 </style>
 </head>
 <body>
-  <h2>Choose Your Design</h2>
-  <p class="sub">Tap a design to select it.</p>
+  <h2 id="pageTitle">Choose Your Design</h2>
+  <p class="sub" id="pageSub">Tap a design to select it.</p>
 
   <div id="gallery">Loading designs...</div>
 
@@ -72,15 +72,42 @@
   <script>
     let selectedDesign = null;
 
+    // Human-friendly titles shown at the top depending on which category was linked
+    const categoryTitles = {
+      "car-skin": "Car Skin Collection",
+      "windshield-window": "Windshield & Window Sticker Collection",
+      "body-sticker": "Body Sticker Collection",
+    };
+
+    // Read ?category=... from the URL (this is what each "Start" button sends)
+    const params = new URLSearchParams(window.location.search);
+    const selectedCategory = params.get("category"); // e.g. "car-skin", or null if none given
+
+    if (selectedCategory && categoryTitles[selectedCategory]) {
+      document.getElementById("pageTitle").textContent = categoryTitles[selectedCategory];
+      document.getElementById("pageSub").textContent = "Tap a design to select it.";
+    }
+
     // This is the part that makes new designs "just work":
-    // it fetches your designs.json file and builds one button per entry.
+    // it fetches your designs.json file and builds one button per matching entry.
     fetch("/designs.json")
       .then((res) => res.json())
       .then((designs) => {
         const gallery = document.getElementById("gallery");
         gallery.innerHTML = "";
 
-        designs.forEach((design) => {
+        // If a category was specified in the link, only show designs matching it.
+        // If no category was given, show everything.
+        const filtered = selectedCategory
+          ? designs.filter((d) => d.category === selectedCategory)
+          : designs;
+
+        if (filtered.length === 0) {
+          gallery.textContent = "No designs found in this category yet.";
+          return;
+        }
+
+        filtered.forEach((design) => {
           const btn = document.createElement("div");
           btn.className = "design-btn";
           btn.dataset.id = design.id;
