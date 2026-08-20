@@ -33,9 +33,38 @@
     object-fit: cover;
     border-radius: 6px;
     background: #f2f2f2;
+    cursor: zoom-in;
   }
   .design-btn .name { font-weight: bold; margin-top: 8px; font-size: 14px; }
   .design-btn .price { color: #444; font-size: 13px; margin-top: 2px; }
+
+  /* Full-size image preview (lightbox) */
+  #lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  #lightbox.show { display: flex; }
+  #lightbox img {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 8px;
+  }
+  #lightbox .close-hint {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+  }
 
   #selectedBox {
     margin-top: 24px;
@@ -69,8 +98,27 @@
     <button id="continueBtn">Continue with this design</button>
   </div>
 
+  <!-- Full-size image preview, hidden until an image is clicked -->
+  <div id="lightbox">
+    <span class="close-hint">&times;</span>
+    <img id="lightboxImg" src="" alt="Full size preview" />
+  </div>
+
   <script>
     let selectedDesign = null;
+
+    // Opens the full-size preview when a photo is clicked
+    function openLightbox(imageUrl, altText) {
+      const lightboxImg = document.getElementById("lightboxImg");
+      lightboxImg.src = imageUrl;
+      lightboxImg.alt = altText;
+      document.getElementById("lightbox").classList.add("show");
+    }
+
+    // Closes it on click anywhere inside the overlay
+    document.getElementById("lightbox").addEventListener("click", () => {
+      document.getElementById("lightbox").classList.remove("show");
+    });
 
     // Human-friendly titles shown at the top depending on which category was linked
     const categoryTitles = {
@@ -117,10 +165,19 @@
             <div class="price">${design.price}</div>
           `;
 
-          // This is the "buttons respond" part — clicking calls selectDesign()
+          // This is the "buttons respond" part — clicking the card selects it
           btn.addEventListener("click", () => selectDesign(design, btn));
 
           gallery.appendChild(btn);
+        });
+
+        // Clicking directly on a photo opens the full-size preview instead of just selecting.
+        // stopPropagation prevents this click from also triggering the card's select click above.
+        gallery.querySelectorAll(".design-btn img").forEach((imgEl, i) => {
+          imgEl.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openLightbox(filtered[i].imageUrl, filtered[i].name);
+          });
         });
       })
       .catch(() => {
