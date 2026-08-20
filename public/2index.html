@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Vehicle Sticker & Skin Preview</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 480px; margin: 30px auto; padding: 0 16px; color: #222; }
+  h2 { margin-bottom: 4px; }
+  p.sub { color: #666; margin-top: 0; }
+  label { display: block; margin-top: 16px; font-weight: bold; }
+  input[type="file"], textarea {
+    width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
+  }
+  textarea { resize: vertical; min-height: 70px; font-family: inherit; }
+  button {
+    margin-top: 20px; width: 100%; padding: 12px; background: #1a73e8; color: white;
+    border: none; border-radius: 6px; font-size: 16px; cursor: pointer;
+  }
+  button:disabled { background: #999; cursor: not-allowed; }
+  #status { margin-top: 14px; color: #444; }
+  #result { margin-top: 20px; text-align: center; }
+  #result img { max-width: 100%; border-radius: 8px; border: 1px solid #ddd; }
+</style>
+</head>
+<body>
+  <h2>Preview Your Vehicle Design</h2>
+  <p class="sub">Upload a photo of your vehicle and describe the sticker or skin you want — we'll generate a preview.</p>
+
+  <form id="previewForm">
+    <label for="vehiclePhoto">Photo of your vehicle</label>
+    <input type="file" id="vehiclePhoto" name="vehiclePhoto" accept="image/*" required />
+
+    <label for="description">Describe the design</label>
+    <textarea id="description" name="description" placeholder="e.g. matte black skin with red racing stripes down the hood"></textarea>
+
+    <button type="submit" id="submitBtn">Generate Preview</button>
+  </form>
+
+  <div id="status"></div>
+  <div id="result"></div>
+
+  <script>
+    const form = document.getElementById("previewForm");
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+    const submitBtn = document.getElementById("submitBtn");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      statusEl.textContent = "Generating your preview... this can take 15-30 seconds.";
+      resultEl.innerHTML = "";
+      submitBtn.disabled = true;
+
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch("/generate-preview", { method: "POST", body: formData });
+        const data = await res.json();
+
+        if (data.success) {
+          statusEl.textContent = "Here's your preview:";
+          resultEl.innerHTML = `<img src="${data.image}" alt="Generated preview" />`;
+        } else {
+          statusEl.textContent = "Error: " + data.error;
+        }
+      } catch (err) {
+        statusEl.textContent = "Something went wrong. Please try again.";
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

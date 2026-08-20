@@ -1,0 +1,32 @@
+[
+  {
+    "id": "camo-green",
+    "name": "Camo Green Skin",
+    "imageUrl": "/designs/camo-green.jpg",
+    "price": "₹2,499"
+  },
+  {
+    "id": "carbon-fiber",
+    "name": "Carbon Fiber Wrap",
+    "imageUrl": "/designs/carbon-fiber.jpg",
+    "price": "₹3,199"
+  },
+  {
+    "id": "racing-stripes",
+    "name": "Red Racing Stripes",
+    "imageUrl": "/designs/racing-stripes.jpg",
+    "price": "₹1,799"
+  },
+  {
+    "id": "matte-black",
+    "name": "Matte Black Skin",
+    "imageUrl": "/designs/matte-black.jpg",
+    "price": "₹2,899"
+  },
+  {
+    "id": "flame-decal",
+    "name": "Flame Decal Set",
+    "imageUrl": "/designs/flame-decal.jpg",
+    "price": "₹1,299"
+  }
+]

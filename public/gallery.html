@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Choose Your Design</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 640px; margin: 30px auto; padding: 0 16px; color: #222; }
+  h2 { margin-bottom: 4px; }
+  p.sub { color: #666; margin-top: 0; }
+
+  #gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 14px;
+    margin-top: 20px;
+  }
+
+  .design-btn {
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 10px;
+    background: #fff;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s, transform 0.1s;
+  }
+  .design-btn:hover { transform: translateY(-2px); }
+  .design-btn.selected { border-color: #1a73e8; background: #eef4ff; }
+
+  .design-btn img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #f2f2f2;
+  }
+  .design-btn .name { font-weight: bold; margin-top: 8px; font-size: 14px; }
+  .design-btn .price { color: #444; font-size: 13px; margin-top: 2px; }
+
+  #selectedBox {
+    margin-top: 24px;
+    padding: 14px;
+    border-radius: 8px;
+    background: #f7f7f7;
+    display: none;
+  }
+  #selectedBox.show { display: block; }
+  #continueBtn {
+    margin-top: 12px;
+    padding: 10px 18px;
+    background: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+</style>
+</head>
+<body>
+  <h2>Choose Your Design</h2>
+  <p class="sub">Tap a design to select it.</p>
+
+  <div id="gallery">Loading designs...</div>
+
+  <div id="selectedBox">
+    <strong>Selected:</strong> <span id="selectedName"></span> — <span id="selectedPrice"></span>
+    <br />
+    <button id="continueBtn">Continue with this design</button>
+  </div>
+
+  <script>
+    let selectedDesign = null;
+
+    // This is the part that makes new designs "just work":
+    // it fetches your designs.json file and builds one button per entry.
+    fetch("/designs.json")
+      .then((res) => res.json())
+      .then((designs) => {
+        const gallery = document.getElementById("gallery");
+        gallery.innerHTML = "";
+
+        designs.forEach((design) => {
+          const btn = document.createElement("div");
+          btn.className = "design-btn";
+          btn.dataset.id = design.id;
+          btn.innerHTML = `
+            <img src="${design.imageUrl}" alt="${design.name}" onerror="this.style.background='#eee'; this.src='';" />
+            <div class="name">${design.name}</div>
+            <div class="price">${design.price}</div>
+          `;
+
+          // This is the "buttons respond" part — clicking calls selectDesign()
+          btn.addEventListener("click", () => selectDesign(design, btn));
+
+          gallery.appendChild(btn);
+        });
+      })
+      .catch(() => {
+        document.getElementById("gallery").textContent =
+          "Couldn't load designs. Make sure designs.json is in the /public folder.";
+      });
+
+    function selectDesign(design, btnEl) {
+      selectedDesign = design;
+
+      // Highlight only the clicked button
+      document.querySelectorAll(".design-btn").forEach((b) => b.classList.remove("selected"));
+      btnEl.classList.add("selected");
+
+      // Show the selection summary
+      document.getElementById("selectedName").textContent = design.name;
+      document.getElementById("selectedPrice").textContent = design.price;
+      document.getElementById("selectedBox").classList.add("show");
+    }
+
+    document.getElementById("continueBtn").addEventListener("click", () => {
+      if (!selectedDesign) return;
+      // Save the choice so the next page (e.g. your photo-upload tool) can read it
+      localStorage.setItem("chosenDesign", JSON.stringify(selectedDesign));
+      alert("Design saved: " + selectedDesign.name + "\n(This is where we'd move to the photo upload step.)");
+      // Later: window.location.href = "/index.html";
+    });
+  </script>
+</body>
+</html>
