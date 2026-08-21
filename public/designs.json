@@ -42,17 +42,38 @@
     "category": "car-skin"
   },
   {
-    "id": "paw-print-window",
-    "name": "Paw Print Window Decal",
-    "imageUrl": "/designs/paw-print-window.jpg",
-    "price": "₹499",
+    "id": "man-of-steel-shield",
+    "name": "Man of Steel Shield",
+    "imageUrl": "/designs/man-of-steel-shield.png",
+    "price": "₹700",
     "category": "windshield-window"
   },
   {
-    "id": "tribal-windshield",
-    "name": "Tribal Windshield Strip",
-    "imageUrl": "/designs/tribal-windshield.jpg",
-    "price": "₹599",
+    "id": "web-slinger-emblem",
+    "name": "Web Slinger Emblem",
+    "imageUrl": "/designs/web-slinger-emblem.png",
+    "price": "₹700",
+    "category": "windshield-window"
+  },
+  {
+    "id": "abstract-flow",
+    "name": "Abstract Flow",
+    "imageUrl": "/designs/abstract-flow.png",
+    "price": "₹500",
+    "category": "windshield-window"
+  },
+  {
+    "id": "abstract-wave",
+    "name": "Abstract Wave",
+    "imageUrl": "/designs/abstract-wave.png",
+    "price": "₹500",
+    "category": "windshield-window"
+  },
+  {
+    "id": "climbing-vines",
+    "name": "Climbing Vines",
+    "imageUrl": "/designs/climbing-vines.png",
+    "price": "₹800",
     "category": "windshield-window"
   },
   {
