@@ -14,6 +14,34 @@
     "category": "car-skin"
   },
   {
+    "id": "shiva-trishul",
+    "name": "Shiva Trishul",
+    "imageUrl": "/designs/shiva-trishul.png",
+    "price": "₹2,499",
+    "category": "car-skin"
+  },
+  {
+    "id": "mahadev-rudra",
+    "name": "Mahadev Rudra",
+    "imageUrl": "/designs/mahadev-rudra.png",
+    "price": "₹2,499",
+    "category": "car-skin"
+  },
+  {
+    "id": "hanuman-bajrangbali",
+    "name": "Hanuman Bajrangbali",
+    "imageUrl": "/designs/hanuman-bajrangbali.png",
+    "price": "₹2,899",
+    "category": "car-skin"
+  },
+  {
+    "id": "jai-hanuman",
+    "name": "Jai Hanuman",
+    "imageUrl": "/designs/jai-hanuman.png",
+    "price": "₹2,499",
+    "category": "car-skin"
+  },
+  {
     "id": "paw-print-window",
     "name": "Paw Print Window Decal",
     "imageUrl": "/designs/paw-print-window.jpg",
