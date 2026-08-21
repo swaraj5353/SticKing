@@ -77,24 +77,31 @@
     "category": "windshield-window"
   },
   {
-    "id": "racing-stripes",
-    "name": "Red Racing Stripes",
-    "imageUrl": "/designs/racing-stripes.jpg",
-    "price": "₹1,799",
+    "id": "om-symbol",
+    "name": "Om Symbol",
+    "imageUrl": "/designs/om-symbol.png",
+    "price": "₹500",
     "category": "body-sticker"
   },
   {
-    "id": "flame-decal",
-    "name": "Flame Decal Set",
-    "imageUrl": "/designs/flame-decal.jpg",
-    "price": "₹1,299",
+    "id": "mahadev",
+    "name": "Mahadev",
+    "imageUrl": "/designs/mahadev.png",
+    "price": "₹900",
     "category": "body-sticker"
   },
   {
-    "id": "lion-body-graphic",
-    "name": "Lion Body Graphic",
-    "imageUrl": "/designs/lion-body-graphic.jpg",
-    "price": "₹1,999",
+    "id": "wolf-head",
+    "name": "Wolf Head",
+    "imageUrl": "/designs/wolf-head.png",
+    "price": "₹700",
+    "category": "body-sticker"
+  },
+  {
+    "id": "eagle-head",
+    "name": "Eagle Head",
+    "imageUrl": "/designs/eagle-head.png",
+    "price": "₹700",
     "category": "body-sticker"
   }
 ]
