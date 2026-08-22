@@ -133,7 +133,8 @@
 
     if (selectedCategory && categoryTitles[selectedCategory]) {
       document.getElementById("pageTitle").textContent = categoryTitles[selectedCategory];
-      document.getElementById("pageSub").textContent = "Tap a design to select it.";
+      document.getElementById("pageSub").innerHTML =
+        'Tap a design to select it. <a href="/gallery.html" style="color:#1a73e8;">View all designs</a>';
     }
 
     // This is the part that makes new designs "just work":
