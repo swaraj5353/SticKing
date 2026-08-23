@@ -2,36 +2,67 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Vehicle Sticker & Skin Preview</title>
+<title>Vehicle Tattoo & Decal Customizer</title>
 <style>
-  body { font-family: Arial, sans-serif; max-width: 480px; margin: 30px auto; padding: 0 16px; color: #222; }
+  body { font-family: Arial, sans-serif; max-width: 520px; margin: 30px auto; padding: 0 16px; color: #222; }
   h2 { margin-bottom: 4px; }
   p.sub { color: #666; margin-top: 0; }
   label { display: block; margin-top: 16px; font-weight: bold; }
-  input[type="file"], textarea {
+  input[type="file"], input[type="text"], input[type="number"], select, textarea {
     width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;
+    font-family: inherit; font-size: 14px;
   }
-  textarea { resize: vertical; min-height: 70px; font-family: inherit; }
+  textarea { resize: vertical; min-height: 60px; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
   button {
     margin-top: 20px; width: 100%; padding: 12px; background: #1a73e8; color: white;
     border: none; border-radius: 6px; font-size: 16px; cursor: pointer;
   }
+  button.secondary { background: #444; }
+  button.decal { background: #0a8f4c; }
   button:disabled { background: #999; cursor: not-allowed; }
-  #status { margin-top: 14px; color: #444; }
+  #status { margin-top: 14px; color: #444; font-size: 14px; }
   #result { margin-top: 20px; text-align: center; }
   #result img { max-width: 100%; border-radius: 8px; border: 1px solid #ddd; }
+  #refineBox, #decalBox { display: none; margin-top: 24px; padding-top: 20px; border-top: 1px solid #eee; }
+  #decalResult { margin-top: 14px; text-align: center; }
+  #decalResult img { max-width: 100%; border-radius: 8px; background: repeating-conic-gradient(#eee 0% 25%, #fff 0% 50%) 50% / 20px 20px; }
+  a.download-link { display: inline-block; margin-top: 10px; color: #1a73e8; }
 </style>
 </head>
 <body>
-  <h2>Preview Your Vehicle Design</h2>
-  <p class="sub">Upload a photo of your vehicle and describe the sticker or skin you want — we'll generate a preview.</p>
+  <h2>Vehicle Tattoo & Decal Customizer</h2>
+  <p class="sub">Upload a photo of the panel, tell us the size and design — we'll generate a fitted preview.</p>
 
   <form id="previewForm">
-    <label for="vehiclePhoto">Photo of your vehicle</label>
+    <label for="vehiclePhoto">Photo of the vehicle or specific part</label>
     <input type="file" id="vehiclePhoto" name="vehiclePhoto" accept="image/*" required />
 
-    <label for="description">Describe the design</label>
-    <textarea id="description" name="description" placeholder="e.g. matte black skin with red racing stripes down the hood"></textarea>
+    <label for="part">Which part is this?</label>
+    <select id="part" name="part">
+      <option value="bonnet">Bonnet</option>
+      <option value="door">Door</option>
+      <option value="fender">Fender</option>
+      <option value="fuel tank">Fuel Tank</option>
+      <option value="side panel">Side Panel</option>
+      <option value="whole vehicle">Whole Vehicle</option>
+      <option value="other">Other</option>
+    </select>
+
+    <div class="row">
+      <div>
+        <label for="widthCm">Width (cm)</label>
+        <input type="number" id="widthCm" name="widthCm" placeholder="e.g. 120" />
+      </div>
+      <div>
+        <label for="heightCm">Height (cm)</label>
+        <input type="number" id="heightCm" name="heightCm" placeholder="e.g. 45" />
+      </div>
+    </div>
+
+    <label for="description">Describe the tattoo/design</label>
+    <textarea id="description" name="description" placeholder="e.g. roaring lion, black with red outline, aggressive style" required></textarea>
 
     <button type="submit" id="submitBtn">Generate Preview</button>
   </form>
@@ -39,16 +70,46 @@
   <div id="status"></div>
   <div id="result"></div>
 
+  <!-- Shown after a preview is generated -->
+  <div id="refineBox">
+    <label for="refinement">Want changes? Describe them</label>
+    <textarea id="refinement" placeholder="e.g. make it more aggressive, move it toward the rear, make it 20% smaller"></textarea>
+    <button type="button" id="refineBtn" class="secondary">Refine This Preview</button>
+  </div>
+
+  <div id="decalBox">
+    <button type="button" id="decalBtn" class="decal">Generate Print-Ready Decal (transparent background)</button>
+    <div id="decalStatus"></div>
+    <div id="decalResult"></div>
+  </div>
+
   <script>
     const form = document.getElementById("previewForm");
     const statusEl = document.getElementById("status");
     const resultEl = document.getElementById("result");
     const submitBtn = document.getElementById("submitBtn");
+    const refineBox = document.getElementById("refineBox");
+    const decalBox = document.getElementById("decalBox");
+    const refineBtn = document.getElementById("refineBtn");
+    const decalBtn = document.getElementById("decalBtn");
+
+    let currentImageBase64 = null; // holds the latest generated preview for refining
+
+    function currentFormValues() {
+      return {
+        part: document.getElementById("part").value,
+        widthCm: document.getElementById("widthCm").value,
+        heightCm: document.getElementById("heightCm").value,
+        description: document.getElementById("description").value,
+      };
+    }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       statusEl.textContent = "Generating your preview... this can take 15-30 seconds.";
       resultEl.innerHTML = "";
+      refineBox.style.display = "none";
+      decalBox.style.display = "none";
       submitBtn.disabled = true;
 
       const formData = new FormData(form);
@@ -58,8 +119,11 @@
         const data = await res.json();
 
         if (data.success) {
+          currentImageBase64 = data.image;
           statusEl.textContent = "Here's your preview:";
           resultEl.innerHTML = `<img src="${data.image}" alt="Generated preview" />`;
+          refineBox.style.display = "block";
+          decalBox.style.display = "block";
         } else {
           statusEl.textContent = "Error: " + data.error;
         }
@@ -67,6 +131,76 @@
         statusEl.textContent = "Something went wrong. Please try again.";
       } finally {
         submitBtn.disabled = false;
+      }
+    });
+
+    refineBtn.addEventListener("click", async () => {
+      const refinement = document.getElementById("refinement").value.trim();
+      if (!refinement) {
+        alert("Describe what you'd like changed first.");
+        return;
+      }
+      if (!currentImageBase64) return;
+
+      statusEl.textContent = "Refining your preview...";
+      refineBtn.disabled = true;
+
+      try {
+        const res = await fetch("/refine-preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            previousImageBase64: currentImageBase64,
+            refinement,
+            ...currentFormValues(),
+          }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          currentImageBase64 = data.image;
+          statusEl.textContent = "Updated preview:";
+          resultEl.innerHTML = `<img src="${data.image}" alt="Refined preview" />`;
+          document.getElementById("refinement").value = "";
+        } else {
+          statusEl.textContent = "Error: " + data.error;
+        }
+      } catch (err) {
+        statusEl.textContent = "Something went wrong refining the preview.";
+      } finally {
+        refineBtn.disabled = false;
+      }
+    });
+
+    decalBtn.addEventListener("click", async () => {
+      const decalStatus = document.getElementById("decalStatus");
+      const decalResult = document.getElementById("decalResult");
+      decalStatus.textContent = "Generating print-ready decal...";
+      decalResult.innerHTML = "";
+      decalBtn.disabled = true;
+
+      try {
+        const res = await fetch("/generate-decal", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: document.getElementById("description").value }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          decalStatus.textContent = "Your print-ready decal (transparent background):";
+          decalResult.innerHTML = `
+            <img src="${data.image}" alt="Print-ready decal" />
+            <br />
+            <a class="download-link" href="${data.image}" download="decal.png">Download decal PNG</a>
+          `;
+        } else {
+          decalStatus.textContent = "Error: " + data.error;
+        }
+      } catch (err) {
+        decalStatus.textContent = "Something went wrong generating the decal.";
+      } finally {
+        decalBtn.disabled = false;
       }
     });
   </script>
