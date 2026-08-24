@@ -103,5 +103,54 @@
     "imageUrl": "/designs/eagle-head.png",
     "price": "₹700",
     "category": "body-sticker"
-  }
+  },
+{
+  "id": "cosmic-trishul",
+  "name": "Cosmic Trishul",
+  "imageUrl": "/designs/cosmic-trishul.png",
+  "price": "₹1,200",
+  "category": "bike-decal"
+},
+{
+  "id": "minimal-trishul",
+  "name": "Minimal Trishul",
+  "imageUrl": "/designs/minimal-trishul.png",
+  "price": "₹600",
+  "category": "bike-decal"
+},
+{
+  "id": "mountain-compass",
+  "name": "Mountain Compass",
+  "imageUrl": "/designs/mountain-compass.png",
+  "price": "₹600",
+  "category": "bike-decal"
+},
+{
+  "id": "paw-print-trail",
+  "name": "Paw Print Trail",
+  "imageUrl": "/designs/paw-print-trail.png",
+  "price": "₹500",
+  "category": "bike-decal"
+},
+{
+  "id": "snake-curve",
+  "name": "Snake Curve",
+  "imageUrl": "/designs/snake-curve.png",
+  "price": "₹700",
+  "category": "bike-decal"
+},
+{
+  "id": "wing-emblem",
+  "name": "Wing Emblem",
+  "imageUrl": "/designs/wing-emblem.png",
+  "price": "₹500",
+  "category": "bike-decal"
+},
+{
+  "id": "predator-eyes",
+  "name": "Predator Eyes",
+  "imageUrl": "/designs/predator-eyes.png",
+  "price": "₹700",
+  "category": "bike-decal"
+}
 ]
