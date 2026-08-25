@@ -1,1650 +1,1434 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>SticKing — Design Collection</title>
-
-    <style>
-
-        /* =========================================================
-           STICKING AUTOMOTIVE NEON THEME
-           ========================================================= */
-
-        :root {
-            --bg: #050509;
-            --bg2: #080a10;
-
-            --card: #0d1018;
-            --card2: #111522;
-
-            --white: #f5f7fb;
-            --muted: #9ba3b2;
-
-            --pink: #ff2ea6;
-            --pink2: #ff4fc3;
-
-            --purple: #8b5cf6;
-            --cyan: #00e5d4;
-            --cyan2: #00fff0;
-
-            --border: rgba(255,255,255,0.08);
-        }
-
-
-        /* =========================================================
-           GLOBAL
-           ========================================================= */
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-            background: var(--bg);
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
-
-            color: var(--white);
-
-            background:
-                radial-gradient(
-                    circle at 10% 0%,
-                    rgba(255,46,166,0.13),
-                    transparent 30%
-                ),
-
-                radial-gradient(
-                    circle at 90% 0%,
-                    rgba(0,229,212,0.12),
-                    transparent 30%
-                ),
-
-                radial-gradient(
-                    circle at 50% 100%,
-                    rgba(139,92,246,0.10),
-                    transparent 38%
-                ),
-
-                linear-gradient(
-                    180deg,
-                    #050509 0%,
-                    #080a10 50%,
-                    #040509 100%
-                );
-        }
-
-
-        body::before {
-            content: "";
-
-            position: fixed;
-            inset: 0;
-
-            pointer-events: none;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    transparent,
-                    rgba(255,46,166,0.025),
-                    transparent
-                );
-
-            z-index: -1;
-        }
-
-
-        /* =========================================================
-           PAGE
-           ========================================================= */
-
-        .page {
-            width: min(1280px, 92%);
-            margin: 0 auto;
-
-            padding:
-                55px 0 100px;
-        }
-
-
-        /* =========================================================
-           TOP NAV
-           ========================================================= */
-
-        .topbar {
-            display: flex;
-
-            align-items: center;
-            justify-content: space-between;
-
-            margin-bottom: 55px;
-        }
-
-        .brand {
-            color: white;
-
-            font-size: 19px;
-            font-weight: 900;
-
-            letter-spacing: 2px;
-
-            text-decoration: none;
-
-            text-transform: uppercase;
-        }
-
-        .brand span {
-            color: var(--pink);
-
-            text-shadow:
-                0 0 12px rgba(255,46,166,0.55);
-        }
-
-        .home-link {
-            display: inline-flex;
-
-            align-items: center;
-
-            padding:
-                9px 15px;
-
-            border:
-                1px solid rgba(255,255,255,0.09);
-
-            border-radius: 999px;
-
-            color: var(--muted);
-
-            background:
-                rgba(255,255,255,0.035);
-
-            text-decoration: none;
-
-            font-size: 13px;
-            font-weight: 700;
-
-            transition:
-                0.25s ease;
-        }
-
-        .home-link:hover {
-            color: white;
-
-            border-color:
-                rgba(0,229,212,0.45);
-
-            box-shadow:
-                0 0 20px
-                rgba(0,229,212,0.10);
-        }
-
-
-        /* =========================================================
-           HEADER
-           ========================================================= */
-
-        .header {
-            text-align: center;
-
-            margin-bottom: 50px;
-        }
-
-        .eyebrow {
-            display: inline-block;
-
-            margin-bottom: 14px;
-
-            color: var(--cyan);
-
-            font-size: 11px;
-            font-weight: 900;
-
-            letter-spacing: 5px;
-
-            text-transform: uppercase;
-
-            text-shadow:
-                0 0 12px
-                rgba(0,229,212,0.55);
-        }
-
-        h1 {
-            margin: 0;
-
-            font-size:
-                clamp(38px, 6vw, 70px);
-
-            line-height: 1;
-
-            font-weight: 950;
-
-            letter-spacing: -3px;
-        }
-
-        h1 span {
-            background:
-                linear-gradient(
-                    90deg,
-                    var(--pink),
-                    var(--purple),
-                    var(--cyan)
-                );
-
-            -webkit-background-clip: text;
-            background-clip: text;
-
-            -webkit-text-fill-color: transparent;
-
-            text-shadow: none;
-        }
-
-        .subtitle {
-            max-width: 690px;
-
-            margin:
-                20px auto 0;
-
-            color: var(--muted);
-
-            font-size: 15px;
-
-            line-height: 1.7;
-        }
-
-        .back-link {
-            color: var(--cyan);
-
-            font-weight: 800;
-
-            text-decoration: none;
-        }
-
-        .back-link:hover {
-            color: white;
-        }
-
-
-        /* =========================================================
-           COLLECTION LINE
-           ========================================================= */
-
-        .collection-line {
-            display: flex;
-
-            align-items: center;
-
-            gap: 14px;
-
-            margin:
-                0 0 28px;
-        }
-
-        .collection-line::before,
-        .collection-line::after {
-            content: "";
-
-            height: 1px;
-
-            flex: 1;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    transparent,
-                    rgba(255,46,166,0.35),
-                    rgba(0,229,212,0.25)
-                );
-        }
-
-        .collection-line span {
-            color: #687080;
-
-            font-size: 10px;
-
-            letter-spacing: 3px;
-
-            font-weight: 800;
-
-            text-transform: uppercase;
-        }
-
-
-        /* =========================================================
-           GALLERY
-           ========================================================= */
-
-        #gallery {
-            display: grid;
-
-            grid-template-columns:
-                repeat(4, minmax(0, 1fr));
-
-            gap: 22px;
-
-            margin-top: 30px;
-        }
-
-
-        /* =========================================================
-           DESIGN CARD
-           ========================================================= */
-
-        .design-btn {
-            position: relative;
-
-            overflow: hidden;
-
-            padding: 8px;
-
-            border:
-                1px solid
-                rgba(255,255,255,0.075);
-
-            border-radius: 18px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(18,22,32,0.96),
-                    rgba(7,9,14,0.98)
-                );
-
-            cursor: pointer;
-
-            text-align: left;
-
-            transition:
-                transform 0.3s ease,
-                border-color 0.3s ease,
-                box-shadow 0.3s ease;
-        }
-
-
-        /* Gradient border effect */
-
-        .design-btn::before {
-            content: "";
-
-            position: absolute;
-
-            inset: 0;
-
-            border-radius: 18px;
-
-            padding: 1px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(255,46,166,0.7),
-                    rgba(139,92,246,0.35),
-                    rgba(0,229,212,0.65)
-                );
-
-            -webkit-mask:
-                linear-gradient(#fff 0 0) content-box,
-                linear-gradient(#fff 0 0);
-
-            -webkit-mask-composite: xor;
-
-            mask-composite: exclude;
-
-            opacity: 0;
-
-            transition:
-                opacity 0.3s ease;
-
-            pointer-events: none;
-        }
-
-
-        .design-btn:hover {
-            transform:
-                translateY(-8px);
-
-            border-color:
-                rgba(255,255,255,0.15);
-
-            box-shadow:
-                0 20px 55px
-                rgba(0,0,0,0.60),
-
-                0 0 30px
-                rgba(255,46,166,0.12),
-
-                0 0 25px
-                rgba(0,229,212,0.07);
-        }
-
-        .design-btn:hover::before {
-            opacity: 1;
-        }
-
-
-        /* =========================================================
-           IMAGE
-           ========================================================= */
-
-        .design-btn img {
-            position: relative;
-
-            z-index: 1;
-
-            display: block;
-
-            width: 100%;
-
-            height: 250px;
-
-            object-fit: contain;
-
-            padding: 8px;
-
-            border-radius: 12px;
-
-            background:
-                radial-gradient(
-                    circle at center,
-                    #171b28 0%,
-                    #090b11 72%,
-                    #050609 100%
-                );
-
-            cursor: zoom-in;
-
-            transition:
-                transform 0.4s ease,
-                filter 0.4s ease;
-        }
-
-
-        .design-btn:hover img {
-            transform:
-                scale(1.045);
-
-            filter:
-                brightness(1.08)
-                saturate(1.08);
-        }
-
-
-        /* =========================================================
-           IMAGE SHINE
-           ========================================================= */
-
-        .design-btn .image-shine {
-            position: absolute;
-
-            top: 0;
-            left: -120%;
-
-            width: 60%;
-            height: 100%;
-
-            z-index: 4;
-
-            pointer-events: none;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    transparent,
-                    rgba(255,255,255,0.07),
-                    transparent
-                );
-
-            transform:
-                skewX(-20deg);
-
-            transition:
-                left 0.7s ease;
-        }
-
-        .design-btn:hover .image-shine {
-            left: 150%;
-        }
-
-
-        /* =========================================================
-           DESIGN INFO
-           ========================================================= */
-
-        .design-info {
-            position: relative;
-
-            z-index: 5;
-
-            padding:
-                16px 7px 8px;
-        }
-
-        .design-btn .name {
-            color: white;
-
-            font-size: 15px;
-
-            font-weight: 850;
-
-            line-height: 1.3;
-        }
-
-        .design-btn .price {
-            display: inline-block;
-
-            margin-top: 10px;
-
-            padding:
-                6px 11px;
-
-            border:
-                1px solid
-                rgba(255,46,166,0.30);
-
-            border-radius: 7px;
-
-            color: #ff62bd;
-
-            background:
-                rgba(255,46,166,0.07);
-
-            font-size: 12px;
-
-            font-weight: 900;
-
-            text-shadow:
-                0 0 9px
-                rgba(255,46,166,0.35);
-
-            box-shadow:
-                0 0 15px
-                rgba(255,46,166,0.04);
-        }
-
-
-        /* =========================================================
-           SELECTED DESIGN
-           ========================================================= */
-
-        .design-btn.selected {
-            border-color:
-                var(--pink);
-
-            box-shadow:
-                0 0 0 1px
-                rgba(255,46,166,0.15),
-
-                0 0 30px
-                rgba(255,46,166,0.17),
-
-                0 20px 55px
-                rgba(0,0,0,0.55);
-        }
-
-        .design-btn.selected::before {
-            opacity: 1;
-        }
-
-        .design-btn.selected::after {
-            content:
-                "✓ SELECTED";
-
-            position: absolute;
-
-            top: 17px;
-            left: 17px;
-
-            z-index: 20;
-
-            padding:
-                6px 9px;
-
-            border-radius: 6px;
-
-            color: white;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    var(--pink),
-                    var(--purple)
-                );
-
-            font-size: 9px;
-
-            font-weight: 900;
-
-            letter-spacing: 1px;
-
-            box-shadow:
-                0 0 20px
-                rgba(255,46,166,0.35);
-        }
-
-
-        /* =========================================================
-           SELECTED DESIGN BAR
-           ========================================================= */
-
-        #selectedBox {
-            display: none;
-
-            position: sticky;
-
-            bottom: 20px;
-
-            z-index: 100;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            gap: 20px;
-
-            margin-top: 40px;
-
-            padding:
-                17px 20px;
-
-            border:
-                1px solid
-                rgba(255,46,166,0.30);
-
-            border-radius: 15px;
-
-            background:
-                rgba(7,9,15,0.93);
-
-            backdrop-filter:
-                blur(16px);
-
-            box-shadow:
-                0 0 35px
-                rgba(255,46,166,0.10),
-
-                0 20px 55px
-                rgba(0,0,0,0.60);
-        }
-
-        #selectedBox.show {
-            display: flex;
-        }
-
-        .selected-details {
-            color: var(--muted);
-
-            font-size: 14px;
-        }
-
-        .selected-details strong {
-            color: white;
-        }
-
-        .selected-details span {
-            color: var(--pink);
-
-            font-weight: 900;
-        }
-
-
-        /* =========================================================
-           CONTINUE BUTTON
-           ========================================================= */
-
-        #continueBtn {
-            padding:
-                12px 23px;
-
-            border: none;
-
-            border-radius: 8px;
-
-            color: white;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    var(--pink),
-                    var(--purple)
-                );
-
-            font-size: 13px;
-
-            font-weight: 900;
-
-            cursor: pointer;
-
-            box-shadow:
-                0 0 25px
-                rgba(255,46,166,0.20);
-
-            transition:
-                0.25s ease;
-
-            white-space: nowrap;
-        }
-
-        #continueBtn:hover {
-            transform:
-                translateY(-2px);
-
-            filter:
-                brightness(1.12);
-
-            box-shadow:
-                0 0 30px
-                rgba(255,46,166,0.38);
-        }
-
-
-        /* =========================================================
-           LIGHTBOX
-           ========================================================= */
-
-        #lightbox {
-            display: none;
-
-            position: fixed;
-
-            inset: 0;
-
-            z-index: 1000;
-
-            align-items: center;
-
-            justify-content: center;
-
-            padding: 25px;
-
-            background:
-                rgba(2,3,7,0.96);
-        }
-
-        #lightbox.show {
-            display: flex;
-        }
-
-        #lightbox img {
-            max-width: 94vw;
-
-            max-height: 88vh;
-
-            object-fit: contain;
-
-            border-radius: 12px;
-
-            box-shadow:
-                0 0 50px
-                rgba(255,46,166,0.15),
-
-                0 25px 80px
-                rgba(0,0,0,0.80);
-        }
-
-        #lightbox .close-hint {
-            position: absolute;
-
-            top: 15px;
-
-            right: 28px;
-
-            color: white;
-
-            font-size: 40px;
-
-            font-weight: 300;
-
-            cursor: pointer;
-
-            opacity: 0.75;
-
-            transition:
-                0.2s ease;
-        }
-
-        #lightbox .close-hint:hover {
-            color: var(--pink);
-
-            opacity: 1;
-
-            text-shadow:
-                0 0 18px
-                rgba(255,46,166,0.65);
-        }
-
-
-        /* =========================================================
-           LOADING
-           ========================================================= */
-
-        .loading {
-            grid-column: 1 / -1;
-
-            padding:
-                90px 20px;
-
-            text-align: center;
-
-            color: var(--muted);
-
-            font-size: 15px;
-        }
-
-
-        /* =========================================================
-           ERROR
-           ========================================================= */
-
-        .error {
-            grid-column: 1 / -1;
-
-            padding:
-                70px 20px;
-
-            text-align: center;
-
-            color: #ff8292;
-        }
-
-
-        /* =========================================================
-           TABLET
-           ========================================================= */
-
-        @media (max-width: 1050px) {
-
-            #gallery {
-                grid-template-columns:
-                    repeat(3, minmax(0, 1fr));
-            }
-
-        }
-
-
-        /* =========================================================
-           MOBILE
-           ========================================================= */
-
-        @media (max-width: 700px) {
-
-            .page {
-                width: 94%;
-
-                padding:
-                    35px 0 80px;
-            }
-
-            .topbar {
-                margin-bottom: 40px;
-            }
-
-            h1 {
-                font-size: 40px;
-
-                letter-spacing: -2px;
-            }
-
-            .subtitle {
-                font-size: 14px;
-            }
-
-            #gallery {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
-
-                gap: 14px;
-            }
-
-            .design-btn img {
-                height: 190px;
-
-                padding: 6px;
-            }
-
-            .design-info {
-                padding:
-                    13px 5px 7px;
-            }
-
-            .design-btn .name {
-                font-size: 13px;
-            }
-
-            .design-btn .price {
-                font-size: 11px;
-
-                padding:
-                    5px 8px;
-            }
-
-            #selectedBox.show {
-                flex-direction: column;
-
-                align-items: stretch;
-            }
-
-            #continueBtn {
-                width: 100%;
-            }
-
-        }
-
-
-        /* =========================================================
-           SMALL MOBILE
-           ========================================================= */
-
-        @media (max-width: 430px) {
-
-            #gallery {
-                grid-template-columns: 1fr;
-            }
-
-            .design-btn img {
-                height: 235px;
-            }
-
-            h1 {
-                font-size: 35px;
-            }
-
-        }
-
-
-        /* =========================================================
-           REDUCE MOTION
-           ========================================================= */
-
-        @media (prefers-reduced-motion: reduce) {
-
-            * {
-                scroll-behavior: auto !important;
-
-                transition: none !important;
-            }
-
-        }
-
-    </style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>SticKing | Design Collection</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #03050b;
+      --panel: rgba(8, 13, 24, 0.88);
+      --panel2: rgba(13, 18, 31, 0.92);
+      --pink: #ff1493;
+      --pink2: #ff39b8;
+      --cyan: #00f5ff;
+      --purple: #8b2cff;
+      --white: #f7f9ff;
+      --muted: #8f98aa;
+      --border: rgba(0, 245, 255, 0.20);
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255, 20, 147, 0.16), transparent 28%),
+        radial-gradient(circle at 85% 15%, rgba(0, 245, 255, 0.12), transparent 30%),
+        radial-gradient(circle at 50% 100%, rgba(111, 0, 255, 0.13), transparent 35%),
+        #03050b;
+      overflow-x: hidden;
+    }
+
+    /* Animated neon atmosphere */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background:
+        linear-gradient(
+          110deg,
+          transparent 0%,
+          rgba(255, 20, 147, 0.025) 30%,
+          rgba(0, 245, 255, 0.035) 50%,
+          transparent 70%
+        );
+      background-size: 250% 100%;
+      animation: atmosphere 10s linear infinite;
+    }
+
+    @keyframes atmosphere {
+      0% {
+        background-position: 0% 0;
+      }
+      100% {
+        background-position: 250% 0;
+      }
+    }
+
+    /* Top navigation */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5%;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      background: rgba(2, 4, 10, 0.82);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: white;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 20, 147, 0.7);
+      box-shadow:
+        0 0 15px rgba(255, 20, 147, 0.35),
+        inset 0 0 15px rgba(0, 245, 255, 0.08);
+      font-weight: 900;
+      color: white;
+    }
+
+    .brand-text {
+      font-size: 23px;
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .brand-text span {
+      color: var(--pink);
+      text-shadow: 0 0 15px rgba(255, 20, 147, 0.7);
+    }
+
+    .brand-sub {
+      font-size: 8px;
+      color: #8892a5;
+      letter-spacing: 1.5px;
+      margin-top: 2px;
+    }
+
+    .home-btn {
+      text-decoration: none;
+      color: white;
+      border: 1px solid rgba(255, 20, 147, 0.55);
+      padding: 11px 20px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      transition: 0.25s ease;
+      background: rgba(255, 20, 147, 0.05);
+    }
+
+    .home-btn:hover {
+      background: rgba(255, 20, 147, 0.15);
+      box-shadow: 0 0 22px rgba(255, 20, 147, 0.35);
+      transform: translateY(-2px);
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 75px 20px 35px;
+      position: relative;
+    }
+
+    .eyebrow {
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 5px;
+      margin-bottom: 18px;
+      text-shadow: 0 0 15px rgba(0, 245, 255, 0.8);
+    }
+
+    .hero h1 {
+      font-size: clamp(42px, 6vw, 78px);
+      line-height: 0.95;
+      font-weight: 950;
+      letter-spacing: -4px;
+      text-transform: uppercase;
+    }
+
+    .hero h1 span {
+      color: var(--pink);
+      text-shadow:
+        0 0 10px rgba(255, 20, 147, 0.7),
+        0 0 35px rgba(255, 20, 147, 0.35);
+    }
+
+    .hero p {
+      max-width: 680px;
+      margin: 22px auto 0;
+      color: #9ca5b8;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .hero-line {
+      width: 180px;
+      height: 2px;
+      margin: 30px auto 0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        var(--pink),
+        var(--cyan),
+        transparent
+      );
+      box-shadow:
+        0 0 15px var(--pink),
+        0 0 15px var(--cyan);
+    }
+
+    /* Category navigation */
+    .categories {
+      max-width: 1150px;
+      margin: 30px auto 42px;
+      padding: 0 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .category-btn {
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(10, 15, 26, 0.72);
+      color: #9da6b8;
+      padding: 13px 20px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      transition: 0.25s ease;
+    }
+
+    .category-btn:hover {
+      color: white;
+      border-color: rgba(0,245,255,0.45);
+      box-shadow: 0 0 20px rgba(0,245,255,0.12);
+    }
+
+    .category-btn.active {
+      color: white;
+      border-color: var(--pink);
+      background: rgba(255,20,147,0.10);
+      box-shadow:
+        0 0 15px rgba(255,20,147,0.28),
+        inset 0 0 15px rgba(255,20,147,0.05);
+    }
+
+    /* Gallery */
+    .gallery-wrap {
+      width: min(1180px, 92%);
+      margin: 0 auto 160px;
+    }
+
+    .collection-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding: 0 4px;
+    }
+
+    .collection-info h2 {
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .collection-info h2 span {
+      color: var(--pink);
+    }
+
+    .count {
+      color: #70798c;
+      font-size: 12px;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    /* Design card */
+    .card {
+      position: relative;
+      overflow: hidden;
+      min-height: 310px;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(17, 24, 39, 0.96),
+          rgba(5, 9, 17, 0.98)
+        );
+      border: 1px solid rgba(0,245,255,0.14);
+      border-radius: 15px;
+      box-shadow:
+        0 15px 40px rgba(0,0,0,0.35),
+        inset 0 1px rgba(255,255,255,0.04);
+      transition:
+        transform 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      top: -100px;
+      right: -80px;
+      background: var(--cyan);
+      filter: blur(80px);
+      opacity: 0.08;
+      pointer-events: none;
+    }
+
+    .card:hover {
+      transform: translateY(-7px);
+      border-color: rgba(255,20,147,0.65);
+      box-shadow:
+        0 20px 55px rgba(0,0,0,0.5),
+        0 0 30px rgba(255,20,147,0.13);
+    }
+
+    .card.selected {
+      border-color: var(--pink);
+      box-shadow:
+        0 0 0 1px var(--pink),
+        0 0 35px rgba(255,20,147,0.25);
+    }
+
+    .image-box {
+      height: 220px;
+      margin: 10px;
+      overflow: hidden;
+      border-radius: 10px;
+      background:
+        radial-gradient(circle, #121b2a, #050810);
+      border: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+    }
+
+    .image-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      transition: transform 0.45s ease;
+    }
+
+    .card:hover .image-box img {
+      transform: scale(1.04);
+    }
+
+    .scanline {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -20%;
+      height: 35%;
+      background: linear-gradient(
+        transparent,
+        rgba(0,245,255,0.10),
+        transparent
+      );
+      pointer-events: none;
+      animation: scan 4s linear infinite;
+    }
+
+    @keyframes scan {
+      from {
+        top: -35%;
+      }
+      to {
+        top: 120%;
+      }
+    }
+
+    .favorite {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      background: rgba(2,5,10,0.8);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #a9b1c0;
+      font-size: 17px;
+      z-index: 3;
+      transition: 0.2s ease;
+    }
+
+    .favorite:hover,
+    .favorite.active {
+      color: var(--pink);
+      border-color: var(--pink);
+      box-shadow: 0 0 18px rgba(255,20,147,0.35);
+    }
+
+    .card-info {
+      padding: 3px 17px 18px;
+    }
+
+    .card-name {
+      font-size: 16px;
+      font-weight: 850;
+      margin-bottom: 10px;
+    }
+
+    .price {
+      display: inline-block;
+      padding: 6px 11px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--pink);
+      background: rgba(255,20,147,0.08);
+      border: 1px solid rgba(255,20,147,0.25);
+      text-shadow: 0 0 10px rgba(255,20,147,0.45);
+    }
+
+    /* Bottom selection bar */
+    .selection-bar {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      width: min(1050px, 92%);
+      min-height: 78px;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 12px 15px;
+      background: rgba(4,7,15,0.90);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,20,147,0.55);
+      border-radius: 15px;
+      box-shadow:
+        0 15px 50px rgba(0,0,0,0.6),
+        0 0 30px rgba(255,20,147,0.12);
+    }
+
+    .selected-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .selected-thumb {
+      width: 78px;
+      height: 52px;
+      border-radius: 7px;
+      object-fit: cover;
+      background: #090d16;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .selected-label {
+      color: var(--pink);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+
+    .selected-name {
+      font-size: 16px;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 300px;
+    }
+
+    .selected-price {
+      padding-left: 25px;
+      border-left: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .selected-price small {
+      display: block;
+      color: #7f889b;
+      font-size: 9px;
+      letter-spacing: 2px;
+      margin-bottom: 3px;
+    }
+
+    .selected-price strong {
+      color: var(--pink);
+      font-size: 20px;
+      text-shadow: 0 0 15px rgba(255,20,147,0.45);
+    }
+
+    .continue-btn {
+      border: 0;
+      cursor: pointer;
+      min-width: 220px;
+      padding: 15px 25px;
+      border-radius: 9px;
+      color: white;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      background: linear-gradient(
+        90deg,
+        #d90072,
+        #ff1493,
+        #ff39b8
+      );
+      box-shadow:
+        0 0 20px rgba(255,20,147,0.3),
+        inset 0 1px rgba(255,255,255,0.25);
+      transition: 0.25s ease;
+    }
+
+    .continue-btn:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 0 30px rgba(255,20,147,0.55),
+        0 0 60px rgba(255,20,147,0.18);
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 80px 20px;
+      color: #7c8598;
+    }
+
+    /* Responsive */
+    @media (max-width: 1000px) {
+      .gallery {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        padding: 0 20px;
+      }
+
+      .brand-sub {
+        display: none;
+      }
+
+      .home-btn {
+        padding: 9px 13px;
+        font-size: 11px;
+      }
+
+      .hero {
+        padding-top: 50px;
+      }
+
+      .gallery {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .selection-bar {
+        flex-wrap: wrap;
+      }
+
+      .continue-btn {
+        flex: 1;
+        min-width: 150px;
+      }
+
+      .selected-price {
+        display: none;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .gallery {
+        grid-template-columns: 1fr;
+      }
+
+      .hero h1 {
+        letter-spacing: -2px;
+      }
+
+      .categories {
+        gap: 7px;
+      }
+
+      .category-btn {
+        padding: 10px 12px;
+        font-size: 10px;
+      }
+
+      .selection-bar {
+        bottom: 10px;
+      }
+
+      .selected-thumb {
+        width: 55px;
+        height: 42px;
+      }
+
+      .selected-name {
+        max-width: 150px;
+      }
+    }
+  </style>
 </head>
-
 
 <body>
 
+  <!-- TOP BAR -->
+  <header class="topbar">
 
-<div class="page">
+    <a href="index.html" class="brand">
+      <div class="brand-mark">S</div>
 
-
-    <!-- =====================================================
-         TOP BAR
-         ===================================================== -->
-
-    <div class="topbar">
-
-        <a
-            href="/"
-            class="brand"
-        >
-            Stic<span>King</span>
-        </a>
-
-        <a
-            href="/"
-            class="home-link"
-        >
-            ← Back to Home
-        </a>
-
-    </div>
-
-
-    <!-- =====================================================
-         HEADER
-         ===================================================== -->
-
-    <header class="header">
-
-        <div class="eyebrow">
-            STICKING COLLECTION
+      <div>
+        <div class="brand-text">
+          Stic<span>King</span>
         </div>
-
-
-        <h1 id="pageTitle">
-
-            Choose Your
-            <span>Design.</span>
-
-        </h1>
-
-
-        <p
-            class="subtitle"
-            id="pageSub"
-        >
-
-            Select a premium automotive design
-            and see the details before moving forward.
-
-        </p>
-
-    </header>
-
-
-    <!-- =====================================================
-         COLLECTION DIVIDER
-         ===================================================== -->
-
-    <div class="collection-line">
-
-        <span>
-            Premium Automotive Decals
-        </span>
-
-    </div>
-
-
-    <!-- =====================================================
-         GALLERY
-         ===================================================== -->
-
-    <div id="gallery">
-
-        <div class="loading">
-
-            Loading designs...
-
+        <div class="brand-sub">
+          DAMAGE COVER CUSTOM AUTOMOTIVE DECALS
         </div>
+      </div>
+    </a>
 
+    <a href="index.html" class="home-btn">
+      ← BACK TO HOME
+    </a>
+
+  </header>
+
+
+  <!-- HERO -->
+  <section class="hero">
+
+    <div class="eyebrow">
+      STICKING COLLECTION
     </div>
 
+    <h1>
+      <span id="heroCategory">CAR SKIN</span>
+      COLLECTION.
+    </h1>
 
-    <!-- =====================================================
-         SELECTED DESIGN
-         ===================================================== -->
+    <p>
+      Premium automotive decals designed to turn every vehicle
+      into a statement.
+    </p>
 
-    <div id="selectedBox">
+    <div class="hero-line"></div>
 
-        <div class="selected-details">
-
-            <strong>
-                Selected:
-            </strong>
-
-            <span id="selectedName"></span>
-
-            &nbsp; · &nbsp;
-
-            <span id="selectedPrice"></span>
-
-        </div>
+  </section>
 
 
-        <button id="continueBtn">
+  <!-- CATEGORY BUTTONS -->
+  <nav class="categories">
 
-            Continue →
+    <button
+      class="category-btn"
+      data-category="car-skin">
+      🚗 CAR SKIN
+    </button>
 
-        </button>
+    <button
+      class="category-btn"
+      data-category="windshield-window">
+      ◉ WINDSHIELD & WINDOW
+    </button>
 
+    <button
+      class="category-btn"
+      data-category="body-sticker">
+      ★ BODY STICKER
+    </button>
+
+    <button
+      class="category-btn"
+      data-category="bike-decal">
+      🏍 BIKE DECAL
+    </button>
+
+  </nav>
+
+
+  <!-- GALLERY -->
+  <main class="gallery-wrap">
+
+    <div class="collection-info">
+      <h2>
+        <span id="collectionTitle">Car Skin</span>
+        Collection
+      </h2>
+
+      <div class="count" id="designCount">
+        0 designs
+      </div>
     </div>
 
+    <div class="gallery" id="gallery"></div>
 
-</div>
-
-
-<!-- =====================================================
-     LIGHTBOX
-     ===================================================== -->
-
-<div id="lightbox">
-
-    <span class="close-hint">
-        &times;
-    </span>
+  </main>
 
 
-    <img
-        id="lightboxImg"
+  <!-- SELECTION BAR -->
+  <div class="selection-bar">
+
+    <div class="selected-info">
+
+      <img
+        id="selectedThumb"
+        class="selected-thumb"
         src=""
-        alt="Design preview"
-    >
+        alt="Selected design">
 
-</div>
+      <div>
+        <div class="selected-label">
+          SELECTED DESIGN
+        </div>
+
+        <div
+          id="selectedName"
+          class="selected-name">
+          Select a design
+        </div>
+      </div>
+
+    </div>
+
+    <div class="selected-price">
+
+      <small>PRICE</small>
+
+      <strong id="selectedPrice">
+        —
+      </strong>
+
+    </div>
+
+    <button
+      id="continueBtn"
+      class="continue-btn">
+      CONTINUE →
+    </button>
+
+  </div>
 
 
 <script>
 
+  /*
+   ============================================================
+   STICKING GALLERY
+   ============================================================
+  */
 
-/* =========================================================
-   SELECTED DESIGN
-   ========================================================= */
+  const fallbackDesigns = [
 
-let selectedDesign = null;
+    /* CAR SKINS */
 
+    {
+      id: "panther-skin",
+      name: "Panther Skin",
+      imageUrl: "/designs/panther-skin.png",
+      price: "₹2,899",
+      category: "car-skin"
+    },
 
-/* =========================================================
-   LIGHTBOX
-   ========================================================= */
+    {
+      id: "jaguar-skin",
+      name: "Jaguar Skin",
+      imageUrl: "/designs/jaguar-skin.png",
+      price: "₹2,499",
+      category: "car-skin"
+    },
 
-function openLightbox(
-    imageUrl,
-    altText
-) {
+    {
+      id: "shiva-trishul",
+      name: "Shiva Trishul",
+      imageUrl: "/designs/shiva-trishul.png",
+      price: "₹2,499",
+      category: "car-skin"
+    },
 
-    const lightbox =
-        document.getElementById(
-            "lightbox"
-        );
+    {
+      id: "mahadev-rudra",
+      name: "Mahadev Rudra",
+      imageUrl: "/designs/mahadev-rudra.png",
+      price: "₹2,499",
+      category: "car-skin"
+    },
 
-    const lightboxImg =
-        document.getElementById(
-            "lightboxImg"
-        );
+    {
+      id: "hanuman-bajrangbali",
+      name: "Hanuman Bajrangbali",
+      imageUrl: "/designs/hanuman-bajrangbali.png",
+      price: "₹2,899",
+      category: "car-skin"
+    },
 
-
-    lightboxImg.src =
-        imageUrl;
-
-    lightboxImg.alt =
-        altText;
-
-
-    lightbox.classList.add(
-        "show"
-    );
-}
-
-
-function closeLightbox() {
-
-    document
-        .getElementById(
-            "lightbox"
-        )
-        .classList.remove(
-            "show"
-        );
-}
-
-
-/* Close lightbox */
-
-document
-    .getElementById(
-        "lightbox"
-    )
-    .addEventListener(
-        "click",
-        closeLightbox
-    );
+    {
+      id: "jai-hanuman",
+      name: "Jai Hanuman",
+      imageUrl: "/designs/jai-hanuman.png",
+      price: "₹2,499",
+      category: "car-skin"
+    },
 
 
-/* =========================================================
-   CLOSE WITH ESC
-   ========================================================= */
+    /* WINDSHIELD / WINDOW */
 
-document.addEventListener(
-    "keydown",
-    function(event) {
+    {
+      id: "man-of-steel-shield",
+      name: "Man of Steel Shield",
+      imageUrl: "/designs/man-of-steel-shield.png",
+      price: "₹700",
+      category: "windshield-window"
+    },
 
-        if (
-            event.key ===
-            "Escape"
-        ) {
+    {
+      id: "web-slinger-emblem",
+      name: "Web Slinger Emblem",
+      imageUrl: "/designs/web-slinger-emblem.png",
+      price: "₹700",
+      category: "windshield-window"
+    },
 
-            closeLightbox();
+    {
+      id: "abstract-flow",
+      name: "Abstract Flow",
+      imageUrl: "/designs/abstract-flow.png",
+      price: "₹500",
+      category: "windshield-window"
+    },
 
-        }
+    {
+      id: "abstract-wave",
+      name: "Abstract Wave",
+      imageUrl: "/designs/abstract-wave.png",
+      price: "₹500",
+      category: "windshield-window"
+    },
 
+    {
+      id: "climbing-vines",
+      name: "Climbing Vines",
+      imageUrl: "/designs/climbing-vines.png",
+      price: "₹800",
+      category: "windshield-window"
+    },
+
+
+    /* BODY STICKERS */
+
+    {
+      id: "om-symbol",
+      name: "Om Symbol",
+      imageUrl: "/designs/om-symbol.png",
+      price: "₹500",
+      category: "body-sticker"
+    },
+
+    {
+      id: "mahadev",
+      name: "Mahadev",
+      imageUrl: "/designs/mahadev.png",
+      price: "₹900",
+      category: "body-sticker"
+    },
+
+    {
+      id: "wolf-head",
+      name: "Wolf Head",
+      imageUrl: "/designs/wolf-head.png",
+      price: "₹700",
+      category: "body-sticker"
+    },
+
+    {
+      id: "eagle-head",
+      name: "Eagle Head",
+      imageUrl: "/designs/eagle-head.png",
+      price: "₹700",
+      category: "body-sticker"
+    },
+
+
+    /* BIKE DECALS */
+
+    {
+      id: "cosmic-trishul",
+      name: "Cosmic Trishul",
+      imageUrl: "/designs/cosmic-trishul.png",
+      price: "₹1,200",
+      category: "bike-decal"
+    },
+
+    {
+      id: "minimal-trishul",
+      name: "Minimal Trishul",
+      imageUrl: "/designs/minimal-trishul.png",
+      price: "₹600",
+      category: "bike-decal"
+    },
+
+    {
+      id: "mountain-compass",
+      name: "Mountain Compass",
+      imageUrl: "/designs/mountain-compass.png",
+      price: "₹600",
+      category: "bike-decal"
+    },
+
+    {
+      id: "paw-print-trail",
+      name: "Paw Print Trail",
+      imageUrl: "/designs/paw-print-trail.png",
+      price: "₹500",
+      category: "bike-decal"
+    },
+
+    {
+      id: "snake-curve",
+      name: "Snake Curve",
+      imageUrl: "/designs/snake-curve.png",
+      price: "₹700",
+      category: "bike-decal"
+    },
+
+    {
+      id: "wing-emblem",
+      name: "Wing Emblem",
+      imageUrl: "/designs/wing-emblem.png",
+      price: "₹500",
+      category: "bike-decal"
+    },
+
+    {
+      id: "predator-eyes",
+      name: "Predator Eyes",
+      imageUrl: "/designs/predator-eyes.png",
+      price: "₹700",
+      category: "bike-decal"
     }
-);
+
+  ];
 
 
-/* =========================================================
-   CATEGORY INFORMATION
-   ========================================================= */
+  let designs = fallbackDesigns;
+  let currentCategory = "car-skin";
+  let selectedDesign = null;
 
-const categoryInfo = {
+
+  const categoryNames = {
 
     "car-skin": {
-
-        title:
-            'Car Skin <span>Collection.</span>',
-
-        subtitle:
-            'Premium vehicle skins and automotive graphics designed to turn your car into a statement.'
-
+      hero: "CAR SKIN",
+      title: "Car Skin"
     },
-
 
     "windshield-window": {
-
-        title:
-            'Windshield & Window <span>Collection.</span>',
-
-        subtitle:
-            'Clean windshield and window decals designed to add personality without overwhelming visibility.'
-
+      hero: "WINDSHIELD & WINDOW",
+      title: "Windshield & Window"
     },
-
 
     "body-sticker": {
-
-        title:
-            'Body Sticker <span>Collection.</span>',
-
-        subtitle:
-            'Compact automotive stickers, symbols and graphics made for doors, panels and bodywork.'
-
+      hero: "BODY STICKER",
+      title: "Body Sticker"
     },
 
-
     "bike-decal": {
+      hero: "BIKE DECAL",
+      title: "Bike Decal"
+    }
 
-        title:
-            'Bike Decal <span>Collection.</span>',
+  };
 
-        subtitle:
-            'Premium motorcycle decals for tanks, side panels, fairings and custom bike styling.'
+
+  /*
+   ============================================================
+   TRY TO LOAD designs.json
+   If it exists, it will automatically be used.
+   Otherwise fallbackDesigns are used.
+   ============================================================
+  */
+
+  async function loadDesigns() {
+
+    try {
+
+      const response = await fetch("/designs.json", {
+        cache: "no-store"
+      });
+
+      if (response.ok) {
+
+        const data = await response.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+          designs = data;
+        }
+
+      }
+
+    } catch (error) {
+
+      console.log(
+        "designs.json not found. Using built-in designs."
+      );
 
     }
 
-};
+    render();
+
+  }
 
 
-/* =========================================================
-   GET CATEGORY FROM URL
-   ========================================================= */
+  /*
+   ============================================================
+   READ CATEGORY FROM URL
+   Example:
+   gallery.html?category=bike-decal
+   ============================================================
+  */
 
-const params =
-    new URLSearchParams(
-        window.location.search
+  function readCategoryFromURL() {
+
+    const params =
+      new URLSearchParams(window.location.search);
+
+    const category =
+      params.get("category");
+
+    const validCategories = [
+      "car-skin",
+      "windshield-window",
+      "body-sticker",
+      "bike-decal"
+    ];
+
+    if (validCategories.includes(category)) {
+      currentCategory = category;
+    }
+
+  }
+
+
+  /*
+   ============================================================
+   UPDATE URL
+   ============================================================
+  */
+
+  function updateURL(category) {
+
+    const url =
+      new URL(window.location.href);
+
+    url.searchParams.set(
+      "category",
+      category
     );
 
-
-const selectedCategory =
-    params.get(
-        "category"
+    window.history.pushState(
+      {},
+      "",
+      url
     );
 
+  }
 
-/* =========================================================
-   UPDATE PAGE TITLE
-   ========================================================= */
 
-if (
-    selectedCategory &&
-    categoryInfo[
-        selectedCategory
-    ]
-) {
+  /*
+   ============================================================
+   CHANGE CATEGORY
+   ============================================================
+  */
 
-    const info =
-        categoryInfo[
-            selectedCategory
-        ];
+  function changeCategory(category) {
 
+    currentCategory = category;
+
+    updateURL(category);
+
+    selectedDesign = null;
+
+    render();
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  }
+
+
+  /*
+   ============================================================
+   RENDER GALLERY
+   ============================================================
+  */
+
+  function render() {
+
+    const gallery =
+      document.getElementById("gallery");
+
+    const filtered =
+      designs.filter(
+        design =>
+          design.category === currentCategory
+      );
+
+
+    /* Update title */
+
+    document.getElementById(
+      "heroCategory"
+    ).textContent =
+      categoryNames[currentCategory].hero;
+
+
+    document.getElementById(
+      "collectionTitle"
+    ).textContent =
+      categoryNames[currentCategory].title;
+
+
+    document.getElementById(
+      "designCount"
+    ).textContent =
+      `${filtered.length} design${filtered.length === 1 ? "" : "s"}`;
+
+
+    /* Active category */
 
     document
-        .getElementById(
-            "pageTitle"
-        )
-        .innerHTML =
-            info.title;
+      .querySelectorAll(".category-btn")
+      .forEach(button => {
 
+        button.classList.toggle(
+          "active",
+          button.dataset.category === currentCategory
+        );
 
-    document
-        .getElementById(
-            "pageSub"
-        )
-        .innerHTML =
-            info.subtitle +
-            ' <a class="back-link" href="/gallery.html">View all designs →</a>';
+      });
 
-}
 
+    /* No designs */
 
-/* =========================================================
-   LOAD DESIGNS
-   ========================================================= */
+    if (filtered.length === 0) {
 
-fetch(
-    "/designs.json"
-)
+      gallery.innerHTML = `
+        <div class="empty">
+          <h2>No designs available yet.</h2>
+          <p>Please check back soon.</p>
+        </div>
+      `;
 
+      updateSelectionBar();
 
-    .then(
-        function(res) {
+      return;
+    }
 
-            if (!res.ok) {
 
-                throw new Error(
-                    "Unable to load designs"
-                );
+    /* Create cards */
 
-            }
+    gallery.innerHTML =
+      filtered.map(design => {
 
-            return res.json();
+        return `
 
-        }
-    )
+          <article
+            class="card"
+            data-id="${design.id}"
+            onclick="selectDesign('${design.id}')">
 
+            <div class="image-box">
 
-    .then(
-        function(designs) {
+              <img
+                src="${design.imageUrl}"
+                alt="${escapeHTML(design.name)}"
+                loading="lazy"
+                onerror="this.style.display='none';">
 
-            const gallery =
-                document.getElementById(
-                    "gallery"
-                );
+              <div class="scanline"></div>
 
+              <button
+                class="favorite"
+                onclick="toggleFavorite(event, '${design.id}')"
+                aria-label="Favourite">
 
-            gallery.innerHTML =
-                "";
+                ☆
 
+              </button>
 
-            /* =================================================
-               FILTER CATEGORY
-               ================================================= */
+            </div>
 
-            const filtered =
-                selectedCategory
 
-                    ? designs.filter(
-                        function(design) {
+            <div class="card-info">
 
-                            return (
-                                design.category ===
-                                selectedCategory
-                            );
+              <div class="card-name">
+                ${escapeHTML(design.name)}
+              </div>
 
-                        }
-                    )
+              <div class="price">
+                ${escapeHTML(design.price)}
+              </div>
 
-                    : designs;
+            </div>
 
+          </article>
 
-            /* =================================================
-               NO DESIGNS
-               ================================================= */
+        `;
 
-            if (
-                !filtered.length
-            ) {
+      }).join("");
 
-                gallery.innerHTML =
-                    '<div class="error">No designs found in this collection yet.</div>';
 
-                return;
+    /* Restore selection if still in current category */
 
-            }
+    if (selectedDesign) {
 
+      const exists =
+        filtered.some(
+          d => d.id === selectedDesign.id
+        );
 
-            /* =================================================
-               CREATE CARDS
-               ================================================= */
+      if (!exists) {
+        selectedDesign = null;
+      }
 
-            filtered.forEach(
-                function(design) {
+    }
 
 
-                    const btn =
-                        document.createElement(
-                            "div"
-                        );
+    updateSelectionBar();
 
+  }
 
-                    btn.className =
-                        "design-btn";
 
-
-                    btn.dataset.id =
-                        design.id;
-
-
-                    btn.innerHTML = `
-
-                        <div class="image-shine"></div>
-
-                        <img
-                            src="${design.imageUrl}"
-                            alt="${design.name}"
-                            loading="lazy"
-                        >
-
-                        <div class="design-info">
-
-                            <div class="name">
-                                ${design.name}
-                            </div>
-
-                            <div class="price">
-                                ${design.price}
-                            </div>
-
-                        </div>
-
-                    `;
-
-
-                    /* =========================================
-                       SELECT DESIGN
-                       ========================================= */
-
-                    btn.addEventListener(
-                        "click",
-                        function() {
-
-                            selectDesign(
-                                design,
-                                btn
-                            );
-
-                        }
-                    );
-
-
-                    gallery.appendChild(
-                        btn
-                    );
-
-
-                    /* =========================================
-                       IMAGE LIGHTBOX
-                       ========================================= */
-
-                    const img =
-                        btn.querySelector(
-                            "img"
-                        );
-
-
-                    img.addEventListener(
-                        "click",
-                        function(event) {
-
-                            event.stopPropagation();
-
-
-                            openLightbox(
-                                design.imageUrl,
-                                design.name
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
-        }
-    )
-
-
-    /* =====================================================
-       ERROR HANDLING
-       ===================================================== */
-
-    .catch(
-        function(error) {
-
-            console.error(
-                error
-            );
-
-
-            document
-                .getElementById(
-                    "gallery"
-                )
-                .innerHTML =
-                    '<div class="error">Couldn’t load the designs. Please check that designs.json is available.</div>';
-
-        }
-    );
-
-
-/* =========================================================
+  /*
+   ============================================================
    SELECT DESIGN
-   ========================================================= */
+   ============================================================
+  */
 
-function selectDesign(
-    design,
-    btnEl
-) {
+  function selectDesign(id) {
 
-    selectedDesign =
-        design;
+    const design =
+      designs.find(
+        item => item.id === id
+      );
 
+    if (!design) return;
 
-    /* Remove old selection */
+    selectedDesign = design;
 
     document
-        .querySelectorAll(
-            ".design-btn"
-        )
-        .forEach(
-            function(button) {
+      .querySelectorAll(".card")
+      .forEach(card => {
 
-                button.classList.remove(
-                    "selected"
-                );
-
-            }
+        card.classList.toggle(
+          "selected",
+          card.dataset.id === id
         );
 
+      });
 
-    /* Add new selection */
+    updateSelectionBar();
 
-    btnEl.classList.add(
-        "selected"
-    );
-
-
-    /* Selected name */
-
-    document
-        .getElementById(
-            "selectedName"
-        )
-        .textContent =
-            design.name;
+  }
 
 
-    /* Selected price */
+  /*
+   ============================================================
+   SELECTION BAR
+   ============================================================
+  */
 
-    document
-        .getElementById(
-            "selectedPrice"
-        )
-        .textContent =
-            design.price;
+  function updateSelectionBar() {
 
+    const thumb =
+      document.getElementById("selectedThumb");
 
-    /* Show selection bar */
+    const name =
+      document.getElementById("selectedName");
 
-    document
-        .getElementById(
-            "selectedBox"
-        )
-        .classList.add(
-            "show"
-        );
-
-}
+    const price =
+      document.getElementById("selectedPrice");
 
 
-/* =========================================================
+    if (!selectedDesign) {
+
+      thumb.src = "";
+      name.textContent = "Select a design";
+      price.textContent = "—";
+
+      return;
+
+    }
+
+
+    thumb.src =
+      selectedDesign.imageUrl;
+
+    name.textContent =
+      selectedDesign.name;
+
+    price.textContent =
+      selectedDesign.price;
+
+  }
+
+
+  /*
+   ============================================================
+   FAVOURITE
+   ============================================================
+  */
+
+  function toggleFavorite(event, id) {
+
+    event.stopPropagation();
+
+    const button =
+      event.currentTarget;
+
+    button.classList.toggle("active");
+
+    button.textContent =
+      button.classList.contains("active")
+        ? "★"
+        : "☆";
+
+  }
+
+
+  /*
+   ============================================================
    CONTINUE BUTTON
-   ========================================================= */
+   ============================================================
+  */
 
-document
-    .getElementById(
-        "continueBtn"
-    )
-    .addEventListener(
+  document
+    .getElementById("continueBtn")
+    .addEventListener("click", function() {
+
+      if (!selectedDesign) {
+
+        alert(
+          "Please select a design first."
+        );
+
+        return;
+
+      }
+
+
+      /*
+       Store selected design so your
+       next page can use it.
+      */
+
+      localStorage.setItem(
+        "selectedStickingDesign",
+        JSON.stringify(selectedDesign)
+      );
+
+
+      /*
+       Go back to your main customization page.
+
+       If your preview/customizer is on
+       another page, change index.html here.
+      */
+
+      window.location.href =
+        "index.html?design=" +
+        encodeURIComponent(
+          selectedDesign.id
+        );
+
+    });
+
+
+  /*
+   ============================================================
+   CATEGORY BUTTON EVENTS
+   ============================================================
+  */
+
+  document
+    .querySelectorAll(".category-btn")
+    .forEach(button => {
+
+      button.addEventListener(
         "click",
         function() {
 
-
-            if (
-                !selectedDesign
-            ) {
-
-                return;
-
-            }
-
-
-            /* Save selected design */
-
-            localStorage.setItem(
-                "chosenDesign",
-                JSON.stringify(
-                    selectedDesign
-                )
-            );
-
-
-            /*
-             * Keep your existing behavior.
-             *
-             * When you are ready to connect this
-             * to your vehicle customizer, you can
-             * change this alert to:
-             *
-             * window.location.href =
-             * "/upload.html";
-             */
-
-
-            alert(
-                "Design saved: " +
-                selectedDesign.name
-            );
+          changeCategory(
+            this.dataset.category
+          );
 
         }
-    );
+      );
 
+    });
+
+
+  /*
+   ============================================================
+   ESCAPE HTML
+   ============================================================
+  */
+
+  function escapeHTML(value) {
+
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+
+  /*
+   ============================================================
+   INITIALIZE
+   ============================================================
+  */
+
+  readCategoryFromURL();
+
+  loadDesigns();
 
 </script>
 
-
 </body>
-
 </html>
