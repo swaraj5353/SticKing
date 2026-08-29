@@ -766,6 +766,9 @@ a.download-link:hover {
 
 <script>
 
+/* RENDER BACKEND */
+const API_BASE_URL = "https://sticking.onrender.com";
+
 /* =========================================================
    DESIGN DATABASE
    These IDs match your gallery JSON.
@@ -1762,7 +1765,7 @@ form.addEventListener(
 
       const res =
         await fetch(
-          "/generate-preview",
+          `${API_BASE_URL}/generate-preview`,
           {
             method: "POST",
             body: formData
@@ -1816,7 +1819,7 @@ form.addEventListener(
       console.error(err);
 
       statusEl.textContent =
-        "Something went wrong. Please try again.";
+        "Connection error. Please check that the Render backend is running.";
 
     }
 
@@ -1873,7 +1876,7 @@ refineBtn.addEventListener(
 
       const res =
         await fetch(
-          "/refine-preview",
+          `${API_BASE_URL}/refine-preview`,
           {
 
             method: "POST",
@@ -1941,7 +1944,7 @@ refineBtn.addEventListener(
       console.error(err);
 
       statusEl.textContent =
-        "Something went wrong refining the decal.";
+        "Connection error while refining. Please check the Render backend.";
 
     }
 
@@ -1989,7 +1992,7 @@ decalBtn.addEventListener(
 
       const res =
         await fetch(
-          "/generate-decal",
+          `${API_BASE_URL}/generate-decal`,
           {
 
             method: "POST",
@@ -2059,7 +2062,7 @@ decalBtn.addEventListener(
       console.error(err);
 
       decalStatus.textContent =
-        "Something went wrong generating the decal.";
+        "Connection error while generating the decal. Please check the Render backend.";
 
     }
 
@@ -2088,7 +2091,7 @@ const orderNumberEl = document.getElementById("orderNumber");
   If you later embed this page directly in Odoo, change this
   to: https://sticking.onrender.com
 */
-const API_BASE_URL = window.location.origin;
+
 
 function parsePrice(value) {
   return Number(String(value || "").replace(/[₹,\s]/g, "")) || 0;
