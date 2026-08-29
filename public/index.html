@@ -7,31 +7,29 @@
 <title>SticKing | Vehicle Customizer</title>
 
 <style>
-
 :root {
-    --bg: #06060b;
-    --panel: #101019;
-    --panel2: #151522;
-    --cyan: #00fff2;
-    --pink: #ff2ee6;
-    --purple: #8b5cff;
-    --red: #ff2b4e;
-    --green: #3dffa0;
-    --text: #f4f4ff;
-    --muted: #a8a8bd;
-    --border: rgba(0,255,242,.25);
+    --bg:#05050a;
+    --panel:#101019;
+    --panel2:#151522;
+    --cyan:#00fff2;
+    --pink:#ff2ee6;
+    --red:#ff2b4e;
+    --green:#3dffa0;
+    --text:#f4f4ff;
+    --muted:#a8a8bd;
+    --border:rgba(0,255,242,.25);
 }
 
 * {
-    box-sizing: border-box;
+    box-sizing:border-box;
 }
 
 body {
-    margin: 0;
-    min-height: 100vh;
-    padding: 28px 15px 60px;
-    font-family: Arial, Helvetica, sans-serif;
-    color: var(--text);
+    margin:0;
+    min-height:100vh;
+    padding:28px 15px 60px;
+    font-family:Arial,Helvetica,sans-serif;
+    color:var(--text);
 
     background:
         radial-gradient(
@@ -53,147 +51,51 @@ body {
 }
 
 .container {
-    width: 100%;
-    max-width: 650px;
-    margin: auto;
+    width:100%;
+    max-width:650px;
+    margin:auto;
 }
 
-/* =====================================================
-   BRAND
-===================================================== */
-
 .brand {
-    text-align: center;
-    margin-bottom: 28px;
+    text-align:center;
+    margin-bottom:28px;
 }
 
 .brand-small {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 5px;
-    color: var(--cyan);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:5px;
+    color:var(--cyan);
     text-shadow:
         0 0 8px rgba(0,255,242,.7),
         0 0 20px rgba(0,255,242,.3);
-    margin-bottom: 8px;
+    margin-bottom:8px;
 }
 
 .brand h1 {
-    margin: 0;
-    font-size: 34px;
-    font-weight: 800;
-    color: white;
-
+    margin:0;
+    font-size:34px;
+    font-weight:800;
+    color:white;
     text-shadow:
         0 0 8px rgba(0,255,242,.5),
         0 0 30px rgba(255,46,230,.3);
 }
 
 .brand h1 span {
-    color: var(--pink);
+    color:var(--pink);
 }
 
 .brand p {
-    color: var(--muted);
-    margin: 9px 0 0;
-    font-size: 14px;
+    color:var(--muted);
+    margin:9px 0 0;
+    font-size:14px;
 }
-
-/* =====================================================
-   SELECTED DESIGN
-===================================================== */
-
-#selectedDesignBox {
-    display: none;
-
-    margin-bottom: 22px;
-    padding: 18px;
-
-    border-radius: 17px;
-
-    border: 1px solid rgba(255,46,230,.35);
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(255,46,230,.10),
-            rgba(0,255,242,.04)
-        );
-
-    box-shadow:
-        0 0 25px rgba(255,46,230,.08),
-        inset 0 0 25px rgba(0,255,242,.03);
-}
-
-.selected-title {
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--cyan);
-    font-weight: bold;
-    margin-bottom: 13px;
-}
-
-.selected-content {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-}
-
-.selected-image {
-    width: 135px;
-    height: 95px;
-    object-fit: contain;
-
-    background: #050509;
-
-    border-radius: 10px;
-
-    border: 1px solid rgba(0,255,242,.25);
-}
-
-.selected-info {
-    flex: 1;
-}
-
-.selected-name {
-    font-size: 21px;
-    font-weight: bold;
-    margin-bottom: 7px;
-}
-
-.selected-price {
-    display: inline-block;
-
-    padding: 5px 10px;
-
-    border-radius: 7px;
-
-    background: rgba(255,46,230,.12);
-
-    border: 1px solid rgba(255,46,230,.35);
-
-    color: #ff6beb;
-
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.selected-category {
-    margin-top: 8px;
-    color: var(--muted);
-    font-size: 12px;
-}
-
-/* =====================================================
-   MAIN CARD
-===================================================== */
 
 .card {
-    padding: 22px;
-
-    border-radius: 18px;
-
-    border: 1px solid var(--border);
+    padding:22px;
+    border-radius:18px;
+    border:1px solid var(--border);
 
     background:
         linear-gradient(
@@ -208,201 +110,174 @@ body {
 }
 
 h2 {
-    margin: 0 0 7px;
-    font-size: 22px;
+    margin:0 0 7px;
+    font-size:22px;
 }
 
 .sub {
-    margin-top: 0;
-    color: var(--muted);
-    line-height: 1.5;
-    font-size: 14px;
+    margin-top:0;
+    color:var(--muted);
+    line-height:1.5;
+    font-size:14px;
 }
 
-/* =====================================================
-   FORM
-===================================================== */
-
 label {
-    display: block;
-    margin-top: 18px;
-    font-size: 14px;
-    font-weight: bold;
+    display:block;
+    margin-top:18px;
+    font-size:14px;
+    font-weight:bold;
 }
 
 input,
 select,
 textarea {
-    width: 100%;
+    width:100%;
+    margin-top:7px;
+    padding:12px;
 
-    margin-top: 7px;
-    padding: 12px;
+    border-radius:9px;
+    border:1px solid var(--border);
 
-    border-radius: 9px;
+    background:var(--panel);
+    color:white;
 
-    border: 1px solid var(--border);
-
-    background: var(--panel);
-
-    color: white;
-
-    font-family: inherit;
-    font-size: 14px;
-
-    outline: none;
+    font-family:inherit;
+    font-size:14px;
+    outline:none;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-    border-color: var(--cyan);
+    border-color:var(--cyan);
 
     box-shadow:
         0 0 12px rgba(0,255,242,.12);
 }
 
 textarea {
-    min-height: 90px;
-    resize: vertical;
+    min-height:90px;
+    resize:vertical;
 }
 
 input::placeholder,
 textarea::placeholder {
-    color: #77778d;
+    color:#77778d;
 }
 
 select option {
-    background: #111119;
-    color: white;
+    background:#111119;
+    color:white;
 }
 
 .row {
-    display: flex;
-    gap: 12px;
+    display:flex;
+    gap:12px;
 }
 
 .row > div {
-    flex: 1;
+    flex:1;
 }
 
-/* =====================================================
-   IMAGE PREVIEW
-===================================================== */
+/* VEHICLE PREVIEW */
 
 #imagePreviewBox {
-    display: none;
-    margin-top: 18px;
+    display:none;
+    margin-top:18px;
 }
 
 #imagePreview {
-    display: block;
+    display:block;
+    width:100%;
+    max-height:450px;
+    object-fit:contain;
 
-    width: 100%;
-    max-height: 450px;
-
-    object-fit: contain;
-
-    border-radius: 12px;
-
-    border: 1px solid var(--border);
-
-    background: #050509;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#050509;
 }
 
-/* =====================================================
-   CROP AREA
-===================================================== */
+/* CROP */
 
 #cropSection {
-    display: none;
-    margin-top: 18px;
+    display:none;
+    margin-top:18px;
 }
 
 .crop-wrapper {
-    position: relative;
+    position:relative;
+    width:100%;
+    border-radius:10px;
+    overflow:hidden;
 
-    width: 100%;
-
-    border-radius: 10px;
-
-    overflow: hidden;
-
-    border: 1px solid var(--border);
-
-    background: #050509;
+    border:1px solid var(--border);
+    background:#050509;
 }
 
 #cropCanvas {
-    display: block;
-    width: 100%;
-    height: auto;
-
-    touch-action: none;
+    display:block;
+    width:100%;
+    height:auto;
+    touch-action:none;
 }
 
 .crop-box {
-    position: absolute;
+    position:absolute;
 
-    left: 20%;
-    top: 20%;
+    left:20%;
+    top:20%;
 
-    width: 55%;
-    height: 45%;
+    width:55%;
+    height:45%;
 
-    border: 2px solid var(--cyan);
+    border:2px solid var(--cyan);
 
     box-shadow:
         0 0 12px rgba(0,255,242,.7),
         inset 0 0 12px rgba(0,255,242,.12);
 
-    cursor: move;
-
-    background: rgba(0,255,242,.04);
+    cursor:move;
+    background:rgba(0,255,242,.04);
 }
 
 .crop-handle {
-    position: absolute;
+    position:absolute;
 
-    width: 16px;
-    height: 16px;
+    width:16px;
+    height:16px;
 
-    right: -8px;
-    bottom: -8px;
+    right:-8px;
+    bottom:-8px;
 
-    border-radius: 50%;
+    border-radius:50%;
 
-    background: var(--pink);
+    background:var(--pink);
+    border:2px solid white;
 
-    border: 2px solid white;
-
-    cursor: nwse-resize;
+    cursor:nwse-resize;
 }
 
 .crop-hint {
-    color: var(--muted);
-    font-size: 12px;
-    margin: 7px 0 0;
+    color:var(--muted);
+    font-size:12px;
+    margin:7px 0 0;
 }
 
-/* =====================================================
-   BUTTON
-===================================================== */
+/* BUTTON */
 
 button {
-    width: 100%;
+    width:100%;
+    margin-top:20px;
+    padding:14px;
 
-    margin-top: 20px;
-    padding: 14px;
+    border:none;
+    border-radius:10px;
 
-    border: none;
-    border-radius: 10px;
+    color:white;
+    font-size:16px;
+    font-weight:bold;
 
-    color: white;
-
-    font-size: 16px;
-    font-weight: bold;
-
-    cursor: pointer;
+    cursor:pointer;
 
     background:
         linear-gradient(
@@ -415,13 +290,11 @@ button {
         0 0 12px rgba(255,43,78,.35),
         0 0 25px rgba(255,46,230,.25);
 
-    transition:
-        transform .15s ease,
-        box-shadow .2s ease;
+    transition:.15s ease;
 }
 
 button:hover:not(:disabled) {
-    transform: translateY(-1px);
+    transform:translateY(-1px);
 
     box-shadow:
         0 0 18px rgba(255,43,78,.65),
@@ -429,161 +302,241 @@ button:hover:not(:disabled) {
 }
 
 button:disabled {
-    background: #33333c;
-    color: #888;
-    cursor: not-allowed;
-    box-shadow: none;
+    background:#33333c;
+    color:#888;
+    cursor:not-allowed;
+    box-shadow:none;
 }
 
-button.secondary {
-    background: transparent;
-    border: 1px solid var(--cyan);
-    color: var(--cyan);
-    box-shadow: 0 0 8px rgba(0,255,242,.2);
-}
-
-/* =====================================================
-   STATUS
-===================================================== */
+/* STATUS */
 
 #status {
-    display: none;
+    display:none;
 
-    margin-top: 18px;
-    padding: 14px;
+    margin-top:18px;
+    padding:14px;
 
-    border-radius: 10px;
+    border-radius:10px;
 
-    font-size: 14px;
-    line-height: 1.5;
+    font-size:14px;
+    line-height:1.5;
 
-    border: 1px solid rgba(0,255,242,.2);
+    border:1px solid rgba(0,255,242,.2);
+    background:rgba(0,255,242,.035);
 
-    background: rgba(0,255,242,.035);
+    white-space:pre-wrap;
 }
 
 .status-working {
-    color: var(--cyan);
+    color:var(--cyan);
 }
 
 .status-success {
-    color: var(--green);
-    border-color: rgba(61,255,160,.35) !important;
-    background: rgba(61,255,160,.05) !important;
+    color:var(--green);
+
+    border-color:
+        rgba(61,255,160,.35) !important;
+
+    background:
+        rgba(61,255,160,.05) !important;
 }
 
 .status-error {
-    color: #ff6b82;
-    border-color: rgba(255,43,78,.4) !important;
-    background: rgba(255,43,78,.05) !important;
+    color:#ff6b82;
+
+    border-color:
+        rgba(255,43,78,.4) !important;
+
+    background:
+        rgba(255,43,78,.05) !important;
 }
 
-/* =====================================================
-   RESULT
-===================================================== */
+/* RESULT */
 
 #result {
-    display: none;
-    margin-top: 22px;
-    text-align: center;
+    display:none;
+    margin-top:22px;
+    text-align:center;
 }
 
 #result h3 {
-    margin: 0 0 12px;
-    color: var(--cyan);
+    margin:0 0 12px;
+    color:var(--cyan);
 }
 
-#result img {
-    width: 100%;
-    max-width: 100%;
+#resultImage {
+    width:100%;
+    border-radius:12px;
 
-    border-radius: 12px;
-
-    border: 1px solid var(--border);
+    border:1px solid var(--border);
 
     box-shadow:
         0 0 25px rgba(0,255,242,.15);
 }
 
 .download-btn {
-    display: inline-block;
+    display:inline-block;
 
-    margin-top: 14px;
+    margin-top:14px;
+    padding:11px 18px;
 
-    padding: 11px 18px;
+    border-radius:8px;
 
-    border-radius: 8px;
+    color:var(--cyan);
+    text-decoration:none;
 
-    color: var(--cyan);
-
-    text-decoration: none;
-
-    border: 1px solid var(--cyan);
+    border:1px solid var(--cyan);
 }
 
-/* =====================================================
-   DEBUG BOX
-===================================================== */
+/* DEBUG */
 
 #debugBox {
-    display: none;
+    display:none;
 
-    margin-top: 18px;
+    margin-top:18px;
+    padding:12px;
 
-    padding: 12px;
+    border-radius:9px;
 
-    border-radius: 9px;
+    background:#050509;
 
-    background: #050509;
+    border:1px solid rgba(255,255,255,.08);
 
-    border: 1px solid rgba(255,255,255,.08);
+    color:#77778c;
 
-    color: #77778c;
+    font-size:11px;
 
-    font-size: 11px;
-
-    white-space: pre-wrap;
-
-    word-break: break-word;
+    white-space:pre-wrap;
+    word-break:break-word;
 }
 
-/* =====================================================
-   MOBILE
-===================================================== */
+.debug-title {
+    color:var(--cyan);
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+.debug-line {
+    margin:3px 0;
+}
+
+/* SELECTED DESIGN */
+
+#selectedDesignBox {
+    display:none;
+
+    margin-bottom:22px;
+    padding:18px;
+
+    border-radius:17px;
+
+    border:
+        1px solid rgba(255,46,230,.35);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,46,230,.10),
+            rgba(0,255,242,.04)
+        );
+}
+
+.selected-title {
+    font-size:11px;
+    letter-spacing:3px;
+    color:var(--cyan);
+    font-weight:bold;
+    margin-bottom:13px;
+}
+
+.selected-content {
+    display:flex;
+    gap:15px;
+    align-items:center;
+}
+
+.selected-image {
+    width:135px;
+    height:95px;
+    object-fit:contain;
+
+    background:#050509;
+
+    border-radius:10px;
+
+    border:
+        1px solid rgba(0,255,242,.25);
+}
+
+.selected-info {
+    flex:1;
+}
+
+.selected-name {
+    font-size:21px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.selected-price {
+    display:inline-block;
+
+    padding:5px 10px;
+
+    border-radius:7px;
+
+    background:
+        rgba(255,46,230,.12);
+
+    border:
+        1px solid rgba(255,46,230,.35);
+
+    color:#ff6beb;
+
+    font-size:14px;
+    font-weight:bold;
+}
+
+.selected-category {
+    margin-top:8px;
+    color:var(--muted);
+    font-size:12px;
+}
+
+/* MOBILE */
 
 @media(max-width:600px) {
 
     body {
-        padding: 18px 11px 45px;
+        padding:18px 11px 45px;
     }
 
     .brand h1 {
-        font-size: 28px;
+        font-size:28px;
     }
 
     .card {
-        padding: 17px;
+        padding:17px;
     }
 
     .selected-content {
-        align-items: flex-start;
+        align-items:flex-start;
     }
 
     .selected-image {
-        width: 105px;
-        height: 78px;
+        width:105px;
+        height:78px;
     }
 
     .selected-name {
-        font-size: 18px;
+        font-size:18px;
     }
 
     .row {
-        flex-direction: column;
-        gap: 0;
+        flex-direction:column;
+        gap:0;
     }
 }
-
 </style>
 </head>
 
@@ -591,9 +544,7 @@ button.secondary {
 
 <div class="container">
 
-    <!-- =================================================
-         BRAND
-    ================================================== -->
+    <!-- BRAND -->
 
     <div class="brand">
 
@@ -606,15 +557,13 @@ button.secondary {
         </h1>
 
         <p>
-            Create a realistic preview of your selected decal on your vehicle.
+            Create a realistic AI preview of your sticker or vinyl design on your vehicle.
         </p>
 
     </div>
 
 
-    <!-- =================================================
-         SELECTED DESIGN
-    ================================================== -->
+    <!-- SELECTED DESIGN -->
 
     <div id="selectedDesignBox">
 
@@ -627,7 +576,6 @@ button.secondary {
             <img
                 id="selectedDesignImage"
                 class="selected-image"
-                src=""
                 alt="Selected design"
             >
 
@@ -655,9 +603,7 @@ button.secondary {
     </div>
 
 
-    <!-- =================================================
-         MAIN CARD
-    ================================================== -->
+    <!-- MAIN CARD -->
 
     <div class="card">
 
@@ -672,16 +618,12 @@ button.secondary {
         </p>
 
 
-        <!-- =================================================
-             FORM
-        ================================================== -->
+        <!-- FORM -->
 
-        <form id="previewForm">
-
-            <!-- IMPORTANT:
-                 This name MUST be vehicleImage because
-                 server.js uses upload.single("vehicleImage")
-            -->
+        <form
+            id="previewForm"
+            enctype="multipart/form-data"
+        >
 
             <label for="vehicleImage">
                 Photo of the vehicle or specific part
@@ -807,6 +749,7 @@ button.secondary {
                         id="width"
                         name="width"
                         min="1"
+                        value="120"
                         placeholder="e.g. 120"
                     >
 
@@ -824,6 +767,7 @@ button.secondary {
                         id="height"
                         name="height"
                         min="1"
+                        value="45"
                         placeholder="e.g. 45"
                     >
 
@@ -846,7 +790,7 @@ button.secondary {
             ></textarea>
 
 
-            <!-- EXTRA DESCRIPTION -->
+            <!-- EXTRA INSTRUCTIONS -->
 
             <label for="description">
                 Additional instructions
@@ -859,7 +803,7 @@ button.secondary {
             ></textarea>
 
 
-            <!-- BUTTON -->
+            <!-- GENERATE -->
 
             <button
                 type="submit"
@@ -872,16 +816,12 @@ button.secondary {
         </form>
 
 
-        <!-- =================================================
-             STATUS
-        ================================================== -->
+        <!-- STATUS -->
 
         <div id="status"></div>
 
 
-        <!-- =================================================
-             RESULT
-        ================================================== -->
+        <!-- RESULT -->
 
         <div id="result">
 
@@ -908,11 +848,17 @@ button.secondary {
         </div>
 
 
-        <!-- =================================================
-             DEBUG
-        ================================================== -->
+        <!-- DEBUG -->
 
-        <div id="debugBox"></div>
+        <div id="debugBox">
+
+            <div class="debug-title">
+                Connection Diagnostics
+            </div>
+
+            <div id="debugContent"></div>
+
+        </div>
 
     </div>
 
@@ -923,145 +869,21 @@ button.secondary {
 
 /* =========================================================
    STICKING BACKEND
-========================================================= */
+   ========================================================= */
 
 const API_BASE_URL =
     "https://sticking.onrender.com";
 
-
 const GENERATE_URL =
     API_BASE_URL + "/generate-preview";
 
-
-/* =========================================================
-   DESIGN DATABASE
-========================================================= */
-
-const designs = {
-
-    "cosmic-trishul": {
-        name: "Cosmic Trishul",
-        price: "₹1,200",
-        category: "Bike Decal",
-        image: "/designs/cosmic-trishul.png",
-        description:
-            "Cosmic Trishul motorcycle decal with a clean white trishul, flowing spiritual styling, premium single-colour vinyl appearance and clean bold edges."
-    },
-
-    "minimal-trishul": {
-        name: "Minimal Trishul",
-        price: "₹600",
-        category: "Bike Decal",
-        image: "/designs/minimal-trishul.png",
-        description:
-            "Minimal Trishul motorcycle decal with a symmetrical clean trishul, simple flowing lines and premium single-colour vinyl styling."
-    },
-
-    "mountain-compass": {
-        name: "Mountain Compass",
-        price: "₹600",
-        category: "Bike Decal",
-        image: "/designs/mountain-compass.png",
-        description:
-            "Mountain Compass motorcycle decal featuring a circular compass emblem and sharp mountain silhouette, premium adventure vinyl styling."
-    },
-
-    "paw-print-trail": {
-        name: "Paw Print Trail",
-        price: "₹500",
-        category: "Bike Decal",
-        image: "/designs/paw-print-trail.png",
-        description:
-            "Paw Print Trail decal with clean paw-print shapes gradually reducing in size, playful but premium vinyl styling."
-    },
-
-    "snake-curve": {
-        name: "Snake Curve",
-        price: "₹700",
-        category: "Bike Decal",
-        image: "/designs/snake-curve.png",
-        description:
-            "Flowing stylized snake decal following a smooth S-shaped curve, aggressive but elegant premium automotive vinyl design."
-    },
-
-    "wing-emblem": {
-        name: "Wing Emblem",
-        price: "₹500",
-        category: "Bike Decal",
-        image: "/designs/wing-emblem.png",
-        description:
-            "Symmetrical wing emblem with sharp premium automotive styling and clean bold vinyl-cut shapes."
-    },
-
-    "predator-eyes": {
-        name: "Predator Eyes",
-        price: "₹700",
-        category: "Bike Decal",
-        image: "/designs/predator-eyes.png",
-        description:
-            "Aggressive predator eyes graphic with sharp surrounding shapes and bold easy-to-cut vinyl styling."
-    },
-
-    "panther-skin": {
-        name: "Panther Skin",
-        price: "₹2,899",
-        category: "Car Skin",
-        image: "/designs/panther-skin.png",
-        description:
-            "Large aggressive black panther automotive body graphic designed for a car door and side body panels."
-    },
-
-    "jaguar-skin": {
-        name: "Jaguar Skin",
-        price: "₹2,499",
-        category: "Car Skin",
-        image: "/designs/jaguar-skin.png",
-        description:
-            "Aggressive flowing big-cat automotive side graphic with premium sporty vinyl styling."
-    },
-
-    "shiva-trishul": {
-        name: "Shiva Trishul",
-        price: "₹2,499",
-        category: "Car Skin",
-        image: "/designs/shiva-trishul.png",
-        description:
-            "Elegant Shiva Trishul automotive bonnet decal with a premium single-colour vinyl appearance."
-    },
-
-    "mahadev-rudra": {
-        name: "Mahadev Rudra",
-        price: "₹2,499",
-        category: "Car Skin",
-        image: "/designs/mahadev-rudra.png",
-        description:
-            "Premium Mahadev-inspired automotive graphic with strong spiritual styling and flowing vinyl shapes."
-    },
-
-    "climbing-vines": {
-        name: "Climbing Vines",
-        price: "₹800",
-        category: "Windshield / Window",
-        image: "/designs/climbing-vines.png",
-        description:
-            "Elegant climbing vine automotive glass decal with thin flowing branches and leaves, clean vinyl styling."
-    },
-
-    "roaring-lion": {
-        name: "Roaring Lion",
-        price: "₹1,500",
-        category: "Car / Bike Decal",
-        image: "/designs/roaring-lion.png",
-        description:
-            "Aggressive roaring lion automotive decal with detailed mane, strong silhouette and premium vinyl styling."
-    }
-
-};
+const HEALTH_URL =
+    API_BASE_URL + "/health";
 
 
 /* =========================================================
    ELEMENTS
-========================================================= */
+   ========================================================= */
 
 const form =
     document.getElementById("previewForm");
@@ -1069,13 +891,31 @@ const form =
 const fileInput =
     document.getElementById("vehicleImage");
 
+const imagePreview =
+    document.getElementById("imagePreview");
+
+const imagePreviewBox =
+    document.getElementById("imagePreviewBox");
+
+const cropSection =
+    document.getElementById("cropSection");
+
+const cropCanvas =
+    document.getElementById("cropCanvas");
+
+const cropBox =
+    document.getElementById("cropBox");
+
+const cropHandle =
+    document.getElementById("cropHandle");
+
 const submitBtn =
     document.getElementById("submitBtn");
 
-const statusEl =
+const statusBox =
     document.getElementById("status");
 
-const result =
+const resultBox =
     document.getElementById("result");
 
 const resultImage =
@@ -1087,189 +927,117 @@ const downloadLink =
 const debugBox =
     document.getElementById("debugBox");
 
-const designInput =
-    document.getElementById("design");
-
-const descriptionInput =
-    document.getElementById("description");
-
-const widthInput =
-    document.getElementById("width");
-
-const heightInput =
-    document.getElementById("height");
-
-const partInput =
-    document.getElementById("part");
+const debugContent =
+    document.getElementById("debugContent");
 
 
 /* =========================================================
-   STATUS HELPER
-========================================================= */
-
-function showStatus(
-    message,
-    type = "working"
-) {
-
-    statusEl.style.display = "block";
-
-    statusEl.className = "";
-
-    if (type === "success") {
-        statusEl.classList.add("status-success");
-    }
-
-    else if (type === "error") {
-        statusEl.classList.add("status-error");
-    }
-
-    else {
-        statusEl.classList.add("status-working");
-    }
-
-    statusEl.innerHTML = message;
-}
-
-
-/* =========================================================
-   DEBUG HELPER
-========================================================= */
+   DEBUG
+   ========================================================= */
 
 function debug(message) {
 
-    console.log(message);
+    console.log("[SticKing]", message);
 
     debugBox.style.display = "block";
 
-    const now =
-        new Date().toLocaleTimeString();
+    const line =
+        document.createElement("div");
 
-    debugBox.textContent +=
-        "[" + now + "] " +
-        message +
-        "\n";
+    line.className = "debug-line";
+
+    line.textContent =
+        new Date().toLocaleTimeString() +
+        " — " +
+        message;
+
+    debugContent.appendChild(line);
+}
+
+
+function clearDebug() {
+
+    debugContent.innerHTML = "";
+
+    debugBox.style.display = "none";
 }
 
 
 /* =========================================================
-   SELECTED DESIGN FROM URL
-=========================================================
+   STATUS
+   ========================================================= */
 
-   Your gallery can open this page like:
+function showStatus(
+    message,
+    type
+) {
 
-   /?design=panther-skin
+    statusBox.style.display = "block";
 
-   or:
+    statusBox.className = "";
 
-   /?design=climbing-vines
+    if (type === "working") {
 
-========================================================= */
-
-function loadSelectedDesign() {
-
-    const params =
-        new URLSearchParams(
-            window.location.search
+        statusBox.classList.add(
+            "status-working"
         );
 
-    const designId =
-        params.get("design");
-
-    if (!designId) {
-        return;
     }
 
-    const selected =
-        designs[designId];
+    if (type === "success") {
 
-    if (!selected) {
-        debug(
-            "Design ID not found: " +
-            designId
+        statusBox.classList.add(
+            "status-success"
         );
 
-        return;
     }
 
+    if (type === "error") {
 
-    document.getElementById(
-        "selectedDesignBox"
-    ).style.display = "block";
+        statusBox.classList.add(
+            "status-error"
+        );
 
+    }
 
-    document.getElementById(
-        "selectedDesignImage"
-    ).src = selected.image;
-
-
-    document.getElementById(
-        "selectedDesignName"
-    ).textContent = selected.name;
-
-
-    document.getElementById(
-        "selectedDesignPrice"
-    ).textContent = selected.price;
-
-
-    document.getElementById(
-        "selectedDesignCategory"
-    ).textContent = selected.category;
-
-
-    designInput.value =
-        selected.description;
-
-
-    descriptionInput.value =
-        "Apply the selected " +
-        selected.name +
-        " design realistically to the vehicle.";
-
-
-    debug(
-        "Selected design: " +
-        selected.name
-    );
-
+    statusBox.textContent =
+        message;
 }
 
 
 /* =========================================================
    IMAGE PREVIEW
-========================================================= */
+   ========================================================= */
 
-const imagePreviewBox =
-    document.getElementById(
-        "imagePreviewBox"
-    );
+let selectedFile = null;
 
-const imagePreview =
-    document.getElementById(
-        "imagePreview"
-    );
-
-const cropSection =
-    document.getElementById(
-        "cropSection"
-    );
+let vehicleImageObject = null;
 
 
 fileInput.addEventListener(
     "change",
-    function () {
+    function() {
+
+        clearDebug();
 
         const file =
             fileInput.files[0];
 
         if (!file) {
+
             return;
         }
 
+        selectedFile = file;
+
         debug(
-            "Vehicle image selected: " +
+            "Image selected: " +
             file.name
+        );
+
+        debug(
+            "Image type: " +
+            file.type
         );
 
         debug(
@@ -1278,33 +1046,34 @@ fileInput.addEventListener(
             " bytes"
         );
 
-        debug(
-            "Image type: " +
-            file.type
-        );
-
-
         const reader =
             new FileReader();
 
+        reader.onload =
+            function(event) {
 
-        reader.onload = function (event) {
+                imagePreview.src =
+                    event.target.result;
 
-            imagePreview.src =
-                event.target.result;
+                imagePreviewBox.style.display =
+                    "block";
 
-            imagePreviewBox.style.display =
-                "block";
+                vehicleImageObject =
+                    new Image();
 
-            cropSection.style.display =
-                "block";
+                vehicleImageObject.onload =
+                    function() {
 
-            drawCropCanvas(
-                event.target.result
-            );
+                        setupCropCanvas(
+                            vehicleImageObject
+                        );
 
-        };
+                    };
 
+                vehicleImageObject.src =
+                    event.target.result;
+
+            };
 
         reader.readAsDataURL(file);
 
@@ -1313,99 +1082,96 @@ fileInput.addEventListener(
 
 
 /* =========================================================
-   SIMPLE CROP VISUALIZER
-========================================================= */
+   CROP CANVAS
+   ========================================================= */
 
-const cropCanvas =
-    document.getElementById(
-        "cropCanvas"
-    );
+function setupCropCanvas(image) {
 
-const cropBox =
-    document.getElementById(
-        "cropBox"
-    );
+    const maxWidth = 900;
 
-const cropHandle =
-    document.getElementById(
-        "cropHandle"
-    );
+    const scale =
+        Math.min(
+            1,
+            maxWidth / image.width
+        );
 
-let cropDragging = false;
-let cropResizing = false;
+    cropCanvas.width =
+        Math.round(
+            image.width * scale
+        );
 
-let startX = 0;
-let startY = 0;
-
-let startLeft = 0;
-let startTop = 0;
-
-let startWidth = 0;
-let startHeight = 0;
-
-
-function drawCropCanvas(src) {
+    cropCanvas.height =
+        Math.round(
+            image.height * scale
+        );
 
     const ctx =
         cropCanvas.getContext("2d");
 
-    const img =
-        new Image();
+    ctx.clearRect(
+        0,
+        0,
+        cropCanvas.width,
+        cropCanvas.height
+    );
 
-    img.onload = function () {
+    ctx.drawImage(
+        image,
+        0,
+        0,
+        cropCanvas.width,
+        cropCanvas.height
+    );
 
-        const maxWidth = 900;
-
-        const scale =
-            Math.min(
-                1,
-                maxWidth / img.width
-            );
-
-        cropCanvas.width =
-            img.width * scale;
-
-        cropCanvas.height =
-            img.height * scale;
-
-        ctx.drawImage(
-            img,
-            0,
-            0,
-            cropCanvas.width,
-            cropCanvas.height
-        );
-
-    };
-
-    img.src = src;
+    cropSection.style.display =
+        "block";
 
 }
 
 
 /* =========================================================
-   CROP DRAGGING
-========================================================= */
+   CROP BOX MOVEMENT
+   ========================================================= */
+
+let dragging = false;
+
+let resizing = false;
+
+let startX = 0;
+
+let startY = 0;
+
+let startLeft = 0;
+
+let startTop = 0;
+
+let startWidth = 0;
+
+let startHeight = 0;
+
 
 cropBox.addEventListener(
     "pointerdown",
-    function (event) {
+    function(event) {
 
         if (
             event.target ===
             cropHandle
         ) {
 
-            cropResizing = true;
+            resizing = true;
 
         } else {
 
-            cropDragging = true;
+            dragging = true;
 
         }
 
-        startX = event.clientX;
-        startY = event.clientY;
+        startX =
+            event.clientX;
+
+        startY =
+            event.clientY;
 
         startLeft =
             cropBox.offsetLeft;
@@ -1423,31 +1189,41 @@ cropBox.addEventListener(
             event.pointerId
         );
 
+        event.preventDefault();
+
     }
 );
 
 
 cropBox.addEventListener(
     "pointermove",
-    function (event) {
+    function(event) {
 
-        if (!cropDragging &&
-            !cropResizing) {
+        if (
+            !dragging &&
+            !resizing
+        ) {
+
             return;
+
         }
 
         const dx =
-            event.clientX - startX;
+            event.clientX -
+            startX;
 
         const dy =
-            event.clientY - startY;
+            event.clientY -
+            startY;
+
+        const parentWidth =
+            cropBox.parentElement.clientWidth;
+
+        const parentHeight =
+            cropBox.parentElement.clientHeight;
 
 
-        const parent =
-            cropBox.parentElement;
-
-
-        if (cropDragging) {
+        if (dragging) {
 
             let newLeft =
                 startLeft + dx;
@@ -1455,28 +1231,25 @@ cropBox.addEventListener(
             let newTop =
                 startTop + dy;
 
-
             newLeft =
                 Math.max(
                     0,
                     Math.min(
-                        parent.clientWidth -
-                        cropBox.offsetWidth,
-                        newLeft
+                        newLeft,
+                        parentWidth -
+                        cropBox.offsetWidth
                     )
                 );
-
 
             newTop =
                 Math.max(
                     0,
                     Math.min(
-                        parent.clientHeight -
-                        cropBox.offsetHeight,
-                        newTop
+                        newTop,
+                        parentHeight -
+                        cropBox.offsetHeight
                     )
                 );
-
 
             cropBox.style.left =
                 newLeft + "px";
@@ -1487,7 +1260,7 @@ cropBox.addEventListener(
         }
 
 
-        if (cropResizing) {
+        if (resizing) {
 
             let newWidth =
                 startWidth + dx;
@@ -1495,28 +1268,25 @@ cropBox.addEventListener(
             let newHeight =
                 startHeight + dy;
 
-
             newWidth =
                 Math.max(
-                    70,
+                    60,
                     Math.min(
-                        parent.clientWidth -
-                        startLeft,
-                        newWidth
+                        newWidth,
+                        parentWidth -
+                        startLeft
                     )
                 );
-
 
             newHeight =
                 Math.max(
                     60,
                     Math.min(
-                        parent.clientHeight -
-                        startTop,
-                        newHeight
+                        newHeight,
+                        parentHeight -
+                        startTop
                     )
                 );
-
 
             cropBox.style.width =
                 newWidth + "px";
@@ -1532,27 +1302,217 @@ cropBox.addEventListener(
 
 cropBox.addEventListener(
     "pointerup",
-    function () {
+    function() {
 
-        cropDragging = false;
-        cropResizing = false;
+        dragging = false;
+
+        resizing = false;
 
     }
 );
 
 
 /* =========================================================
-   GENERATE PREVIEW
+   URL PARAMETERS
+   Allows Odoo/design pages to pass:
+   ?design=...
 ========================================================= */
+
+function loadDesignFromURL() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const designName =
+        params.get("design");
+
+    const designDescription =
+        params.get("description");
+
+    const designCategory =
+        params.get("category");
+
+    const designPrice =
+        params.get("price");
+
+    const designImage =
+        params.get("image");
+
+
+    if (designName) {
+
+        document.getElementById(
+            "selectedDesignName"
+        ).textContent =
+            designName;
+
+        document.getElementById(
+            "selectedDesignPrice"
+        ).textContent =
+            designPrice ||
+            "";
+
+        document.getElementById(
+            "selectedDesignCategory"
+        ).textContent =
+            designCategory ||
+            "";
+
+        document.getElementById(
+            "selectedDesignImage"
+        ).src =
+            designImage ||
+            "";
+
+        document.getElementById(
+            "selectedDesignBox"
+        ).style.display =
+            "block";
+
+        document.getElementById(
+            "design"
+        ).value =
+            designDescription ||
+            designName;
+
+        debug(
+            "Design loaded from URL."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   HEALTH CHECK
+   ========================================================= */
+
+async function checkBackend() {
+
+    debug(
+        "Checking Render backend..."
+    );
+
+    try {
+
+        const response =
+            await fetch(
+                HEALTH_URL,
+                {
+                    method:"GET",
+                    mode:"cors",
+                    cache:"no-store"
+                }
+            );
+
+        debug(
+            "Health response: HTTP " +
+            response.status
+        );
+
+        const data =
+            await response.json();
+
+        debug(
+            "Backend status: " +
+            JSON.stringify(data)
+        );
+
+        if (
+            data &&
+            data.ok
+        ) {
+
+            debug(
+                "✅ Render backend is reachable."
+            );
+
+        }
+
+    } catch (error) {
+
+        debug(
+            "❌ Health check failed: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   FORM SUBMISSION
+   ========================================================= */
 
 form.addEventListener(
     "submit",
-    async function (event) {
+    async function(event) {
 
         event.preventDefault();
 
+        clearDebug();
 
-        debugBox.textContent = "";
+        resultBox.style.display =
+            "none";
+
+        const file =
+            fileInput.files[0];
+
+
+        /* -------------------------------------------------
+           VALIDATION
+        ------------------------------------------------- */
+
+        if (!file) {
+
+            showStatus(
+                "Please select a vehicle image first.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        const design =
+            document.getElementById(
+                "design"
+            ).value.trim();
+
+
+        if (!design) {
+
+            showStatus(
+                "Please describe the sticker/design.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        /* -------------------------------------------------
+           START
+        ------------------------------------------------- */
+
+        submitBtn.disabled =
+            true;
+
+        submitBtn.textContent =
+            "Generating Preview...";
+
+
+        showStatus(
+            "Uploading your vehicle image and generating the AI preview. This may take 15–60 seconds...",
+            "working"
+        );
+
 
         debug(
             "================================"
@@ -1566,288 +1526,334 @@ form.addEventListener(
             "================================"
         );
 
-
-        result.style.display =
-            "none";
-
-
-        const file =
-            fileInput.files[0];
-
-
-        if (!file) {
-
-            showStatus(
-                "Please upload a vehicle image first.",
-                "error"
-            );
-
-            return;
-        }
-
-
-        submitBtn.disabled = true;
-
-        submitBtn.textContent =
-            "Generating Preview...";
-
-
-        showStatus(
-            "Creating your realistic vehicle preview...<br><br>" +
-            "This can take 15–60 seconds.",
-            "working"
+        debug(
+            "Target URL: " +
+            GENERATE_URL
         );
+
+        debug(
+            "File: " +
+            file.name
+        );
+
+        debug(
+            "Type: " +
+            file.type
+        );
+
+        debug(
+            "Size: " +
+            file.size +
+            " bytes"
+        );
+
+
+        /* -------------------------------------------------
+           FORM DATA
+        ------------------------------------------------- */
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "vehicleImage",
+            file
+        );
+
+        formData.append(
+            "part",
+            document.getElementById(
+                "part"
+            ).value
+        );
+
+        formData.append(
+            "width",
+            document.getElementById(
+                "width"
+            ).value
+        );
+
+        formData.append(
+            "height",
+            document.getElementById(
+                "height"
+            ).value
+        );
+
+        formData.append(
+            "design",
+            design
+        );
+
+        formData.append(
+            "description",
+            document.getElementById(
+                "description"
+            ).value
+        );
+
+
+        debug(
+            "FormData created."
+        );
+
+        debug(
+            "vehicleImage attached."
+        );
+
+        debug(
+            "🚀 Sending POST request to Render..."
+        );
+
+
+        /* -------------------------------------------------
+           FETCH
+        ------------------------------------------------- */
+
+        let response;
 
 
         try {
 
-            /* ==========================================
-               BUILD FORM DATA
-            ========================================== */
-
-            const formData =
-                new FormData();
-
-
-            /*
-             IMPORTANT:
-             server.js expects "vehicleImage"
-            */
-
-            formData.append(
-                "vehicleImage",
-                file
-            );
-
-
-            formData.append(
-                "design",
-                designInput.value || ""
-            );
-
-
-            formData.append(
-                "width",
-                widthInput.value || ""
-            );
-
-
-            formData.append(
-                "height",
-                heightInput.value || ""
-            );
-
-
-            const extraDescription =
-                descriptionInput.value || "";
-
-
-            const part =
-                partInput.value || "";
-
-
-            formData.append(
-                "description",
-                "Vehicle part: " +
-                part +
-                ". " +
-                extraDescription
-            );
-
-
-            /* ==========================================
-               SEND TO RENDER
-            ========================================== */
-
-            debug(
-                "Sending POST request to:"
-            );
-
-            debug(
-                GENERATE_URL
-            );
-
-
-            const response =
+            response =
                 await fetch(
                     GENERATE_URL,
                     {
-                        method: "POST",
-                        body: formData
+                        method:"POST",
+
+                        mode:"cors",
+
+                        body:formData
                     }
                 );
 
-
-            debug(
-                "HTTP status: " +
-                response.status
-            );
-
-
-            const responseText =
-                await response.text();
-
-
-            debug(
-                "Server response received."
-            );
-
-
-            console.log(
-                "RAW SERVER RESPONSE:",
-                responseText
-            );
-
-
-            let data;
-
-
-            try {
-
-                data =
-                    JSON.parse(
-                        responseText
-                    );
-
-            } catch (parseError) {
-
-                throw new Error(
-                    "The server returned an invalid response. HTTP " +
-                    response.status
-                );
-
-            }
-
-
-            /* ==========================================
-               SERVER ERROR
-            ========================================== */
-
-            if (!response.ok) {
-
-                throw new Error(
-                    data.error ||
-                    "Server error: HTTP " +
-                    response.status
-                );
-
-            }
-
-
-            if (!data.ok) {
-
-                throw new Error(
-                    data.error ||
-                    "Preview generation failed."
-                );
-
-            }
-
-
-            if (!data.image) {
-
-                throw new Error(
-                    "The server completed the request but did not return an image."
-                );
-
-            }
-
-
-            /* ==========================================
-               SUCCESS
-            ========================================== */
-
-            debug(
-                "✅ Image received successfully."
-            );
-
-
-            resultImage.src =
-                data.image;
-
-
-            downloadLink.href =
-                data.image;
-
-
-            result.style.display =
-                "block";
-
-
-            showStatus(
-                "<strong>Preview generated successfully!</strong><br>" +
-                "Your vehicle design preview is ready.",
-                "success"
-            );
-
-
-            result.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-
-
-        } catch (error) {
+        } catch (networkError) {
 
             console.error(
-                "STICKING PREVIEW ERROR:",
-                error
+                "FETCH ERROR:",
+                networkError
             );
-
 
             debug(
-                "❌ ERROR: " +
-                (
-                    error.message ||
-                    "Unknown error"
-                )
+                "❌ FETCH FAILED: " +
+                networkError.message
             );
 
+            debug(
+                "Browser could not complete the connection to Render."
+            );
+
+            debug(
+                "If Render Logs show NO POST request, the request is being blocked before reaching Render."
+            );
 
             showStatus(
-                "<strong>Preview could not be generated.</strong><br><br>" +
-
-                "<strong>Error:</strong> " +
-
-                (
-                    error.message ||
-                    "Unknown connection error."
-                ) +
-
-                "<br><br>" +
-
-                "<small>" +
-
-                "If this is a server/OpenAI error, the exact reason " +
-                "will also appear in your Render Logs." +
-
-                "</small>",
-
+                "Connection to the AI server failed. See Connection Diagnostics below.",
                 "error"
             );
 
-        } finally {
-
-            submitBtn.disabled = false;
+            submitBtn.disabled =
+                false;
 
             submitBtn.textContent =
                 "Generate Preview";
 
+            return;
+
         }
+
+
+        /* -------------------------------------------------
+           RESPONSE RECEIVED
+        ------------------------------------------------- */
+
+        debug(
+            "✅ Response received from Render."
+        );
+
+        debug(
+            "HTTP status: " +
+            response.status
+        );
+
+        debug(
+            "HTTP status text: " +
+            response.statusText
+        );
+
+
+        let data;
+
+        try {
+
+            data =
+                await response.json();
+
+        } catch (jsonError) {
+
+            debug(
+                "❌ Server did not return valid JSON."
+            );
+
+            const text =
+                await response.text();
+
+            debug(
+                "Raw response: " +
+                text
+            );
+
+            showStatus(
+                "The server returned an unexpected response.",
+                "error"
+            );
+
+            submitBtn.disabled =
+                false;
+
+            submitBtn.textContent =
+                "Generate Preview";
+
+            return;
+
+        }
+
+
+        debug(
+            "Server response received."
+        );
+
+        debug(
+            JSON.stringify(
+                data,
+                null,
+                2
+            )
+        );
+
+
+        /* -------------------------------------------------
+           SERVER ERROR
+        ------------------------------------------------- */
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            const errorMessage =
+                data.error ||
+                (
+                    "Server returned HTTP " +
+                    response.status
+                );
+
+            debug(
+                "❌ SERVER ERROR: " +
+                errorMessage
+            );
+
+            showStatus(
+                "Preview could not be generated.\n\n" +
+                errorMessage,
+                "error"
+            );
+
+            submitBtn.disabled =
+                false;
+
+            submitBtn.textContent =
+                "Generate Preview";
+
+            return;
+
+        }
+
+
+        /* -------------------------------------------------
+           SUCCESS
+        ------------------------------------------------- */
+
+        if (!data.image) {
+
+            debug(
+                "❌ Server said success but no image was returned."
+            );
+
+            showStatus(
+                "The AI server completed the request but did not return an image.",
+                "error"
+            );
+
+            submitBtn.disabled =
+                false;
+
+            submitBtn.textContent =
+                "Generate Preview";
+
+            return;
+
+        }
+
+
+        debug(
+            "🎉 AI IMAGE RECEIVED."
+        );
+
+
+        resultImage.src =
+            data.image;
+
+        downloadLink.href =
+            data.image;
+
+        resultBox.style.display =
+            "block";
+
+
+        showStatus(
+            "Your vehicle preview has been generated successfully!",
+            "success"
+        );
+
+
+        submitBtn.disabled =
+            false;
+
+        submitBtn.textContent =
+            "Generate Preview";
+
+
+        /* Scroll to result */
+
+        setTimeout(
+            function() {
+
+                resultBox.scrollIntoView({
+                    behavior:"smooth",
+                    block:"start"
+                });
+
+            },
+            200
+        );
 
     }
 );
 
 
 /* =========================================================
-   START
-========================================================= */
+   INITIALIZE
+   ========================================================= */
 
-loadSelectedDesign();
+loadDesignFromURL();
 
+checkBackend();
 
 debug(
-    "SticKing customizer loaded."
+    "SticKing frontend loaded."
 );
 
 debug(
