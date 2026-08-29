@@ -1,67 +1,62 @@
 const express = require("express");
 const multer = require("multer");
 const OpenAI = require("openai");
-const { toFile } = require("openai/uploads");
+const { toFile } = OpenAI;
+const crypto = require("crypto");
 
 const app = express();
 
 const PORT = process.env.PORT || 10000;
 
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
-/* =========================================================
-   CONFIGURATION
-   ========================================================= */
-
-const openaiConfigured = !!process.env.OPENAI_API_KEY;
-
-const supabaseUrl =
-  process.env.SUPABASE_URL;
-
-const supabaseSecretKey =
-  process.env.SUPABASE_SECRET_KEY;
-
-const adminPassword =
-  process.env.ADMIN_PASSWORD;
-
-
-/* =========================================================
-   OPENAI
-   ========================================================= */
-
-if (openaiConfigured) {
-  console.log("✅ OPENAI_API_KEY is configured.");
-} else {
-  console.log("❌ OPENAI_API_KEY is NOT configured.");
-}
+const openaiConfigured = !!OPENAI_API_KEY;
+const supabaseConfigured =
+  !!SUPABASE_URL && !!SUPABASE_SECRET_KEY;
+const adminConfigured = !!ADMIN_PASSWORD;
 
 const openai = openaiConfigured
   ? new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
+      apiKey: OPENAI_API_KEY
     })
   : null;
 
 
 /* =========================================================
-   SUPABASE CONFIGURATION
+   SUPABASE URL
    ========================================================= */
 
-if (supabaseUrl) {
-  console.log("✅ SUPABASE_URL is configured.");
-} else {
-  console.log("❌ SUPABASE_URL is NOT configured.");
-}
+const supabaseBaseUrl = SUPABASE_URL
+  ? SUPABASE_URL
+      .replace(/\/rest\/v1\/?$/, "")
+      .replace(/\/$/, "")
+  : "";
 
-if (supabaseSecretKey) {
-  console.log("✅ SUPABASE_SECRET_KEY is configured.");
-} else {
-  console.log("❌ SUPABASE_SECRET_KEY is NOT configured.");
-}
 
-if (adminPassword) {
-  console.log("✅ ADMIN_PASSWORD is configured.");
-} else {
-  console.log("⚠️ ADMIN_PASSWORD is NOT configured.");
-}
+/* =========================================================
+   CONFIGURATION LOGS
+   ========================================================= */
+
+console.log(
+  openaiConfigured
+    ? "✅ OPENAI_API_KEY is configured."
+    : "❌ OPENAI_API_KEY is NOT configured."
+);
+
+console.log(
+  supabaseConfigured
+    ? "✅ SUPABASE_URL and SUPABASE_SECRET_KEY are configured."
+    : "❌ Supabase is NOT configured."
+);
+
+console.log(
+  adminConfigured
+    ? "✅ ADMIN_PASSWORD is configured."
+    : "❌ ADMIN_PASSWORD is NOT configured."
+);
 
 
 /* =========================================================
@@ -87,7 +82,7 @@ app.use((req, res, next) => {
 
   res.setHeader(
     "Access-Control-Allow-Methods",
-    "GET, POST, OPTIONS"
+    "GET, POST, PATCH, OPTIONS"
   );
 
   res.setHeader(
@@ -101,11 +96,11 @@ app.use((req, res, next) => {
   );
 
   if (req.method === "OPTIONS") {
-    console.log("➡️ OPTIONS", req.path);
     return res.status(204).end();
   }
 
   next();
+
 });
 
 
@@ -151,71 +146,342 @@ app.use((req, res, next) => {
 
 
 /* =========================================================
-   HEALTH CHECK
+   SUPABASE HELPERS
    ========================================================= */
 
-app.get("/health", (req, res) => {
+function supabaseHeaders() {
 
-  res.json({
+  return {
+    "apikey": SUPABASE_SECRET_KEY,
+    "Authorization":
+      `Bearer ${SUPABASE_SECRET_KEY}`,
+    "Content-Type": "application/json"
+  };
 
-    ok: true,
+}
 
-    service:
-      "SticKing AI Vehicle Customizer",
 
-    status:
-      "running",
+async function supabaseRequest(
+  path,
+  options = {}
+) {
 
-    openaiConfigured:
+  if (!supabaseConfigured) {
+    throw new Error(
+      "Supabase is not configured."
+    );
+  }
+
+  const response = await fetch(
+    `${supabaseBaseUrl}${path}`,
+    {
+      ...options,
+
+      headers: {
+        ...supabaseHeaders(),
+        ...(options.headers || {})
+      }
+    }
+  );
+
+  const text = await response.text();
+
+  let data = null;
+
+  try {
+    data = text
+      ? JSON.parse(text)
+      : null;
+  } catch {
+    data = text;
+  }
+
+  if (!response.ok) {
+
+    const message =
+      data?.message ||
+      data?.error ||
+      data?.msg ||
+      text ||
+      `Supabase error ${response.status}`;
+
+    throw new Error(message);
+
+  }
+
+  return data;
+
+}
+
+
+/* =========================================================
+   STORAGE
+   ========================================================= */
+
+const STORAGE_BUCKET = "vehicle-orders";
+
+
+async function ensureStorageBucket() {
+
+  if (!supabaseConfigured) {
+    return;
+  }
+
+  try {
+
+    const response = await fetch(
+      `${supabaseBaseUrl}/storage/v1/bucket`,
+      {
+        method: "POST",
+
+        headers: {
+          ...supabaseHeaders()
+        },
+
+        body: JSON.stringify({
+          id: STORAGE_BUCKET,
+          name: STORAGE_BUCKET,
+          public: false
+        })
+      }
+    );
+
+    if (
+      response.ok ||
+      response.status === 409
+    ) {
+
+      console.log(
+        `🗄️ Storage bucket ready: ${STORAGE_BUCKET}`
+      );
+
+      return;
+
+    }
+
+    const text = await response.text();
+
+    console.log(
+      "⚠️ Could not create storage bucket:",
+      text
+    );
+
+  } catch (error) {
+
+    console.log(
+      "⚠️ Storage bucket check failed:",
+      error.message
+    );
+
+  }
+
+}
+
+
+async function uploadToStorage(
+  buffer,
+  fileName,
+  contentType
+) {
+
+  const path =
+    `${new Date().getFullYear()}/` +
+    `${Date.now()}-${crypto.randomUUID()}-${fileName}`;
+
+  const response = await fetch(
+    `${supabaseBaseUrl}/storage/v1/object/` +
+    `${STORAGE_BUCKET}/${encodeURIComponent(path)}`,
+    {
+      method: "POST",
+
+      headers: {
+        "apikey": SUPABASE_SECRET_KEY,
+        "Authorization":
+          `Bearer ${SUPABASE_SECRET_KEY}`,
+        "Content-Type": contentType,
+        "x-upsert": "false"
+      },
+
+      body: buffer
+    }
+  );
+
+  const text = await response.text();
+
+  if (!response.ok) {
+
+    throw new Error(
+      `Storage upload failed: ${text}`
+    );
+
+  }
+
+  return path;
+
+}
+
+
+async function createSignedUrl(path) {
+
+  if (!path) {
+    return null;
+  }
+
+  try {
+
+    const response = await fetch(
+      `${supabaseBaseUrl}/storage/v1/object/sign/` +
+      `${STORAGE_BUCKET}/${encodeURIComponent(path)}`,
+
+      {
+        method: "POST",
+
+        headers: {
+          ...supabaseHeaders()
+        },
+
+        body: JSON.stringify({
+          expiresIn: 60 * 60 * 24
+        })
+      }
+    );
+
+    const text = await response.text();
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = JSON.parse(text);
+
+    if (!data.signedURL) {
+      return null;
+    }
+
+    return `${supabaseBaseUrl}/storage/v1${data.signedURL}`;
+
+  } catch {
+
+    return null;
+
+  }
+
+}
+
+
+/* =========================================================
+   ORDER DATABASE
+   ========================================================= */
+
+async function createOrder(order) {
+
+  const result = await supabaseRequest(
+    "/rest/v1/orders",
+    {
+      method: "POST",
+
+      headers: {
+        "Prefer": "return=representation"
+      },
+
+      body: JSON.stringify(order)
+    }
+  );
+
+  return Array.isArray(result)
+    ? result[0]
+    : result;
+
+}
+
+
+async function updateOrder(
+  id,
+  updates
+) {
+
+  const result = await supabaseRequest(
+    `/rest/v1/orders?id=eq.${encodeURIComponent(id)}`,
+
+    {
+      method: "PATCH",
+
+      headers: {
+        "Prefer": "return=representation"
+      },
+
+      body: JSON.stringify(updates)
+    }
+  );
+
+  return Array.isArray(result)
+    ? result[0]
+    : result;
+
+}
+
+
+/* =========================================================
+   HEALTH
+   ========================================================= */
+
+app.get(
+  "/health",
+  (req, res) => {
+
+    res.json({
+
+      ok: true,
+
+      service:
+        "SticKing AI Vehicle Customizer",
+
+      status: "running",
+
       openaiConfigured,
 
-    databaseConfigured:
-      !!(
-        supabaseUrl &&
-        supabaseSecretKey
-      )
+      supabaseConfigured,
 
-  });
+      adminConfigured
 
-});
+    });
+
+  }
+);
 
 
 /* =========================================================
    HOME
    ========================================================= */
 
-app.get("/", (req, res) => {
+app.get(
+  "/",
+  (req, res) => {
 
-  res.sendFile(
-    __dirname +
-    "/public/index.html"
-  );
+    res.sendFile(
+      __dirname +
+      "/public/index.html"
+    );
 
-});
+  }
+);
 
 
 /* =========================================================
    ADMIN PAGE
    ========================================================= */
 
-app.get("/admin", (req, res) => {
+app.get(
+  "/admin",
+  (req, res) => {
 
-  res.sendFile(
-    __dirname +
-    "/public/admin.html"
-  );
+    res.sendFile(
+      __dirname +
+      "/public/admin.html"
+    );
 
-});
-
-
-app.get("/admin.html", (req, res) => {
-
-  res.sendFile(
-    __dirname +
-    "/public/admin.html"
-  );
-
-});
+  }
+);
 
 
 /* =========================================================
@@ -226,62 +492,34 @@ app.post(
   "/api/admin/login",
   (req, res) => {
 
-    console.log(
-      "🔐 ADMIN LOGIN REQUEST"
-    );
-
-    if (!adminPassword) {
-
-      console.log(
-        "❌ ADMIN_PASSWORD is missing."
-      );
+    if (!adminConfigured) {
 
       return res.status(500).json({
-
         ok: false,
-
         error:
-          "ADMIN_PASSWORD is not configured on the server."
-
+          "ADMIN_PASSWORD is not configured."
       });
 
     }
-
 
     const password =
-      req.body?.password;
-
+      req.body?.password || "";
 
     if (
-      !password ||
-      password !== adminPassword
+      password !== ADMIN_PASSWORD
     ) {
 
-      console.log(
-        "❌ Admin login failed."
-      );
-
       return res.status(401).json({
-
         ok: false,
-
         error:
-          "Invalid admin password."
-
+          "Incorrect admin password."
       });
 
     }
 
-
-    console.log(
-      "✅ Admin login successful."
-    );
-
-
-    return res.json({
-
-      ok: true
-
+    res.json({
+      ok: true,
+      message: "Admin login successful."
     });
 
   }
@@ -289,234 +527,277 @@ app.post(
 
 
 /* =========================================================
-   ADMIN — GET ORDERS
+   ADMIN AUTHENTICATION
+   ========================================================= */
+
+function requireAdmin(
+  req,
+  res,
+  next
+) {
+
+  if (!adminConfigured) {
+
+    return res.status(500).json({
+      ok: false,
+      error:
+        "ADMIN_PASSWORD is not configured."
+    });
+
+  }
+
+  const password =
+    req.headers["x-admin-password"];
+
+  if (
+    !password ||
+    password !== ADMIN_PASSWORD
+  ) {
+
+    return res.status(401).json({
+      ok: false,
+      error:
+        "Unauthorized."
+    });
+
+  }
+
+  next();
+
+}
+
+
+/* =========================================================
+   GET ADMIN ORDERS
    ========================================================= */
 
 app.get(
   "/api/admin/orders",
+  requireAdmin,
   async (req, res) => {
-
-    console.log(
-      "📦 ADMIN ORDERS REQUEST"
-    );
-
 
     try {
 
-      /* -----------------------------------------------------
-         CHECK ADMIN PASSWORD
-         ----------------------------------------------------- */
-
-      if (!adminPassword) {
-
-        return res.status(500).json({
-
-          ok: false,
-
-          error:
-            "ADMIN_PASSWORD is not configured."
-
-        });
-
-      }
-
-
-      const password =
-        req.headers["x-admin-password"];
-
-
-      if (
-        !password ||
-        password !== adminPassword
-      ) {
-
-        console.log(
-          "❌ Unauthorized admin request."
+      const orders =
+        await supabaseRequest(
+          "/rest/v1/orders" +
+          "?select=*" +
+          "&order=created_at.desc"
         );
 
-        return res.status(401).json({
+      const enriched =
+        await Promise.all(
 
-          ok: false,
+          (orders || []).map(
+            async order => {
 
-          error:
-            "Unauthorized."
+              const originalUrl =
+                await createSignedUrl(
+                  order.original_image_path
+                );
 
-        });
+              const generatedUrl =
+                await createSignedUrl(
+                  order.generated_image_path
+                );
 
-      }
+              return {
 
+                ...order,
 
-      /* -----------------------------------------------------
-         CHECK SUPABASE
-         ----------------------------------------------------- */
+                original_image_url:
+                  originalUrl,
 
-      if (
-        !supabaseUrl ||
-        !supabaseSecretKey
-      ) {
+                generated_image_url:
+                  generatedUrl
 
-        console.log(
-          "❌ Supabase configuration missing."
+              };
+
+            }
+          )
+
         );
 
-        return res.status(500).json({
-
-          ok: false,
-
-          error:
-            "Supabase configuration is missing."
-
-        });
-
-      }
-
-
-      /* -----------------------------------------------------
-         GET ORDERS FROM SUPABASE
-         ----------------------------------------------------- */
-
-      const url =
-        `${supabaseUrl}/rest/v1/orders` +
-        `?select=*` +
-        `&order=created_at.desc`;
-
-
-      console.log(
-        "🔎 Requesting orders from Supabase..."
-      );
-
-
-      const response =
-        await fetch(url, {
-
-          method:
-            "GET",
-
-          headers: {
-
-            "apikey":
-              supabaseSecretKey,
-
-            "Authorization":
-              `Bearer ${supabaseSecretKey}`,
-
-            "Content-Type":
-              "application/json"
-
-          }
-
-        });
-
-
-      const text =
-        await response.text();
-
-
-      /* -----------------------------------------------------
-         SUPABASE ERROR
-         ----------------------------------------------------- */
-
-      if (!response.ok) {
-
-        console.error(
-          "❌ SUPABASE ORDERS ERROR"
-        );
-
-        console.error(
-          "Status:",
-          response.status
-        );
-
-        console.error(
-          "Response:",
-          text
-        );
-
-
-        return res.status(500).json({
-
-          ok: false,
-
-          error:
-            "Could not retrieve orders from Supabase.",
-
-          details:
-            text
-
-        });
-
-      }
-
-
-      /* -----------------------------------------------------
-         PARSE ORDERS
-         ----------------------------------------------------- */
-
-      let orders;
-
-      try {
-
-        orders =
-          JSON.parse(text);
-
-      } catch (parseError) {
-
-        console.error(
-          "❌ Could not parse Supabase response."
-        );
-
-        return res.status(500).json({
-
-          ok: false,
-
-          error:
-            "Invalid response from Supabase."
-
-        });
-
-      }
-
-
-      console.log(
-        `✅ ${orders.length} orders received.`
-      );
-
-
-      return res.json({
+      res.json({
 
         ok: true,
 
-        orders:
-          orders
+        orders: enriched
 
       });
 
     } catch (error) {
 
       console.error(
-        "=========================================="
-      );
-
-      console.error(
-        "❌ ADMIN ORDERS FAILED"
-      );
-
-      console.error(
-        "=========================================="
-      );
-
-      console.error(
+        "❌ ADMIN ORDERS ERROR:",
         error
       );
 
-
-      return res.status(500).json({
+      res.status(500).json({
 
         ok: false,
 
         error:
           error.message ||
-          "Failed to load orders."
+          "Could not load orders."
+
+      });
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   UPDATE ORDER STATUS
+   ========================================================= */
+
+app.patch(
+  "/api/admin/orders/:id",
+  requireAdmin,
+  async (req, res) => {
+
+    try {
+
+      const allowedStatuses = [
+        "new",
+        "processing",
+        "completed",
+        "cancelled"
+      ];
+
+      const status =
+        req.body?.status;
+
+      if (
+        !allowedStatuses.includes(status)
+      ) {
+
+        return res.status(400).json({
+
+          ok: false,
+
+          error:
+            "Invalid order status."
+
+        });
+
+      }
+
+      const updated =
+        await updateOrder(
+          req.params.id,
+          {
+            status
+          }
+        );
+
+      res.json({
+
+        ok: true,
+
+        order: updated
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "❌ UPDATE ORDER ERROR:",
+        error
+      );
+
+      res.status(500).json({
+
+        ok: false,
+
+        error:
+          error.message ||
+          "Could not update order."
+
+      });
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   CREATE ORDER
+   ========================================================= */
+
+app.post(
+  "/api/orders",
+  async (req, res) => {
+
+    try {
+
+      const body = req.body || {};
+
+      const order = {
+
+        customer_name:
+          body.customer_name || null,
+
+        customer_email:
+          body.customer_email || null,
+
+        customer_phone:
+          body.customer_phone || null,
+
+        vehicle:
+          body.vehicle || null,
+
+        design:
+          body.design || null,
+
+        part:
+          body.part || null,
+
+        width:
+          body.width || null,
+
+        height:
+          body.height || null,
+
+        description:
+          body.description || null,
+
+        amount:
+          body.amount || 0,
+
+        status:
+          "new"
+
+      };
+
+      const created =
+        await createOrder(order);
+
+      res.json({
+
+        ok: true,
+
+        order: created
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "❌ CREATE ORDER ERROR:",
+        error
+      );
+
+      res.status(500).json({
+
+        ok: false,
+
+        error:
+          error.message ||
+          "Could not create order."
 
       });
 
@@ -550,44 +831,28 @@ app.post(
     );
 
 
-    try {
+    let orderId = null;
 
-      /* -----------------------------------------------------
-         CHECK OPENAI
-         ----------------------------------------------------- */
+    try {
 
       if (
         !openaiConfigured ||
         !openai
       ) {
 
-        console.log(
-          "❌ OpenAI API key is missing."
-        );
-
-
         return res.status(500).json({
 
           ok: false,
 
           error:
-            "OpenAI API key is not configured on the server."
+            "OpenAI API key is not configured."
 
         });
 
       }
 
 
-      /* -----------------------------------------------------
-         CHECK IMAGE
-         ----------------------------------------------------- */
-
       if (!req.file) {
-
-        console.log(
-          "❌ No vehicle image received."
-        );
-
 
         return res.status(400).json({
 
@@ -601,43 +866,51 @@ app.post(
       }
 
 
-      console.log(
-        "📷 Image received:",
-        req.file.originalname
-      );
-
-      console.log(
-        "📦 Image size:",
-        req.file.size,
-        "bytes"
-      );
-
-      console.log(
-        "🖼️ Image type:",
-        req.file.mimetype
-      );
-
-
-      /* -----------------------------------------------------
-         FORM DATA
-         ----------------------------------------------------- */
-
       const design =
-        req.body.design ||
-        "";
+        req.body.design || "";
 
       const width =
-        req.body.width ||
-        "";
+        req.body.width || "";
 
       const height =
-        req.body.height ||
-        "";
+        req.body.height || "";
 
       const description =
-        req.body.description ||
+        req.body.description || "";
+
+      const part =
+        req.body.part ||
+        req.body.vehiclePart ||
         "";
 
+      const vehicle =
+        req.body.vehicle ||
+        req.body.vehicleModel ||
+        "";
+
+      const customerName =
+        req.body.customer_name ||
+        req.body.customerName ||
+        "";
+
+      const customerEmail =
+        req.body.customer_email ||
+        req.body.customerEmail ||
+        "";
+
+      const customerPhone =
+        req.body.customer_phone ||
+        req.body.customerPhone ||
+        "";
+
+      const amount =
+        req.body.amount || 0;
+
+
+      console.log(
+        "📷 Image:",
+        req.file.originalname
+      );
 
       console.log(
         "🎨 Design:",
@@ -645,19 +918,117 @@ app.post(
       );
 
       console.log(
-        "📏 Width:",
-        width
+        "🚗 Vehicle:",
+        vehicle
       );
 
-      console.log(
-        "📐 Height:",
-        height
-      );
 
-      console.log(
-        "📝 Description:",
-        description
-      );
+      /* -----------------------------------------------------
+         SAVE ORIGINAL IMAGE
+         ----------------------------------------------------- */
+
+      let originalImagePath = null;
+
+      if (supabaseConfigured) {
+
+        try {
+
+          originalImagePath =
+            await uploadToStorage(
+              req.file.buffer,
+              req.file.originalname,
+              req.file.mimetype
+            );
+
+          console.log(
+            "✅ Original image stored:",
+            originalImagePath
+          );
+
+        } catch (error) {
+
+          console.error(
+            "⚠️ Original image storage failed:",
+            error.message
+          );
+
+        }
+
+      }
+
+
+      /* -----------------------------------------------------
+         CREATE ORDER BEFORE AI
+         ----------------------------------------------------- */
+
+      if (supabaseConfigured) {
+
+        try {
+
+          const created =
+            await createOrder({
+
+              customer_name:
+                customerName || null,
+
+              customer_email:
+                customerEmail || null,
+
+              customer_phone:
+                customerPhone || null,
+
+              vehicle:
+                vehicle || null,
+
+              design:
+                design || null,
+
+              part:
+                part || null,
+
+              width:
+                width || null,
+
+              height:
+                height || null,
+
+              description:
+                description || null,
+
+              amount:
+                amount || 0,
+
+              status:
+                "processing",
+
+              original_image_path:
+                originalImagePath,
+
+              generated_image_path:
+                null
+
+            });
+
+
+          orderId =
+            created?.id || null;
+
+
+          console.log(
+            "🛒 Order created:",
+            orderId
+          );
+
+        } catch (error) {
+
+          console.error(
+            "⚠️ Could not create order:",
+            error.message
+          );
+
+        }
+
+      }
 
 
       /* -----------------------------------------------------
@@ -666,56 +1037,63 @@ app.post(
 
       const prompt = `
 
-You are a professional vehicle sticker and vinyl wrap designer.
+You are a professional vehicle sticker
+and vinyl wrap designer.
 
-Create a realistic visual preview of the uploaded vehicle with the
-requested sticker/design applied to the vehicle.
+Edit the uploaded vehicle photograph
+to create a realistic preview of the
+requested sticker/design applied to
+the vehicle.
 
 IMPORTANT:
 
 - Keep the original vehicle recognizable.
-- Keep the vehicle model, proportions, body shape and perspective.
-- Do not redesign or replace the vehicle.
-- Apply the sticker naturally to the visible vehicle surface.
-- Make the sticker look like professionally installed vinyl.
-- Follow the vehicle's curves and panels.
-- Preserve realistic lighting, shadows and reflections.
-- The sticker should look physically attached to the vehicle.
-- Do not place the sticker floating beside the vehicle.
-- Do not change the background unnecessarily.
-- Do not alter the vehicle's basic identity.
-- Make the result look like a real photograph.
+- Keep the exact vehicle model.
+- Keep the body shape and proportions.
+- Keep the original camera perspective.
+- Keep the original background whenever possible.
+- Do not replace the vehicle.
+- Do not create a completely different car.
+- Apply the requested sticker naturally.
+- Make the sticker look professionally installed.
+- Follow the vehicle's body curves.
+- Respect doors, bonnet, windows and body panels.
+- Preserve realistic reflections.
+- Preserve realistic lighting.
+- Preserve realistic shadows.
+- Do not make the sticker float beside the vehicle.
+- The final result must look like a real photograph.
+
+Vehicle:
+${vehicle}
+
+Vehicle part:
+${part}
 
 Sticker/design:
 ${design}
 
-Requested dimensions:
-Width: ${width} cm
-Height: ${height} cm
+Dimensions:
+${width} cm × ${height} cm
 
-Additional customer instructions:
+Customer instructions:
 ${description}
 
-Generate a high-quality realistic vehicle customization preview.
-
+Create a premium, realistic vehicle
+customization preview.
 `;
 
 
       console.log(
-        "🧠 Prompt created."
+        "🤖 Sending image to OpenAI..."
       );
 
 
       /* -----------------------------------------------------
-         CONVERT UPLOAD TO PROPER FILE
+         OPENAI IMAGE EDIT
          ----------------------------------------------------- */
 
-      console.log(
-        "📦 Converting uploaded image to OpenAI file..."
-      );
-
-
-      const imageFile =
+      const inputFile =
         await toFile(
           req.file.buffer,
           req.file.originalname,
@@ -726,20 +1104,6 @@ Generate a high-quality realistic vehicle customization preview.
         );
 
 
-      console.log(
-        "✅ Image converted successfully."
-      );
-
-
-      /* -----------------------------------------------------
-         OPENAI IMAGE GENERATION
-         ----------------------------------------------------- */
-
-      console.log(
-        "🤖 Sending image to OpenAI..."
-      );
-
-
       const imageResponse =
         await openai.images.edit({
 
@@ -747,10 +1111,9 @@ Generate a high-quality realistic vehicle customization preview.
             "gpt-image-1",
 
           image:
-            imageFile,
+            inputFile,
 
-          prompt:
-            prompt,
+          prompt,
 
           size:
             "1024x1024"
@@ -763,29 +1126,15 @@ Generate a high-quality realistic vehicle customization preview.
       );
 
 
-      /* -----------------------------------------------------
-         CHECK RESPONSE
-         ----------------------------------------------------- */
-
       if (
         !imageResponse ||
         !imageResponse.data ||
         !imageResponse.data[0]
       ) {
 
-        console.log(
-          "❌ OpenAI returned no image."
+        throw new Error(
+          "OpenAI did not return an image."
         );
-
-
-        return res.status(500).json({
-
-          ok: false,
-
-          error:
-            "OpenAI did not return an image."
-
-        });
 
       }
 
@@ -794,67 +1143,92 @@ Generate a high-quality realistic vehicle customization preview.
         imageResponse.data[0];
 
 
-      /* -----------------------------------------------------
-         BASE64 IMAGE
-         ----------------------------------------------------- */
+      if (!result.b64_json) {
 
-      if (result.b64_json) {
-
-        console.log(
-          "🖼️ Base64 image received."
+        throw new Error(
+          "OpenAI returned no base64 image."
         );
-
-
-        return res.json({
-
-          ok: true,
-
-          image:
-            `data:image/png;base64,${result.b64_json}`
-
-        });
 
       }
 
 
-      /* -----------------------------------------------------
-         URL IMAGE
-         ----------------------------------------------------- */
-
-      if (result.url) {
-
-        console.log(
-          "🔗 Image URL received."
+      const generatedBuffer =
+        Buffer.from(
+          result.b64_json,
+          "base64"
         );
 
 
-        return res.json({
+      /* -----------------------------------------------------
+         SAVE GENERATED IMAGE
+         ----------------------------------------------------- */
 
-          ok: true,
+      let generatedImagePath =
+        null;
 
-          image:
-            result.url
 
-        });
+      if (supabaseConfigured) {
+
+        try {
+
+          generatedImagePath =
+            await uploadToStorage(
+
+              generatedBuffer,
+
+              "ai-preview.png",
+
+              "image/png"
+
+            );
+
+
+          console.log(
+            "✅ AI preview stored:",
+            generatedImagePath
+          );
+
+
+          if (orderId) {
+
+            await updateOrder(
+              orderId,
+              {
+                generated_image_path:
+                  generatedImagePath,
+
+                status:
+                  "new"
+              }
+            );
+
+          }
+
+        } catch (error) {
+
+          console.error(
+            "⚠️ Generated image storage failed:",
+            error.message
+          );
+
+        }
 
       }
 
-
-      /* -----------------------------------------------------
-         UNKNOWN RESPONSE
-         ----------------------------------------------------- */
 
       console.log(
-        "❌ OpenAI response did not contain an image."
+        "🎉 PREVIEW GENERATION COMPLETE"
       );
 
 
-      return res.status(500).json({
+      return res.json({
 
-        ok: false,
+        ok: true,
 
-        error:
-          "Unexpected OpenAI image response."
+        orderId,
+
+        image:
+          `data:image/png;base64,${result.b64_json}`
 
       });
 
@@ -873,81 +1247,38 @@ Generate a high-quality realistic vehicle customization preview.
         "=========================================="
       );
 
-
       console.error(
-        "Error name:",
-        error.name
-      );
-
-      console.error(
-        "Error message:",
-        error.message
-      );
-
-
-      if (error.status) {
-
-        console.error(
-          "OpenAI status:",
-          error.status
-        );
-
-      }
-
-
-      if (error.code) {
-
-        console.error(
-          "OpenAI code:",
-          error.code
-        );
-
-      }
-
-
-      if (error.response) {
-
-        console.error(
-          "OpenAI response:",
-          error.response
-        );
-
-      }
-
-
-      console.error(
+        "Error:",
         error
       );
 
 
-      /* -----------------------------------------------------
-         RETURN USEFUL ERROR TO WEBSITE
-         ----------------------------------------------------- */
+      if (orderId) {
 
-      let message =
-        error.message ||
-        "Image generation failed.";
+        try {
 
+          await updateOrder(
+            orderId,
+            {
+              status:
+                "cancelled"
+            }
+          );
 
-      if (error.status === 429) {
-
-        message =
-          "OpenAI API quota or credits are unavailable. Please check your OpenAI API billing and usage.";
+        } catch {}
 
       }
 
 
-      return res.status(
-        error.status >= 400 &&
-        error.status < 600
-          ? error.status
-          : 500
-      ).json({
+      return res.status(500).json({
 
         ok: false,
 
         error:
-          message
+          error.message ||
+          "Image generation failed.",
+
+        orderId
 
       });
 
@@ -995,7 +1326,6 @@ app.use(
       error
     );
 
-
     res.status(500).json({
 
       ok: false,
@@ -1011,13 +1341,13 @@ app.use(
 
 
 /* =========================================================
-   START SERVER
+   START
    ========================================================= */
 
 app.listen(
   PORT,
   "0.0.0.0",
-  () => {
+  async () => {
 
     console.log(
       "=========================================="
@@ -1036,23 +1366,19 @@ app.listen(
     );
 
     console.log(
-      `🗄️ Supabase configured: ${
-        !!(
-          supabaseUrl &&
-          supabaseSecretKey
-        )
-      }`
+      `🗄️ Supabase configured: ${supabaseConfigured}`
     );
 
     console.log(
-      `👑 Admin configured: ${
-        !!adminPassword
-      }`
+      `👑 Admin configured: ${adminConfigured}`
     );
 
     console.log(
       "=========================================="
     );
+
+
+    await ensureStorageBucket();
 
   }
 );
