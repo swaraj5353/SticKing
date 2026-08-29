@@ -1,84 +1,59 @@
-// server.js
+// ============================================================
 // SticKing - AI Vehicle Tattoo / Decal Customizer
-// Includes Supabase order management
+// COMPLETE SERVER.JS
+// ============================================================
 
 const express = require("express");
 const multer = require("multer");
 const OpenAI = require("openai");
 const { toFile } = require("openai/uploads");
-const { createClient } = require("@supabase/supabase-js");
 const path = require("path");
 
 const app = express();
 
-/* =========================================================
-   CONFIGURATION
-========================================================= */
+// ============================================================
+// CONFIGURATION
+// ============================================================
 
 const PORT = Number(process.env.PORT) || 10000;
 const HOST = "0.0.0.0";
 
 const MAX_IMAGE_SIZE = 12 * 1024 * 1024; // 12 MB
 
-
-/* =========================================================
-   OPENAI
-========================================================= */
+// ============================================================
+// OPENAI
+// ============================================================
 
 if (!process.env.OPENAI_API_KEY) {
-  console.warn(
-    "WARNING: OPENAI_API_KEY is not configured."
-  );
+  console.error("❌ OPENAI_API_KEY is NOT configured.");
+} else {
+  console.log("✅ OPENAI_API_KEY is configured.");
 }
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY
 });
 
+// ============================================================
+// CORS
+// ============================================================
 
-/* =========================================================
-   SUPABASE
-========================================================= */
-
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
-
-let supabase = null;
-
-if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) {
-  console.warn(
-    "WARNING: SUPABASE_URL or SUPABASE_SECRET_KEY is not configured."
-  );
-} else {
-  supabase = createClient(
-    SUPABASE_URL,
-    SUPABASE_SECRET_KEY,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    }
-  );
-
-  console.log("Supabase connection configured.");
-}
-
-
-/* =========================================================
-   CORS
-   Allows the existing Odoo website to call this backend.
-========================================================= */
+const allowedOrigins = [
+  "https://sticking.odoo.com",
+  "https://www.sticking.odoo.com",
+  "https://sticking.onrender.com"
+];
 
 app.use((req, res, next) => {
-  const allowedOrigins = [
-    "https://sticking.odoo.com",
-    "https://www.sticking.odoo.com"
-  ];
 
   const origin = req.headers.origin;
 
-  if (allowedOrigins.includes(origin)) {
+  console.log(
+    `➡️ ${req.method} ${req.path}` +
+    (origin ? ` | Origin: ${origin}` : "")
+  );
+
+  if (origin && allowedOrigins.includes(origin)) {
     res.setHeader(
       "Access-Control-Allow-Origin",
       origin
@@ -101,16 +76,16 @@ app.use((req, res, next) => {
   );
 
   if (req.method === "OPTIONS") {
+    console.log("✅ CORS preflight accepted");
     return res.sendStatus(204);
   }
 
   next();
 });
 
-
-/* =========================================================
-   BODY PARSING
-========================================================= */
+// ============================================================
+// BODY PARSING
+// ============================================================
 
 app.use(
   express.json({
@@ -121,14 +96,13 @@ app.use(
 app.use(
   express.urlencoded({
     extended: true,
-    limit: "5mb"
+    limit: "30mb"
   })
 );
 
-
-/* =========================================================
-   STATIC WEBSITE FILES
-========================================================= */
+// ============================================================
+// STATIC WEBSITE
+// ============================================================
 
 app.use(
   express.static(
@@ -136,12 +110,12 @@ app.use(
   )
 );
 
-
-/* =========================================================
-   IMAGE UPLOAD
-========================================================= */
+// ============================================================
+// IMAGE UPLOAD
+// ============================================================
 
 const upload = multer({
+
   storage: multer.memoryStorage(),
 
   limits: {
@@ -150,6 +124,7 @@ const upload = multer({
   },
 
   fileFilter: (req, file, callback) => {
+
     const allowedTypes = [
       "image/jpeg",
       "image/png",
@@ -157,23 +132,26 @@ const upload = multer({
     ];
 
     if (!allowedTypes.includes(file.mimetype)) {
+
       return callback(
         new Error(
           "Only JPG, PNG and WEBP images are supported."
         )
       );
+
     }
 
     callback(null, true);
   }
+
 });
 
-
-/* =========================================================
-   HELPER: CLEAN USER TEXT
-========================================================= */
+// ============================================================
+// HELPER
+// ============================================================
 
 function cleanText(value, maxLength) {
+
   if (!value) {
     return "";
   }
@@ -183,55 +161,50 @@ function cleanText(value, maxLength) {
     .slice(0, maxLength);
 }
 
+// ============================================================
+// OPENAI ERROR HELPER
+// ============================================================
 
-/* =========================================================
-   HELPER: NUMBER
-========================================================= */
+function getOpenAIError(err) {
 
-function cleanNumber(value) {
-  if (
-    value === undefined ||
-    value === null ||
-    value === ""
-  ) {
-    return null;
+  console.error("========== OPENAI ERROR ==========");
+  console.error(err);
+  console.error("==================================");
+
+  if (!err) {
+    return "Unknown OpenAI error.";
   }
 
-  const number = Number(value);
-
-  if (!Number.isFinite(number)) {
-    return null;
+  if (err.status === 401) {
+    return "OpenAI API key is invalid or unauthorized.";
   }
 
-  return number;
+  if (err.status === 403) {
+    return "OpenAI API access was denied.";
+  }
+
+  if (err.status === 429) {
+    return (
+      "OpenAI request was rejected. " +
+      "This may be due to quota, billing, rate limits, " +
+      "or insufficient API credits."
+    );
+  }
+
+  if (err.status >= 500) {
+    return "OpenAI is currently experiencing a server error.";
+  }
+
+  return (
+    err.message ||
+    err.error?.message ||
+    "OpenAI request failed."
+  );
 }
 
-
-/* =========================================================
-   HELPER: ORDER NUMBER
-========================================================= */
-
-function generateOrderNumber() {
-  const now = new Date();
-
-  const date =
-    now.getFullYear().toString() +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    String(now.getDate()).padStart(2, "0");
-
-  const random =
-    Math.random()
-      .toString(36)
-      .substring(2, 8)
-      .toUpperCase();
-
-  return `STK-${date}-${random}`;
-}
-
-
-/* =========================================================
-   AI PROMPT BUILDER
-========================================================= */
+// ============================================================
+// AI PROMPT BUILDER
+// ============================================================
 
 function buildPrompt({
   part,
@@ -240,6 +213,7 @@ function buildPrompt({
   description,
   extra
 }) {
+
   const safePart =
     cleanText(part, 100);
 
@@ -249,20 +223,24 @@ function buildPrompt({
   const safeExtra =
     cleanText(extra, 1500);
 
-  const partText = safePart
-    ? `on the vehicle's ${safePart}`
-    : "on the vehicle";
+  const partText =
+    safePart
+      ? `on the vehicle's ${safePart}`
+      : "on the vehicle";
 
   let sizeText = "";
 
   if (widthCm && heightCm) {
+
     sizeText =
       `The decal should fit naturally within approximately ` +
       `${cleanText(widthCm, 30)} cm wide by ` +
       `${cleanText(heightCm, 30)} cm tall.`;
+
   }
 
   return [
+
     `Apply a custom vehicle tattoo/decal ${partText}.`,
 
     `Design requested: ${safeDescription}.`,
@@ -292,50 +270,119 @@ function buildPrompt({
     safeExtra
       ? `Additional instruction: ${safeExtra}.`
       : ""
+
   ]
     .filter(Boolean)
     .join(" ");
 }
 
-
-/* =========================================================
-   HEALTH CHECK
-========================================================= */
+// ============================================================
+// HEALTH CHECK
+// ============================================================
 
 app.get("/health", (req, res) => {
+
   res.status(200).json({
+
     ok: true,
-    service: "SticKing AI Vehicle Customizer",
-    status: "running",
-    databaseConfigured: !!supabase
+
+    service:
+      "SticKing AI Vehicle Customizer",
+
+    status:
+      "running",
+
+    openaiConfigured:
+      Boolean(process.env.OPENAI_API_KEY),
+
+    timestamp:
+      new Date().toISOString()
+
   });
+
 });
 
-
-/* =========================================================
-   GENERATE VEHICLE PREVIEW
-========================================================= */
+// ============================================================
+// GENERATE VEHICLE PREVIEW
+// ============================================================
 
 app.post(
   "/generate-preview",
   upload.single("vehiclePhoto"),
+
   async (req, res) => {
+
+    console.log(
+      "=========================================="
+    );
+
+    console.log(
+      "🚗 GENERATE PREVIEW REQUEST"
+    );
+
     try {
+
+      // ------------------------------------------------------
+      // API KEY CHECK
+      // ------------------------------------------------------
+
       if (!process.env.OPENAI_API_KEY) {
+
+        console.error(
+          "❌ OPENAI_API_KEY missing."
+        );
+
         return res.status(500).json({
+
           success: false,
+
           error:
-            "OpenAI API key is not configured on the server."
+            "OpenAI API key is not configured on the Render server."
+
         });
+
       }
 
+      // ------------------------------------------------------
+      // IMAGE CHECK
+      // ------------------------------------------------------
+
       if (!req.file) {
+
+        console.error(
+          "❌ No vehicle image received."
+        );
+
         return res.status(400).json({
+
           success: false,
+
           error:
             "Please upload a vehicle photo."
+
         });
+
       }
+
+      console.log(
+        "📷 Image:",
+        req.file.originalname
+      );
+
+      console.log(
+        "📦 Image size:",
+        req.file.size,
+        "bytes"
+      );
+
+      console.log(
+        "🖼️ Image type:",
+        req.file.mimetype
+      );
+
+      // ------------------------------------------------------
+      // FORM DATA
+      // ------------------------------------------------------
 
       const {
         part,
@@ -345,123 +392,214 @@ app.post(
       } = req.body;
 
       if (!description) {
+
         return res.status(400).json({
+
           success: false,
+
           error:
             "Please describe the decal design."
+
         });
+
       }
 
+      // ------------------------------------------------------
+      // CONVERT IMAGE
+      // ------------------------------------------------------
+
       const image = await toFile(
+
         req.file.buffer,
-        req.file.originalname || "vehicle.png",
+
+        req.file.originalname ||
+          "vehicle.png",
+
         {
           type: req.file.mimetype
         }
+
       );
 
-      const prompt = buildPrompt({
-        part,
-        widthCm,
-        heightCm,
-        description
-      });
+      // ------------------------------------------------------
+      // PROMPT
+      // ------------------------------------------------------
+
+      const prompt =
+        buildPrompt({
+
+          part,
+          widthCm,
+          heightCm,
+          description
+
+        });
 
       console.log(
-        "Generating vehicle preview..."
+        "🧠 Prompt created."
       );
+
+      console.log(
+        "🤖 Sending request to OpenAI..."
+      );
+
+      // ------------------------------------------------------
+      // OPENAI
+      // ------------------------------------------------------
 
       const result =
         await openai.images.edit({
-          model: "gpt-image-1",
+
+          model:
+            "gpt-image-1",
+
           image,
+
           prompt
+
         });
+
+      console.log(
+        "✅ OpenAI response received."
+      );
+
+      // ------------------------------------------------------
+      // IMAGE RESULT
+      // ------------------------------------------------------
 
       const imageBase64 =
         result?.data?.[0]?.b64_json;
 
       if (!imageBase64) {
+
         throw new Error(
           "OpenAI returned no image data."
         );
+
       }
 
+      console.log(
+        "🖼️ Preview image generated successfully."
+      );
+
+      // ------------------------------------------------------
+      // RESPONSE
+      // ------------------------------------------------------
+
       return res.json({
+
         success: true,
+
         image:
           `data:image/png;base64,${imageBase64}`,
-        promptUsed: prompt
+
+        promptUsed:
+          prompt
+
       });
 
     } catch (err) {
+
       console.error(
-        "GENERATE PREVIEW ERROR:",
-        err
+        "❌ GENERATE PREVIEW FAILED"
       );
 
-      if (
-        err?.code ===
-        "LIMIT_FILE_SIZE"
-      ) {
-        return res.status(413).json({
-          success: false,
-          error:
-            "Vehicle image is too large. Maximum size is 12 MB."
-        });
-      }
+      const errorMessage =
+        getOpenAIError(err);
 
-      return res.status(500).json({
+      return res.status(
+        err?.status || 500
+      ).json({
+
         success: false,
+
         error:
-          err?.message ||
-          "Something went wrong generating the preview."
+          errorMessage
+
       });
+
     }
+
   }
 );
 
-
-/* =========================================================
-   REFINE EXISTING PREVIEW
-========================================================= */
+// ============================================================
+// REFINE EXISTING PREVIEW
+// ============================================================
 
 app.post(
   "/refine-preview",
+
   async (req, res) => {
+
+    console.log(
+      "=========================================="
+    );
+
+    console.log(
+      "🎨 REFINE PREVIEW REQUEST"
+    );
+
     try {
+
       if (!process.env.OPENAI_API_KEY) {
+
         return res.status(500).json({
+
           success: false,
+
           error:
-            "OpenAI API key is not configured on the server."
+            "OpenAI API key is not configured on the Render server."
+
         });
+
       }
 
       const {
+
         previousImageBase64,
+
         part,
+
         widthCm,
+
         heightCm,
+
         description,
+
         refinement
+
       } = req.body;
 
       if (!previousImageBase64) {
+
         return res.status(400).json({
+
           success: false,
+
           error:
             "No previous image supplied to refine."
+
         });
+
       }
 
       if (!refinement) {
+
         return res.status(400).json({
+
           success: false,
+
           error:
             "Please describe what you want changed."
+
         });
+
       }
+
+      // ------------------------------------------------------
+      // REMOVE DATA URL PREFIX
+      // ------------------------------------------------------
 
       const base64Data =
         String(previousImageBase64)
@@ -477,102 +615,164 @@ app.post(
         );
 
       if (!buffer.length) {
+
         return res.status(400).json({
+
           success: false,
+
           error:
             "The previous image could not be read."
+
         });
+
       }
 
       if (
         buffer.length >
         MAX_IMAGE_SIZE
       ) {
+
         return res.status(413).json({
+
           success: false,
+
           error:
             "The previous preview is too large to refine."
+
         });
+
       }
 
       const image =
         await toFile(
+
           buffer,
+
           "previous-preview.png",
+
           {
-            type: "image/png"
+            type:
+              "image/png"
           }
+
         );
 
       const prompt =
         buildPrompt({
+
           part,
+
           widthCm,
+
           heightCm,
+
           description:
             description ||
             "the existing vehicle decal",
-          extra: refinement
+
+          extra:
+            refinement
+
         });
 
       console.log(
-        "Refining vehicle preview..."
+        "🤖 Sending refinement to OpenAI..."
       );
 
       const result =
         await openai.images.edit({
-          model: "gpt-image-1",
+
+          model:
+            "gpt-image-1",
+
           image,
+
           prompt
+
         });
 
       const imageBase64 =
         result?.data?.[0]?.b64_json;
 
       if (!imageBase64) {
+
         throw new Error(
           "OpenAI returned no refined image."
         );
+
       }
 
+      console.log(
+        "✅ Refined image generated."
+      );
+
       return res.json({
+
         success: true,
+
         image:
           `data:image/png;base64,${imageBase64}`,
-        promptUsed: prompt
+
+        promptUsed:
+          prompt
+
       });
 
     } catch (err) {
+
       console.error(
-        "REFINE PREVIEW ERROR:",
-        err
+        "❌ REFINE PREVIEW FAILED"
       );
 
-      return res.status(500).json({
+      const errorMessage =
+        getOpenAIError(err);
+
+      return res.status(
+        err?.status || 500
+      ).json({
+
         success: false,
+
         error:
-          err?.message ||
-          "Something went wrong refining the preview."
+          errorMessage
+
       });
+
     }
+
   }
 );
 
-
-/* =========================================================
-   GENERATE STANDALONE DECAL
-========================================================= */
+// ============================================================
+// GENERATE STANDALONE DECAL
+// ============================================================
 
 app.post(
   "/generate-decal",
+
   async (req, res) => {
+
+    console.log(
+      "=========================================="
+    );
+
+    console.log(
+      "✂️ GENERATE DECAL REQUEST"
+    );
+
     try {
+
       if (!process.env.OPENAI_API_KEY) {
+
         return res.status(500).json({
+
           success: false,
+
           error:
-            "OpenAI API key is not configured on the server."
+            "OpenAI API key is not configured on the Render server."
+
         });
+
       }
 
       const description =
@@ -582,14 +782,20 @@ app.post(
         );
 
       if (!description) {
+
         return res.status(400).json({
+
           success: false,
+
           error:
             "No design description supplied."
+
         });
+
       }
 
       const prompt = [
+
         "Create a standalone vehicle decal/tattoo graphic.",
 
         `Design: ${description}.`,
@@ -619,528 +825,101 @@ app.post(
         "Transparent background.",
 
         "Suitable for PNG vinyl decal production."
+
       ].join(" ");
 
       console.log(
-        "Generating standalone decal..."
+        "🤖 Sending decal request to OpenAI..."
       );
 
       const result =
         await openai.images.generate({
-          model: "gpt-image-1",
+
+          model:
+            "gpt-image-1",
+
           prompt,
-          background: "transparent"
+
+          background:
+            "transparent"
+
         });
 
       const imageBase64 =
         result?.data?.[0]?.b64_json;
 
       if (!imageBase64) {
+
         throw new Error(
           "OpenAI returned no decal image."
         );
+
       }
-
-      return res.json({
-        success: true,
-        image:
-          `data:image/png;base64,${imageBase64}`
-      });
-
-    } catch (err) {
-      console.error(
-        "GENERATE DECAL ERROR:",
-        err
-      );
-
-      return res.status(500).json({
-        success: false,
-        error:
-          err?.message ||
-          "Something went wrong generating the decal."
-      });
-    }
-  }
-);
-
-
-/* =========================================================
-   CREATE CUSTOMER ORDER
-========================================================= */
-
-app.post(
-  "/api/orders",
-  async (req, res) => {
-    try {
-
-      if (!supabase) {
-        return res.status(500).json({
-          success: false,
-          error:
-            "Supabase is not configured on the server."
-        });
-      }
-
-      const body = req.body || {};
-
-      /* -----------------------------------------------------
-         CUSTOMER
-      ----------------------------------------------------- */
-
-      const customerName =
-        cleanText(
-          body.customer_name ||
-          body.customerName,
-          150
-        );
-
-      const customerEmail =
-        cleanText(
-          body.customer_email ||
-          body.customerEmail,
-          200
-        );
-
-      const customerPhone =
-        cleanText(
-          body.customer_phone ||
-          body.customerPhone,
-          50
-        );
-
-      if (!customerName) {
-        return res.status(400).json({
-          success: false,
-          error:
-            "Customer name is required."
-        });
-      }
-
-      if (
-        !customerEmail &&
-        !customerPhone
-      ) {
-        return res.status(400).json({
-          success: false,
-          error:
-            "Customer email or phone number is required."
-        });
-      }
-
-
-      /* -----------------------------------------------------
-         VEHICLE
-      ----------------------------------------------------- */
-
-      const vehicleMake =
-        cleanText(
-          body.vehicle_make ||
-          body.vehicleMake,
-          100
-        );
-
-      const vehicleModel =
-        cleanText(
-          body.vehicle_model ||
-          body.vehicleModel,
-          100
-        );
-
-      const vehicleYear =
-        cleanText(
-          body.vehicle_year ||
-          body.vehicleYear,
-          30
-        );
-
-      const vehicleColor =
-        cleanText(
-          body.vehicle_color ||
-          body.vehicleColor,
-          50
-        );
-
-
-      /* -----------------------------------------------------
-         DESIGN
-      ----------------------------------------------------- */
-
-      const designId =
-        cleanText(
-          body.design_id ||
-          body.designId,
-          150
-        );
-
-      const designName =
-        cleanText(
-          body.design_name ||
-          body.designName ||
-          body.description,
-          200
-        );
-
-      if (!designName) {
-        return res.status(400).json({
-          success: false,
-          error:
-            "Design name is required."
-        });
-      }
-
-
-      /* -----------------------------------------------------
-         SIZE / PRODUCTION
-      ----------------------------------------------------- */
-
-      const placement =
-        cleanText(
-          body.placement ||
-          body.part,
-          100
-        );
-
-      const widthCm =
-        cleanNumber(
-          body.width_cm ||
-          body.widthCm
-        );
-
-      const heightCm =
-        cleanNumber(
-          body.height_cm ||
-          body.heightCm
-        );
-
-      const quantity =
-        Math.max(
-          1,
-          Math.floor(
-            cleanNumber(body.quantity) || 1
-          )
-        );
-
-      const unitPrice =
-        cleanNumber(
-          body.unit_price ||
-          body.unitPrice
-        );
-
-      const totalPrice =
-        cleanNumber(
-          body.total_price ||
-          body.totalPrice
-        );
-
-
-      /* -----------------------------------------------------
-         PREVIEW / NOTES
-      ----------------------------------------------------- */
-
-      const previewImageUrl =
-        cleanText(
-          body.preview_image_url ||
-          body.previewImageUrl,
-          2000
-        );
-
-      const customerNotes =
-        cleanText(
-          body.customer_notes ||
-          body.customerNotes,
-          3000
-        );
-
-
-      /* -----------------------------------------------------
-         ADDRESS
-      ----------------------------------------------------- */
-
-      const addressLine1 =
-        cleanText(
-          body.address_line1 ||
-          body.addressLine1,
-          250
-        );
-
-      const addressLine2 =
-        cleanText(
-          body.address_line2 ||
-          body.addressLine2,
-          250
-        );
-
-      const city =
-        cleanText(
-          body.city,
-          100
-        );
-
-      const state =
-        cleanText(
-          body.state,
-          100
-        );
-
-      const pincode =
-        cleanText(
-          body.pincode ||
-          body.pinCode,
-          20
-        );
-
-      const country =
-        cleanText(
-          body.country || "India",
-          100
-        );
-
-
-      /* -----------------------------------------------------
-         ORDER NUMBER
-      ----------------------------------------------------- */
-
-      const orderNumber =
-        generateOrderNumber();
-
-
-      /* -----------------------------------------------------
-         INSERT INTO SUPABASE
-      ----------------------------------------------------- */
-
-      const orderData = {
-
-        order_number: orderNumber,
-
-        customer_name: customerName,
-        customer_email: customerEmail || null,
-        customer_phone: customerPhone || null,
-
-        vehicle_make: vehicleMake || null,
-        vehicle_model: vehicleModel || null,
-        vehicle_year: vehicleYear || null,
-        vehicle_color: vehicleColor || null,
-
-        design_id: designId || null,
-        design_name: designName,
-        design_image_url:
-          cleanText(
-            body.design_image_url ||
-            body.designImageUrl,
-            2000
-          ) || null,
-
-        placement: placement || null,
-
-        width_cm: widthCm,
-        height_cm: heightCm,
-
-        quantity: quantity,
-
-        unit_price: unitPrice,
-        total_price: totalPrice,
-
-        preview_image_url:
-          previewImageUrl || null,
-
-        customer_notes:
-          customerNotes || null,
-
-        address_line1:
-          addressLine1 || null,
-
-        address_line2:
-          addressLine2 || null,
-
-        city:
-          city || null,
-
-        state:
-          state || null,
-
-        pincode:
-          pincode || null,
-
-        country:
-          country || "India",
-
-        status: "NEW"
-      };
-
-
-      const {
-        data,
-        error
-      } = await supabase
-        .from("orders")
-        .insert(orderData)
-        .select()
-        .single();
-
-
-      if (error) {
-        console.error(
-          "SUPABASE ORDER ERROR:",
-          error
-        );
-
-        return res.status(500).json({
-          success: false,
-          error:
-            "Could not save the order.",
-          details:
-            error.message
-        });
-      }
-
 
       console.log(
-        `New SticKing order created: ${orderNumber}`
+        "✅ Standalone decal generated."
       );
-
-
-      return res.status(201).json({
-        success: true,
-
-        message:
-          "Order received successfully.",
-
-        orderNumber:
-          data.order_number,
-
-        orderId:
-          data.id,
-
-        status:
-          data.status
-      });
-
-    } catch (err) {
-
-      console.error(
-        "CREATE ORDER ERROR:",
-        err
-      );
-
-      return res.status(500).json({
-        success: false,
-        error:
-          err?.message ||
-          "Something went wrong creating the order."
-      });
-    }
-  }
-);
-
-
-/* =========================================================
-   GET ORDER BY ORDER NUMBER
-   Useful for future customer order tracking.
-========================================================= */
-
-app.get(
-  "/api/orders/:orderNumber",
-  async (req, res) => {
-    try {
-
-      if (!supabase) {
-        return res.status(500).json({
-          success: false,
-          error:
-            "Supabase is not configured on the server."
-        });
-      }
-
-      const orderNumber =
-        cleanText(
-          req.params.orderNumber,
-          100
-        );
-
-      const {
-        data,
-        error
-      } = await supabase
-        .from("orders")
-        .select(
-          `
-          id,
-          order_number,
-          design_name,
-          vehicle_make,
-          vehicle_model,
-          quantity,
-          total_price,
-          status,
-          created_at,
-          updated_at
-          `
-        )
-        .eq(
-          "order_number",
-          orderNumber
-        )
-        .maybeSingle();
-
-      if (error) {
-        console.error(
-          "GET ORDER ERROR:",
-          error
-        );
-
-        return res.status(500).json({
-          success: false,
-          error:
-            "Could not retrieve order."
-        });
-      }
-
-      if (!data) {
-        return res.status(404).json({
-          success: false,
-          error:
-            "Order not found."
-        });
-      }
 
       return res.json({
+
         success: true,
-        order: data
+
+        image:
+          `data:image/png;base64,${imageBase64}`
+
       });
 
     } catch (err) {
 
       console.error(
-        "ORDER LOOKUP ERROR:",
-        err
+        "❌ GENERATE DECAL FAILED"
       );
 
-      return res.status(500).json({
+      const errorMessage =
+        getOpenAIError(err);
+
+      return res.status(
+        err?.status || 500
+      ).json({
+
         success: false,
+
         error:
-          "Could not retrieve order."
+          errorMessage
+
       });
+
     }
+
   }
 );
 
-
-/* =========================================================
-   MULTER / UPLOAD ERROR HANDLER
-========================================================= */
+// ============================================================
+// MULTER / UPLOAD ERROR HANDLER
+// ============================================================
 
 app.use(
   (err, req, res, next) => {
+
+    console.error(
+      "❌ UPLOAD/SERVER ERROR:",
+      err
+    );
 
     if (
       err?.code ===
       "LIMIT_FILE_SIZE"
     ) {
+
       return res.status(413).json({
+
         success: false,
+
         error:
           "Image is too large. Maximum allowed size is 12 MB."
+
       });
+
     }
 
     if (
@@ -1148,63 +927,96 @@ app.use(
         "Only JPG"
       )
     ) {
+
       return res.status(400).json({
+
         success: false,
-        error: err.message
+
+        error:
+          err.message
+
       });
+
     }
 
     next(err);
+
   }
 );
 
-
-/* =========================================================
-   ROOT ROUTE
-========================================================= */
+// ============================================================
+// ROOT ROUTE
+// ============================================================
 
 app.get("/", (req, res) => {
+
   res.sendFile(
+
     path.join(
       __dirname,
       "public",
       "index.html"
     )
+
   );
+
 });
 
-
-/* =========================================================
-   GENERAL ERROR HANDLER
-========================================================= */
+// ============================================================
+// GENERAL ERROR HANDLER
+// ============================================================
 
 app.use(
   (err, req, res, next) => {
 
     console.error(
-      "SERVER ERROR:",
+      "❌ GENERAL SERVER ERROR:",
       err
     );
 
     res.status(500).json({
+
       success: false,
+
       error:
+        err?.message ||
         "Internal server error."
+
     });
+
   }
 );
 
-
-/* =========================================================
-   START SERVER
-========================================================= */
+// ============================================================
+// START SERVER
+// ============================================================
 
 app.listen(
   PORT,
   HOST,
   () => {
+
     console.log(
-      `SticKing server running on ${HOST}:${PORT}`
+      "=========================================="
     );
+
+    console.log(
+      "🚀 SticKing server started"
+    );
+
+    console.log(
+      `🌐 http://${HOST}:${PORT}`
+    );
+
+    console.log(
+      `🔑 OpenAI configured: ${Boolean(
+        process.env.OPENAI_API_KEY
+      )}`
+    );
+
+    console.log(
+      "=========================================="
+    );
+
   }
 );
