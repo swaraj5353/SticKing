@@ -1,26 +1,15 @@
 const express = require("express");
 const multer = require("multer");
 const OpenAI = require("openai");
-const { toFile } = require("openai/uploads");
-const path = require("path");
 
 const app = express();
-
 const PORT = process.env.PORT || 10000;
 
 /* =========================================================
    OPENAI
-   ========================================================= */
+========================================================= */
 
 const openaiConfigured = !!process.env.OPENAI_API_KEY;
-
-console.log("==========================================");
-
-if (openaiConfigured) {
-  console.log("✅ OPENAI_API_KEY is configured.");
-} else {
-  console.log("❌ OPENAI_API_KEY is NOT configured.");
-}
 
 const openai = openaiConfigured
   ? new OpenAI({
@@ -28,26 +17,26 @@ const openai = openaiConfigured
     })
   : null;
 
+console.log(
+  openaiConfigured
+    ? "✅ OPENAI_API_KEY is configured."
+    : "❌ OPENAI_API_KEY is NOT configured."
+);
 
 /* =========================================================
    CORS
-   ========================================================= */
+   IMPORTANT FOR ODOO EMBED
+========================================================= */
 
 app.use((req, res, next) => {
-
   const origin = req.headers.origin;
 
-  const allowedOrigins = [
-    "https://sticking.odoo.com",
-    "https://www.sticking.odoo.com",
-    "https://sticking.onrender.com"
-  ];
+  console.log("🌍 Request origin:", origin || "none");
 
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader(
-      "Access-Control-Allow-Origin",
-      origin
-    );
+  // Allow the Odoo website, Render itself,
+  // and other browser origins used for embedding.
+  if (origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
   }
 
   res.setHeader(
@@ -57,7 +46,7 @@ app.use((req, res, next) => {
 
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type"
+    "Content-Type, Accept"
   );
 
   res.setHeader(
@@ -66,18 +55,16 @@ app.use((req, res, next) => {
   );
 
   if (req.method === "OPTIONS") {
-    console.log("➡️ OPTIONS", req.path);
-
+    console.log("➡️ CORS OPTIONS:", req.path);
     return res.status(204).end();
   }
 
   next();
 });
 
-
 /* =========================================================
-   BODY PARSING
-   ========================================================= */
+   BODY PARSER
+========================================================= */
 
 app.use(
   express.json({
@@ -85,106 +72,60 @@ app.use(
   })
 );
 
-app.use(
-  express.urlencoded({
-    extended: true,
-    limit: "10mb"
-  })
-);
-
-
 /* =========================================================
    FILE UPLOAD
-   ========================================================= */
+========================================================= */
 
 const upload = multer({
-
   storage: multer.memoryStorage(),
 
   limits: {
-    fileSize: 50 * 1024 * 1024
+    fileSize: 20 * 1024 * 1024
   }
-
 });
-
 
 /* =========================================================
    REQUEST LOGGER
-   ========================================================= */
+========================================================= */
 
 app.use((req, res, next) => {
-
   console.log(
     `➡️ ${req.method} ${req.path}`
   );
 
   next();
-
 });
-
 
 /* =========================================================
    HEALTH CHECK
-   ========================================================= */
+========================================================= */
 
 app.get("/health", (req, res) => {
-
   res.json({
-
     ok: true,
-
-    service:
-      "SticKing AI Vehicle Customizer",
-
-    status:
-      "running",
-
-    openaiConfigured:
-      openaiConfigured
-
+    service: "SticKing AI Vehicle Customizer",
+    status: "running",
+    openaiConfigured: openaiConfigured
   });
-
 });
-
 
 /* =========================================================
    HOME
-   ========================================================= */
+========================================================= */
 
 app.get("/", (req, res) => {
-
   res.sendFile(
-    path.join(
-      __dirname,
-      "public",
-      "index.html"
-    )
+    __dirname + "/public/index.html"
   );
-
 });
-
 
 /* =========================================================
    GENERATE VEHICLE PREVIEW
-   ========================================================= */
+========================================================= */
 
 app.post(
-
   "/generate-preview",
-
-  upload.fields([
-
-    {
-      name: "vehicleImage",
-      maxCount: 1
-    },
-
-    {
-      name: "vehiclePhoto",
-      maxCount: 1
-    }
-
-  ]),
+  upload.single("vehicleImage"),
 
   async (req, res) => {
 
@@ -193,12 +134,11 @@ app.post(
     console.log("🚗 GENERATE PREVIEW REQUEST RECEIVED");
     console.log("==========================================");
 
-
     try {
 
-      /* =====================================================
+      /* -----------------------------------------------------
          CHECK OPENAI
-         ===================================================== */
+      ----------------------------------------------------- */
 
       if (!openaiConfigured || !openai) {
 
@@ -207,114 +147,60 @@ app.post(
         );
 
         return res.status(500).json({
-
           ok: false,
-
           error:
             "OpenAI API key is not configured on the server."
-
         });
-
       }
 
-
-      /* =====================================================
-         GET UPLOADED IMAGE
-         Supports BOTH names:
-         vehicleImage
-         vehiclePhoto
-         ===================================================== */
-
-      let uploadedFile = null;
-
-      if (
-        req.files &&
-        req.files.vehicleImage &&
-        req.files.vehicleImage[0]
-      ) {
-
-        uploadedFile =
-          req.files.vehicleImage[0];
-
-      }
-
-      if (
-        !uploadedFile &&
-        req.files &&
-        req.files.vehiclePhoto &&
-        req.files.vehiclePhoto[0]
-      ) {
-
-        uploadedFile =
-          req.files.vehiclePhoto[0];
-
-      }
-
-
-      /* =====================================================
+      /* -----------------------------------------------------
          CHECK IMAGE
-         ===================================================== */
+      ----------------------------------------------------- */
 
-      if (!uploadedFile) {
+      if (!req.file) {
 
         console.log(
           "❌ No vehicle image received."
         );
 
         return res.status(400).json({
-
           ok: false,
-
           error:
             "No vehicle image was uploaded."
-
         });
-
       }
 
-
       console.log(
-        "📷 Image received:",
-        uploadedFile.originalname
+        "📷 Image:",
+        req.file.originalname
       );
 
       console.log(
-        "📦 Image size:",
-        uploadedFile.size,
+        "📦 Size:",
+        req.file.size,
         "bytes"
       );
 
       console.log(
-        "🖼️ Image MIME type:",
-        uploadedFile.mimetype
+        "🖼️ Type:",
+        req.file.mimetype
       );
 
-
-      /* =====================================================
+      /* -----------------------------------------------------
          FORM DATA
-         ===================================================== */
+      ----------------------------------------------------- */
 
       const design =
-        req.body.design ||
-        req.body.tattoo ||
-        req.body.description ||
-        "";
+        req.body.design || "";
 
       const width =
-        req.body.width ||
-        req.body.widthCm ||
-        "";
+        req.body.width || "";
 
       const height =
-        req.body.height ||
-        req.body.heightCm ||
-        "";
+        req.body.height || "";
 
       const description =
-        req.body.description ||
-        req.body.instructions ||
-        "";
-
+        req.body.description || "";
 
       console.log(
         "🎨 Design:",
@@ -336,147 +222,84 @@ app.post(
         description
       );
 
-
-      /* =====================================================
-         CREATE PROMPT
-         ===================================================== */
+      /* -----------------------------------------------------
+         PROMPT
+      ----------------------------------------------------- */
 
       const prompt = `
+You are a professional automotive vinyl sticker designer.
 
-You are a professional automotive vinyl wrap and vehicle sticker designer.
+Create a realistic preview of the uploaded vehicle with
+the requested sticker/design applied naturally to the
+vehicle.
 
-Create a highly realistic photographic preview of the uploaded vehicle with the requested decal, tattoo or sticker design applied to the vehicle.
+IMPORTANT:
 
-IMPORTANT REQUIREMENTS:
+- Keep the original vehicle recognizable.
+- Keep the same vehicle model.
+- Keep the original body shape.
+- Keep the original perspective.
+- Do not replace the vehicle.
+- Do not redesign the vehicle.
+- Apply the design directly onto the requested vehicle surface.
+- Make the sticker look like professionally installed vinyl.
+- Follow the curves of the vehicle.
+- Preserve realistic lighting.
+- Preserve realistic shadows.
+- Preserve reflections.
+- Do not place the design floating outside the vehicle.
+- Do not unnecessarily change the background.
 
-1. Keep the original vehicle recognizable.
-
-2. Do NOT replace the vehicle.
-
-3. Do NOT change the vehicle model.
-
-4. Do NOT change the vehicle body shape.
-
-5. Do NOT redesign the vehicle.
-
-6. Keep the original perspective and camera angle.
-
-7. Keep the original wheels, windows, headlights, grille and body panels.
-
-8. Apply the requested design naturally onto the selected vehicle surface.
-
-9. Make the design look like professionally installed automotive vinyl.
-
-10. The design must follow the curvature of the vehicle.
-
-11. Preserve realistic reflections.
-
-12. Preserve realistic shadows.
-
-13. Preserve realistic lighting.
-
-14. The decal must appear physically attached to the vehicle.
-
-15. Do not make the sticker float beside the vehicle.
-
-16. Do not create a separate sticker floating in the image.
-
-17. Do not unnecessarily change the background.
-
-18. Make the final result look like a real photograph of a customized vehicle.
-
-19. Keep the vehicle proportions realistic.
-
-20. Make the design clean, premium and commercially realistic.
-
-REQUESTED DESIGN:
+Requested sticker/design:
 
 ${design}
 
-REQUESTED SIZE:
+Vehicle part:
+
+${description}
+
+Requested dimensions:
 
 Width: ${width} cm
 Height: ${height} cm
 
-CUSTOMER INSTRUCTIONS:
-
-${description}
-
-Generate the final realistic vehicle customization preview.
-
+Generate a high-quality realistic vehicle customization preview.
 `;
-
 
       console.log(
         "🧠 Prompt created."
       );
 
-
-      /* =====================================================
-         CONVERT BUFFER INTO REAL UPLOADABLE FILE
-         ===================================================== */
-
       console.log(
-        "📤 Preparing image for OpenAI..."
+        "🤖 Sending request to OpenAI..."
       );
 
-
-      const imageFile = await toFile(
-
-        uploadedFile.buffer,
-
-        uploadedFile.originalname ||
-          "vehicle.png",
-
-        {
-          type:
-            uploadedFile.mimetype ||
-            "image/png"
-        }
-
-      );
-
-
-      console.log(
-        "✅ Image converted to uploadable file."
-      );
-
-
-      /* =====================================================
+      /* -----------------------------------------------------
          OPENAI IMAGE EDIT
-         ===================================================== */
-
-      console.log(
-        "🤖 Sending image to OpenAI..."
-      );
-
+      ----------------------------------------------------- */
 
       const imageResponse =
         await openai.images.edit({
 
-          model:
-            "gpt-image-1",
+          model: "gpt-image-1",
 
-          image:
-            imageFile,
+          image: {
+            data: req.file.buffer,
+            filename: req.file.originalname
+          },
 
-          prompt:
-            prompt,
+          prompt: prompt,
 
-          size:
-            "1024x1024"
-
+          size: "1024x1024"
         });
-
 
       console.log(
         "✅ OpenAI response received."
       );
 
-
-      /* =====================================================
+      /* -----------------------------------------------------
          CHECK RESPONSE
-         ===================================================== */
+      ----------------------------------------------------- */
 
       if (
         !imageResponse ||
@@ -489,24 +312,18 @@ Generate the final realistic vehicle customization preview.
         );
 
         return res.status(500).json({
-
           ok: false,
-
           error:
             "OpenAI did not return an image."
-
         });
-
       }
-
 
       const result =
         imageResponse.data[0];
 
-
-      /* =====================================================
-         BASE64 IMAGE
-         ===================================================== */
+      /* -----------------------------------------------------
+         BASE64
+      ----------------------------------------------------- */
 
       if (result.b64_json) {
 
@@ -519,16 +336,15 @@ Generate the final realistic vehicle customization preview.
           ok: true,
 
           image:
-            `data:image/png;base64,${result.b64_json}`
+            "data:image/png;base64," +
+            result.b64_json
 
         });
-
       }
 
-
-      /* =====================================================
-         URL IMAGE
-         ===================================================== */
+      /* -----------------------------------------------------
+         URL
+      ----------------------------------------------------- */
 
       if (result.url) {
 
@@ -540,17 +356,14 @@ Generate the final realistic vehicle customization preview.
 
           ok: true,
 
-          image:
-            result.url
+          image: result.url
 
         });
-
       }
 
-
-      /* =====================================================
+      /* -----------------------------------------------------
          UNKNOWN RESPONSE
-         ===================================================== */
+      ----------------------------------------------------- */
 
       console.log(
         "❌ OpenAI response contained no image."
@@ -565,13 +378,20 @@ Generate the final realistic vehicle customization preview.
 
       });
 
-
     } catch (error) {
 
-      console.log("");
-      console.log("==========================================");
-      console.log("❌ GENERATE PREVIEW FAILED");
-      console.log("==========================================");
+      console.error("");
+      console.error(
+        "=========================================="
+      );
+
+      console.error(
+        "❌ GENERATE PREVIEW FAILED"
+      );
+
+      console.error(
+        "=========================================="
+      );
 
       console.error(
         "Error name:",
@@ -583,31 +403,30 @@ Generate the final realistic vehicle customization preview.
         error.message
       );
 
-      console.error(
-        "Error status:",
-        error.status
-      );
+      if (error.status) {
 
-      console.error(
-        "Error code:",
-        error.code
-      );
+        console.error(
+          "OpenAI status:",
+          error.status
+        );
+
+      }
+
+      if (error.code) {
+
+        console.error(
+          "OpenAI code:",
+          error.code
+        );
+
+      }
 
       console.error(
         "Full error:",
         error
       );
 
-
-      /* =====================================================
-         SEND REAL ERROR TO FRONTEND
-         ===================================================== */
-
-      return res.status(
-
-        error.status || 500
-
-      ).json({
+      return res.status(500).json({
 
         ok: false,
 
@@ -620,34 +439,35 @@ Generate the final realistic vehicle customization preview.
     }
 
   }
-
 );
 
-
 /* =========================================================
-   404 HANDLER
-   ========================================================= */
+   404
+========================================================= */
 
 app.use((req, res) => {
+
+  console.log(
+    "❌ 404:",
+    req.method,
+    req.path
+  );
 
   res.status(404).json({
 
     ok: false,
 
-    error:
-      "Route not found",
+    error: "Route not found",
 
-    path:
-      req.path
+    path: req.path
 
   });
 
 });
 
-
 /* =========================================================
    GLOBAL ERROR HANDLER
-   ========================================================= */
+========================================================= */
 
 app.use(
   (error, req, res, next) => {
@@ -656,9 +476,7 @@ app.use(
       "❌ GLOBAL SERVER ERROR"
     );
 
-    console.error(
-      error
-    );
+    console.error(error);
 
     res.status(500).json({
 
@@ -673,10 +491,9 @@ app.use(
   }
 );
 
-
 /* =========================================================
-   START SERVER
-   ========================================================= */
+   START
+========================================================= */
 
 app.listen(
   PORT,
@@ -692,11 +509,13 @@ app.listen(
     );
 
     console.log(
-      `🌐 http://0.0.0.0:${PORT}`
+      "🌐 Port:",
+      PORT
     );
 
     console.log(
-      `🔑 OpenAI configured: ${openaiConfigured}`
+      "🔑 OpenAI configured:",
+      openaiConfigured
     );
 
     console.log(
