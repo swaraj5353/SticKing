@@ -1,7 +1,6 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
 const OpenAI = require("openai");
 const { toFile } = require("openai");
 
@@ -9,372 +8,698 @@ const app = express();
 
 const PORT = process.env.PORT || 10000;
 
-// ======================================================
-// OPENAI
-// ======================================================
-
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 if (!OPENAI_API_KEY) {
-  console.error("❌ OPENAI_API_KEY is NOT configured.");
+    console.error("❌ OPENAI_API_KEY is NOT configured.");
 } else {
-  console.log("✅ OPENAI_API_KEY is configured.");
+    console.log("✅ OPENAI_API_KEY is configured.");
 }
 
 const openai = OPENAI_API_KEY
-  ? new OpenAI({
-      apiKey: OPENAI_API_KEY
+    ? new OpenAI({
+        apiKey: OPENAI_API_KEY
     })
-  : null;
+    : null;
 
-// ======================================================
+
+// =====================================================
 // MIDDLEWARE
-// ======================================================
+// =====================================================
 
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json({
+    limit: "20mb"
+}));
 
-// ======================================================
+app.use(express.urlencoded({
+    extended: true,
+    limit: "20mb"
+}));
+
+
+// =====================================================
 // STATIC WEBSITE
-// ======================================================
+// =====================================================
 
-const publicPath = path.join(__dirname, "public");
+app.use(express.static(
+    path.join(__dirname, "public")
+));
 
-app.use(express.static(publicPath));
 
-// ======================================================
+// =====================================================
 // MULTER
-// ======================================================
-
-// Store uploaded image in memory.
-// This avoids temporary-file/path problems on Render.
+// =====================================================
 
 const upload = multer({
-  storage: multer.memoryStorage(),
 
-  limits: {
-    fileSize: 10 * 1024 * 1024
-  },
+    storage: multer.memoryStorage(),
 
-  fileFilter: (req, file, cb) => {
-    console.log("📁 Uploaded file:", file.originalname);
-    console.log("📁 MIME type:", file.mimetype);
+    limits: {
+        fileSize: 12 * 1024 * 1024
+    },
 
-    if (!file.mimetype || !file.mimetype.startsWith("image/")) {
-      return cb(new Error("Only image files are allowed."));
+    fileFilter: (req, file, cb) => {
+
+        console.log("📁 FILE RECEIVED:");
+        console.log("   Name:", file.originalname);
+        console.log("   Type:", file.mimetype);
+
+        if (
+            !file.mimetype ||
+            !file.mimetype.startsWith("image/")
+        ) {
+
+            return cb(
+                new Error("Only image files are allowed.")
+            );
+        }
+
+        cb(null, true);
     }
-
-    cb(null, true);
-  }
 });
 
-// ======================================================
-// HEALTH CHECK
-// ======================================================
+
+// =====================================================
+// HEALTH
+// =====================================================
 
 app.get("/health", (req, res) => {
-  res.json({
-    ok: true,
-    service: "SticKing AI Vehicle Customizer",
-    status: "running",
-    openaiConfigured: !!OPENAI_API_KEY
-  });
+
+    res.json({
+        ok: true,
+        service: "SticKing AI Vehicle Customizer",
+        status: "running",
+        openaiConfigured: !!OPENAI_API_KEY
+    });
+
 });
 
-// ======================================================
+
+// =====================================================
 // HOME
-// ======================================================
+// =====================================================
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(publicPath, "index.html"));
+
+    res.sendFile(
+        path.join(
+            __dirname,
+            "public",
+            "index.html"
+        )
+    );
+
 });
 
-// ======================================================
-// AI PREVIEW
-// ======================================================
 
-app.post("/api/generate-preview", upload.single("image"), async (req, res) => {
+// =====================================================
+// GENERATE PREVIEW
+//
+// IMPORTANT:
+// We support BOTH:
+//
+// /generate-preview
+// /api/generate-preview
+//
+// and BOTH:
+//
+// vehicleImage
+// vehiclePhoto
+//
+// =====================================================
 
-  console.log("");
-  console.log("==========================================");
-  console.log("🚀 GENERATE PREVIEW REQUEST RECEIVED");
-  console.log("==========================================");
+const generatePreviewHandler = async (req, res) => {
 
-  try {
+    console.log("");
+    console.log("==========================================");
+    console.log("🚀 GENERATE PREVIEW REQUEST RECEIVED");
+    console.log("==========================================");
 
-    // --------------------------------------------------
-    // CHECK OPENAI
-    // --------------------------------------------------
+    try {
 
-    if (!openai) {
+        console.log("Request URL:", req.originalUrl);
+        console.log("Request method:", req.method);
 
-      console.error("❌ OPENAI_API_KEY is missing.");
 
-      return res.status(500).json({
-        success: false,
-        error: "OPENAI_API_KEY is not configured on the server."
-      });
-    }
+        // -------------------------------------------------
+        // OPENAI KEY
+        // -------------------------------------------------
 
-    // --------------------------------------------------
-    // CHECK IMAGE
-    // --------------------------------------------------
+        if (!openai) {
 
-    if (!req.file) {
+            console.error(
+                "❌ OPENAI_API_KEY is missing."
+            );
 
-      console.error("❌ No image received.");
+            return res.status(500).json({
 
-      return res.status(400).json({
-        success: false,
-        error: "No vehicle image was uploaded."
-      });
-    }
+                ok: false,
+                success: false,
 
-    console.log("✅ Image received.");
-    console.log("   Filename:", req.file.originalname);
-    console.log("   MIME:", req.file.mimetype);
-    console.log("   Size:", req.file.size, "bytes");
+                error:
+                    "OPENAI_API_KEY is not configured on the server."
 
-    // --------------------------------------------------
-    // FORM DATA
-    // --------------------------------------------------
+            });
 
-    const part = req.body.part || "vehicle";
-    const width = req.body.width || "";
-    const height = req.body.height || "";
-    const design = req.body.design || "custom vehicle decal";
-    const instructions = req.body.instructions || "";
+        }
 
-    console.log("🚗 Vehicle part:", part);
-    console.log("📏 Width:", width);
-    console.log("📏 Height:", height);
-    console.log("🎨 Design:", design);
-    console.log("📝 Instructions:", instructions);
 
-    // --------------------------------------------------
-    // CREATE PROMPT
-    // --------------------------------------------------
+        // -------------------------------------------------
+        // IMAGE
+        // -------------------------------------------------
 
-    const prompt = `
+        const file = req.file;
+
+        if (!file) {
+
+            console.error(
+                "❌ NO IMAGE RECEIVED."
+            );
+
+            return res.status(400).json({
+
+                ok: false,
+                success: false,
+
+                error:
+                    "No vehicle image was uploaded."
+
+            });
+
+        }
+
+        console.log("✅ IMAGE RECEIVED");
+
+        console.log(
+            "Filename:",
+            file.originalname
+        );
+
+        console.log(
+            "MIME:",
+            file.mimetype
+        );
+
+        console.log(
+            "Size:",
+            file.size,
+            "bytes"
+        );
+
+
+        // -------------------------------------------------
+        // FORM VALUES
+        // -------------------------------------------------
+
+        const part =
+            req.body.part ||
+            "vehicle";
+
+        const width =
+            req.body.width ||
+            req.body.widthCm ||
+            "";
+
+        const height =
+            req.body.height ||
+            req.body.heightCm ||
+            "";
+
+        const design =
+            req.body.design ||
+            req.body.description ||
+            "custom vehicle decal";
+
+        const extraInstructions =
+            req.body.instructions ||
+            req.body.additionalInstructions ||
+            "";
+
+
+        console.log("Vehicle part:", part);
+        console.log("Width:", width);
+        console.log("Height:", height);
+        console.log("Design:", design);
+        console.log(
+            "Extra instructions:",
+            extraInstructions
+        );
+
+
+        // -------------------------------------------------
+        // PROMPT
+        // -------------------------------------------------
+
+        const prompt = `
+
 Edit the uploaded vehicle photograph.
 
-Create a highly realistic professional preview of a vinyl sticker / decal
-design applied ONLY to the selected vehicle area.
+Create a highly realistic professional preview
+of a vinyl sticker / decal applied to the vehicle.
 
-Vehicle area:
+Selected vehicle area:
 ${part}
 
 Requested design:
 ${design}
 
 Additional instructions:
-${instructions || "Make the design premium, realistic and professionally fitted."}
+${extraInstructions || "Make it premium, realistic and professionally fitted."}
 
-Physical size:
-${width ? width + " cm" : "not specified"} wide
-${height ? height + " cm" : "not specified"} high
+Approximate physical size:
+${width || "not specified"} cm wide
+x
+${height || "not specified"} cm high
 
-IMPORTANT:
+IMPORTANT RULES:
+
 - Keep the original vehicle.
-- Keep the vehicle's shape, proportions, lights, windows and body panels unchanged.
-- Do not redesign or replace the vehicle.
-- Apply the decal naturally to the vehicle surface.
-- Follow the vehicle's perspective and curvature.
-- Make the sticker look physically printed and professionally installed.
-- Preserve realistic reflections and lighting.
-- Do not put the design outside the vehicle.
+- Do not replace the vehicle.
+- Do not redesign the vehicle.
+- Preserve the original vehicle shape.
+- Preserve the original headlights.
+- Preserve windows.
+- Preserve wheels.
+- Preserve body panels.
+- Apply the decal naturally to the requested area.
+- Follow the perspective and curvature of the vehicle.
+- Make the decal look physically printed and professionally installed.
+- Preserve realistic lighting.
+- Preserve realistic reflections.
+- Do not place the design outside the vehicle.
 - Do not change the background unnecessarily.
-- Do not add text unless specifically requested.
-- Produce a photorealistic result.
+- Make the final result photorealistic.
+- The result should look like a real professional vehicle customization photograph.
+
 `;
 
-    console.log("------------------------------------------");
-    console.log("🧠 PROMPT SENT TO OPENAI:");
-    console.log(prompt);
-    console.log("------------------------------------------");
 
-    // --------------------------------------------------
-    // CONVERT BUFFER TO A REAL UPLOADABLE FILE
-    // --------------------------------------------------
+        console.log("");
+        console.log("🧠 PROMPT:");
+        console.log(prompt);
 
-    console.log("🔄 Preparing image for OpenAI...");
 
-    const imageFile = await toFile(
-      req.file.buffer,
-      req.file.originalname || "vehicle.png",
-      {
-        type: req.file.mimetype || "image/png"
-      }
-    );
+        // -------------------------------------------------
+        // CONVERT IMAGE
+        // -------------------------------------------------
 
-    console.log("✅ Image converted to OpenAI upload file.");
+        console.log(
+            "🔄 Converting uploaded image..."
+        );
 
-    // --------------------------------------------------
-    // CALL OPENAI IMAGE EDIT
-    // --------------------------------------------------
+        const imageFile = await toFile(
 
-    console.log("🎨 Sending image to OpenAI...");
-    console.log("⏳ Please wait...");
+            file.buffer,
 
-    const result = await openai.images.edit({
-      model: "gpt-image-1",
-      image: imageFile,
-      prompt: prompt,
-      size: "1024x1024",
-      n: 1
-    });
+            file.originalname ||
+            "vehicle.png",
 
-    console.log("✅ OpenAI response received.");
+            {
+                type:
+                    file.mimetype ||
+                    "image/png"
+            }
 
-    // --------------------------------------------------
-    // CHECK RESPONSE
-    // --------------------------------------------------
+        );
 
-    if (!result || !result.data || !result.data.length) {
+        console.log(
+            "✅ Image converted successfully."
+        );
 
-      console.error("❌ OpenAI returned no image.");
 
-      return res.status(500).json({
-        success: false,
-        error: "OpenAI did not return an image."
-      });
+        // -------------------------------------------------
+        // OPENAI REQUEST
+        // -------------------------------------------------
+
+        console.log("");
+        console.log(
+            "🎨 Sending image to OpenAI..."
+        );
+
+        console.log(
+            "⏳ AI generation started..."
+        );
+
+
+        const result =
+            await openai.images.edit({
+
+                model: "gpt-image-1",
+
+                image: imageFile,
+
+                prompt: prompt,
+
+                size: "1024x1024",
+
+                n: 1
+
+            });
+
+
+        console.log(
+            "✅ OpenAI response received."
+        );
+
+
+        // -------------------------------------------------
+        // IMAGE RESULT
+        // -------------------------------------------------
+
+        const generated =
+            result &&
+            result.data &&
+            result.data[0];
+
+
+        if (!generated) {
+
+            console.error(
+                "❌ OpenAI returned no image object."
+            );
+
+            return res.status(500).json({
+
+                ok: false,
+                success: false,
+
+                error:
+                    "OpenAI returned no image."
+
+            });
+
+        }
+
+
+        // -------------------------------------------------
+        // BASE64
+        // -------------------------------------------------
+
+        if (generated.b64_json) {
+
+            console.log(
+                "✅ BASE64 IMAGE RECEIVED."
+            );
+
+            const image =
+                "data:image/png;base64," +
+                generated.b64_json;
+
+
+            console.log(
+                "🎉 Sending image back to browser."
+            );
+
+
+            return res.json({
+
+                ok: true,
+
+                success: true,
+
+                image: image
+
+            });
+
+        }
+
+
+        // -------------------------------------------------
+        // URL FALLBACK
+        // -------------------------------------------------
+
+        if (generated.url) {
+
+            console.log(
+                "✅ IMAGE URL RECEIVED."
+            );
+
+
+            return res.json({
+
+                ok: true,
+
+                success: true,
+
+                image: generated.url
+
+            });
+
+        }
+
+
+        // -------------------------------------------------
+        // UNKNOWN RESPONSE
+        // -------------------------------------------------
+
+        console.error(
+            "❌ OpenAI returned an unexpected response."
+        );
+
+        return res.status(500).json({
+
+            ok: false,
+
+            success: false,
+
+            error:
+                "OpenAI returned an unexpected image response."
+
+        });
+
+
+    } catch (error) {
+
+        console.error("");
+        console.error(
+            "=========================================="
+        );
+
+        console.error(
+            "❌ GENERATE PREVIEW ERROR"
+        );
+
+        console.error(
+            "=========================================="
+        );
+
+        console.error(
+            "Message:",
+            error.message
+        );
+
+        console.error(
+            "Status:",
+            error.status
+        );
+
+        console.error(
+            "Code:",
+            error.code
+        );
+
+        console.error(
+            "Type:",
+            error.type
+        );
+
+        console.error(
+            "Full error:",
+            error
+        );
+
+
+        return res.status(
+            error.status || 500
+        ).json({
+
+            ok: false,
+
+            success: false,
+
+            error:
+                error.message ||
+                "Image generation failed."
+
+        });
+
     }
 
-    const generatedImage = result.data[0];
+};
 
-    // --------------------------------------------------
-    // BASE64 IMAGE
-    // --------------------------------------------------
 
-    if (generatedImage.b64_json) {
+// =====================================================
+// BOTH ENDPOINTS
+// =====================================================
 
-      console.log("✅ Generated image received as base64.");
+app.post(
 
-      const imageData = generatedImage.b64_json;
+    "/generate-preview",
 
-      const imageUrl = `data:image/png;base64,${imageData}`;
+    upload.single("vehicleImage"),
 
-      console.log("✅ Sending generated image to browser.");
+    generatePreviewHandler
 
-      return res.json({
-        success: true,
-        image: imageUrl
-      });
-    }
+);
 
-    // --------------------------------------------------
-    // URL FALLBACK
-    // --------------------------------------------------
 
-    if (generatedImage.url) {
+// Compatibility endpoint
 
-      console.log("✅ Generated image URL received.");
+app.post(
 
-      return res.json({
-        success: true,
-        image: generatedImage.url
-      });
-    }
+    "/api/generate-preview",
 
-    // --------------------------------------------------
-    // NO IMAGE
-    // --------------------------------------------------
+    upload.single("vehicleImage"),
 
-    console.error("❌ OpenAI response did not contain b64_json or url.");
+    generatePreviewHandler
 
-    return res.status(500).json({
-      success: false,
-      error: "OpenAI returned an unexpected image response."
-    });
+);
 
-  } catch (error) {
 
-    console.error("");
-    console.error("==========================================");
-    console.error("❌ GENERATE PREVIEW ERROR");
-    console.error("==========================================");
+// Also accept the older field name
 
-    console.error("Message:", error.message);
+app.post(
 
-    if (error.status) {
-      console.error("HTTP status:", error.status);
-    }
+    "/generate-preview",
 
-    if (error.code) {
-      console.error("Error code:", error.code);
-    }
+    upload.single("vehiclePhoto"),
 
-    if (error.param) {
-      console.error("Error parameter:", error.param);
-    }
+    generatePreviewHandler
 
-    if (error.type) {
-      console.error("Error type:", error.type);
-    }
+);
 
-    if (error.response) {
-      console.error("Response:", error.response);
-    }
+app.post(
 
-    console.error("Full error:");
-    console.error(error);
+    "/api/generate-preview",
 
-    console.error("==========================================");
+    upload.single("vehiclePhoto"),
 
-    return res.status(error.status || 500).json({
-      success: false,
-      error: error.message || "Image generation failed."
-    });
-  }
-});
+    generatePreviewHandler
 
-// ======================================================
-// MULTER / UPLOAD ERROR HANDLER
-// ======================================================
+);
+
+
+// =====================================================
+// MULTER ERROR HANDLER
+// =====================================================
 
 app.use((error, req, res, next) => {
 
-  console.error("==========================================");
-  console.error("❌ SERVER ERROR");
-  console.error("==========================================");
-  console.error(error);
+    console.error(
+        "❌ SERVER / UPLOAD ERROR:"
+    );
 
-  if (error instanceof multer.MulterError) {
+    console.error(error);
 
-    return res.status(400).json({
-      success: false,
-      error: `Upload error: ${error.message}`
+
+    if (
+        error instanceof multer.MulterError
+    ) {
+
+        return res.status(400).json({
+
+            ok: false,
+
+            success: false,
+
+            error:
+                "Upload error: " +
+                error.message
+
+        });
+
+    }
+
+
+    return res.status(500).json({
+
+        ok: false,
+
+        success: false,
+
+        error:
+            error.message ||
+            "Server error."
+
     });
-  }
 
-  return res.status(500).json({
-    success: false,
-    error: error.message || "Server error."
-  });
 });
 
-// ======================================================
+
+// =====================================================
 // 404
-// ======================================================
+// =====================================================
 
 app.use((req, res) => {
 
-  res.status(404).json({
-    success: false,
-    error: "Endpoint not found."
-  });
+    console.error(
+        "❌ ENDPOINT NOT FOUND:",
+        req.method,
+        req.originalUrl
+    );
+
+    res.status(404).json({
+
+        ok: false,
+
+        success: false,
+
+        error:
+            "Endpoint not found: " +
+            req.originalUrl
+
+    });
+
 });
 
-// ======================================================
-// START SERVER
-// ======================================================
 
-app.listen(PORT, "0.0.0.0", () => {
+// =====================================================
+// START
+// =====================================================
 
-  console.log("");
-  console.log("==========================================");
-  console.log("🚀 SticKing server started");
-  console.log(`🌐 http://0.0.0.0:${PORT}`);
-  console.log(`🔑 OpenAI configured: ${!!OPENAI_API_KEY}`);
-  console.log("==========================================");
-});
+app.listen(
+
+    PORT,
+
+    "0.0.0.0",
+
+    () => {
+
+        console.log("");
+        console.log(
+            "=========================================="
+        );
+
+        console.log(
+            "🚀 SticKing server started"
+        );
+
+        console.log(
+            "🌐 Port:",
+            PORT
+        );
+
+        console.log(
+            "🔑 OpenAI configured:",
+            !!OPENAI_API_KEY
+        );
+
+        console.log(
+            "📡 Generate endpoint:"
+        );
+
+        console.log(
+            "   POST /generate-preview"
+        );
+
+        console.log(
+            "   POST /api/generate-preview"
+        );
+
+        console.log(
+            "=========================================="
+        );
+
+    }
+
+);
