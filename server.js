@@ -3,8 +3,13 @@ const multer = require("multer");
 const OpenAI = require("openai");
 const { toFile } = OpenAI;
 const crypto = require("crypto");
+const path = require("path");
 
 const app = express();
+
+/* =========================================================
+   SERVER CONFIGURATION
+   ========================================================= */
 
 const PORT = process.env.PORT || 10000;
 
@@ -14,15 +19,58 @@ const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 const openaiConfigured = !!OPENAI_API_KEY;
+
 const supabaseConfigured =
   !!SUPABASE_URL && !!SUPABASE_SECRET_KEY;
+
 const adminConfigured = !!ADMIN_PASSWORD;
+
+
+/* =========================================================
+   OPENAI
+   ========================================================= */
 
 const openai = openaiConfigured
   ? new OpenAI({
       apiKey: OPENAI_API_KEY
     })
   : null;
+
+
+/* =========================================================
+   PUBLIC WEBSITE DIRECTORY
+   IMPORTANT: THIS FIXES gallery.html
+   ========================================================= */
+
+const PUBLIC_DIR = path.join(__dirname, "public");
+
+/*
+   Everything inside /public is now publicly accessible.
+
+   Examples:
+
+   /public/index.html
+        -> https://sticking.onrender.com/
+
+   /public/gallery.html
+        -> https://sticking.onrender.com/gallery.html
+
+   /public/admin.html
+        -> https://sticking.onrender.com/admin.html
+
+   /public/css/style.css
+        -> https://sticking.onrender.com/css/style.css
+
+   /public/images/example.png
+        -> https://sticking.onrender.com/images/example.png
+*/
+
+app.use(
+  express.static(PUBLIC_DIR, {
+    extensions: ["html"],
+    index: "index.html"
+  })
+);
 
 
 /* =========================================================
@@ -64,7 +112,6 @@ console.log(
    ========================================================= */
 
 app.use((req, res, next) => {
-
   const origin = req.headers.origin;
 
   const allowedOrigins = [
@@ -100,7 +147,6 @@ app.use((req, res, next) => {
   }
 
   next();
-
 });
 
 
@@ -110,7 +156,14 @@ app.use((req, res, next) => {
 
 app.use(
   express.json({
-    limit: "10mb"
+    limit: "20mb"
+  })
+);
+
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "20mb"
   })
 );
 
@@ -120,13 +173,11 @@ app.use(
    ========================================================= */
 
 const upload = multer({
-
   storage: multer.memoryStorage(),
 
   limits: {
     fileSize: 20 * 1024 * 1024
   }
-
 });
 
 
@@ -135,13 +186,11 @@ const upload = multer({
    ========================================================= */
 
 app.use((req, res, next) => {
-
   console.log(
     `➡️ ${req.method} ${req.path}`
   );
 
   next();
-
 });
 
 
@@ -150,22 +199,19 @@ app.use((req, res, next) => {
    ========================================================= */
 
 function supabaseHeaders() {
-
   return {
     "apikey": SUPABASE_SECRET_KEY,
     "Authorization":
       `Bearer ${SUPABASE_SECRET_KEY}`,
     "Content-Type": "application/json"
   };
-
 }
 
 
 async function supabaseRequest(
-  path,
+  requestPath,
   options = {}
 ) {
-
   if (!supabaseConfigured) {
     throw new Error(
       "Supabase is not configured."
@@ -173,7 +219,7 @@ async function supabaseRequest(
   }
 
   const response = await fetch(
-    `${supabaseBaseUrl}${path}`,
+    `${supabaseBaseUrl}${requestPath}`,
     {
       ...options,
 
@@ -197,7 +243,6 @@ async function supabaseRequest(
   }
 
   if (!response.ok) {
-
     const message =
       data?.message ||
       data?.error ||
@@ -206,29 +251,25 @@ async function supabaseRequest(
       `Supabase error ${response.status}`;
 
     throw new Error(message);
-
   }
 
   return data;
-
 }
 
 
 /* =========================================================
-   STORAGE
+   SUPABASE STORAGE
    ========================================================= */
 
 const STORAGE_BUCKET = "vehicle-orders";
 
 
 async function ensureStorageBucket() {
-
   if (!supabaseConfigured) {
     return;
   }
 
   try {
-
     const response = await fetch(
       `${supabaseBaseUrl}/storage/v1/bucket`,
       {
@@ -250,13 +291,11 @@ async function ensureStorageBucket() {
       response.ok ||
       response.status === 409
     ) {
-
       console.log(
         `🗄️ Storage bucket ready: ${STORAGE_BUCKET}`
       );
 
       return;
-
     }
 
     const text = await response.text();
@@ -267,38 +306,46 @@ async function ensureStorageBucket() {
     );
 
   } catch (error) {
-
     console.log(
       "⚠️ Storage bucket check failed:",
       error.message
     );
-
   }
-
 }
 
+
+/* =========================================================
+   UPLOAD TO SUPABASE STORAGE
+   ========================================================= */
 
 async function uploadToStorage(
   buffer,
   fileName,
   contentType
 ) {
+  const safeFileName =
+    String(fileName || "upload")
+      .replace(/[^a-zA-Z0-9._-]/g, "_");
 
-  const path =
+  const storagePath =
     `${new Date().getFullYear()}/` +
-    `${Date.now()}-${crypto.randomUUID()}-${fileName}`;
+    `${Date.now()}-${crypto.randomUUID()}-${safeFileName}`;
 
   const response = await fetch(
     `${supabaseBaseUrl}/storage/v1/object/` +
-    `${STORAGE_BUCKET}/${encodeURIComponent(path)}`,
+    `${STORAGE_BUCKET}/${encodeURIComponent(storagePath)}`,
     {
       method: "POST",
 
       headers: {
         "apikey": SUPABASE_SECRET_KEY,
+
         "Authorization":
           `Bearer ${SUPABASE_SECRET_KEY}`,
-        "Content-Type": contentType,
+
+        "Content-Type":
+          contentType || "application/octet-stream",
+
         "x-upsert": "false"
       },
 
@@ -309,30 +356,28 @@ async function uploadToStorage(
   const text = await response.text();
 
   if (!response.ok) {
-
     throw new Error(
       `Storage upload failed: ${text}`
     );
-
   }
 
-  return path;
-
+  return storagePath;
 }
 
 
-async function createSignedUrl(path) {
+/* =========================================================
+   SIGNED STORAGE URL
+   ========================================================= */
 
-  if (!path) {
+async function createSignedUrl(storagePath) {
+  if (!storagePath) {
     return null;
   }
 
   try {
-
     const response = await fetch(
       `${supabaseBaseUrl}/storage/v1/object/sign/` +
-      `${STORAGE_BUCKET}/${encodeURIComponent(path)}`,
-
+      `${STORAGE_BUCKET}/${encodeURIComponent(storagePath)}`,
       {
         method: "POST",
 
@@ -349,6 +394,11 @@ async function createSignedUrl(path) {
     const text = await response.text();
 
     if (!response.ok) {
+      console.error(
+        "❌ Signed URL error:",
+        text
+      );
+
       return null;
     }
 
@@ -358,14 +408,19 @@ async function createSignedUrl(path) {
       return null;
     }
 
-    return `${supabaseBaseUrl}/storage/v1${data.signedURL}`;
+    return (
+      `${supabaseBaseUrl}/storage/v1` +
+      data.signedURL
+    );
 
-  } catch {
+  } catch (error) {
+    console.error(
+      "❌ Signed URL creation failed:",
+      error.message
+    );
 
     return null;
-
   }
-
 }
 
 
@@ -374,7 +429,6 @@ async function createSignedUrl(path) {
    ========================================================= */
 
 async function createOrder(order) {
-
   const result = await supabaseRequest(
     "/rest/v1/orders",
     {
@@ -391,7 +445,6 @@ async function createOrder(order) {
   return Array.isArray(result)
     ? result[0]
     : result;
-
 }
 
 
@@ -399,10 +452,8 @@ async function updateOrder(
   id,
   updates
 ) {
-
   const result = await supabaseRequest(
     `/rest/v1/orders?id=eq.${encodeURIComponent(id)}`,
-
     {
       method: "PATCH",
 
@@ -417,20 +468,17 @@ async function updateOrder(
   return Array.isArray(result)
     ? result[0]
     : result;
-
 }
 
 
 /* =========================================================
-   HEALTH
+   HEALTH CHECK
    ========================================================= */
 
 app.get(
   "/health",
   (req, res) => {
-
     res.json({
-
       ok: true,
 
       service:
@@ -443,43 +491,84 @@ app.get(
       supabaseConfigured,
 
       adminConfigured
-
     });
-
   }
 );
 
 
 /* =========================================================
-   HOME
+   EXPLICIT WEBSITE ROUTES
    ========================================================= */
+
+/*
+   These routes are deliberately explicit even though
+   express.static() above already serves them.
+
+   This makes sure Gallery and Admin work reliably.
+*/
+
 
 app.get(
   "/",
   (req, res) => {
-
     res.sendFile(
-      __dirname +
-      "/public/index.html"
+      path.join(
+        PUBLIC_DIR,
+        "index.html"
+      )
     );
-
   }
 );
 
 
-/* =========================================================
-   ADMIN PAGE
-   ========================================================= */
+app.get(
+  "/gallery",
+  (req, res) => {
+    res.sendFile(
+      path.join(
+        PUBLIC_DIR,
+        "gallery.html"
+      )
+    );
+  }
+);
+
+
+app.get(
+  "/gallery.html",
+  (req, res) => {
+    res.sendFile(
+      path.join(
+        PUBLIC_DIR,
+        "gallery.html"
+      )
+    );
+  }
+);
+
 
 app.get(
   "/admin",
   (req, res) => {
-
     res.sendFile(
-      __dirname +
-      "/public/admin.html"
+      path.join(
+        PUBLIC_DIR,
+        "admin.html"
+      )
     );
+  }
+);
 
+
+app.get(
+  "/admin.html",
+  (req, res) => {
+    res.sendFile(
+      path.join(
+        PUBLIC_DIR,
+        "admin.html"
+      )
+    );
   }
 );
 
@@ -491,15 +580,13 @@ app.get(
 app.post(
   "/api/admin/login",
   (req, res) => {
-
     if (!adminConfigured) {
-
       return res.status(500).json({
         ok: false,
+
         error:
           "ADMIN_PASSWORD is not configured."
       });
-
     }
 
     const password =
@@ -508,20 +595,24 @@ app.post(
     if (
       password !== ADMIN_PASSWORD
     ) {
-
       return res.status(401).json({
         ok: false,
+
         error:
           "Incorrect admin password."
       });
-
     }
+
+    console.log(
+      "👑 Admin login successful."
+    );
 
     res.json({
       ok: true,
-      message: "Admin login successful."
-    });
 
+      message:
+        "Admin login successful."
+    });
   }
 );
 
@@ -535,15 +626,13 @@ function requireAdmin(
   res,
   next
 ) {
-
   if (!adminConfigured) {
-
     return res.status(500).json({
       ok: false,
+
       error:
         "ADMIN_PASSWORD is not configured."
     });
-
   }
 
   const password =
@@ -553,17 +642,15 @@ function requireAdmin(
     !password ||
     password !== ADMIN_PASSWORD
   ) {
-
     return res.status(401).json({
       ok: false,
+
       error:
         "Unauthorized."
     });
-
   }
 
   next();
-
 }
 
 
@@ -575,9 +662,7 @@ app.get(
   "/api/admin/orders",
   requireAdmin,
   async (req, res) => {
-
     try {
-
       const orders =
         await supabaseRequest(
           "/rest/v1/orders" +
@@ -587,10 +672,8 @@ app.get(
 
       const enriched =
         await Promise.all(
-
           (orders || []).map(
-            async order => {
-
+            async (order) => {
               const originalUrl =
                 await createSignedUrl(
                   order.original_image_path
@@ -602,7 +685,6 @@ app.get(
                 );
 
               return {
-
                 ...order,
 
                 original_image_url:
@@ -610,41 +692,35 @@ app.get(
 
                 generated_image_url:
                   generatedUrl
-
               };
-
             }
           )
-
         );
 
-      res.json({
+      console.log(
+        `📦 Admin orders loaded: ${enriched.length}`
+      );
 
+      res.json({
         ok: true,
 
         orders: enriched
-
       });
 
     } catch (error) {
-
       console.error(
         "❌ ADMIN ORDERS ERROR:",
         error
       );
 
       res.status(500).json({
-
         ok: false,
 
         error:
           error.message ||
           "Could not load orders."
-
       });
-
     }
-
   }
 );
 
@@ -657,9 +733,7 @@ app.patch(
   "/api/admin/orders/:id",
   requireAdmin,
   async (req, res) => {
-
     try {
-
       const allowedStatuses = [
         "new",
         "processing",
@@ -673,16 +747,12 @@ app.patch(
       if (
         !allowedStatuses.includes(status)
       ) {
-
         return res.status(400).json({
-
           ok: false,
 
           error:
             "Invalid order status."
-
         });
-
       }
 
       const updated =
@@ -693,33 +763,30 @@ app.patch(
           }
         );
 
-      res.json({
+      console.log(
+        `📌 Order ${req.params.id} status changed to ${status}`
+      );
 
+      res.json({
         ok: true,
 
         order: updated
-
       });
 
     } catch (error) {
-
       console.error(
         "❌ UPDATE ORDER ERROR:",
         error
       );
 
       res.status(500).json({
-
         ok: false,
 
         error:
           error.message ||
           "Could not update order."
-
       });
-
     }
-
   }
 );
 
@@ -731,13 +798,10 @@ app.patch(
 app.post(
   "/api/orders",
   async (req, res) => {
-
     try {
-
       const body = req.body || {};
 
       const order = {
-
         customer_name:
           body.customer_name || null,
 
@@ -770,39 +834,36 @@ app.post(
 
         status:
           "new"
-
       };
 
       const created =
         await createOrder(order);
 
-      res.json({
+      console.log(
+        "🛒 Order created:",
+        created?.id
+      );
 
+      res.json({
         ok: true,
 
         order: created
-
       });
 
     } catch (error) {
-
       console.error(
         "❌ CREATE ORDER ERROR:",
         error
       );
 
       res.status(500).json({
-
         ok: false,
 
         error:
           error.message ||
           "Could not create order."
-
       });
-
     }
-
   }
 );
 
@@ -817,7 +878,6 @@ app.post(
   upload.single("vehicleImage"),
 
   async (req, res) => {
-
     console.log(
       "=========================================="
     );
@@ -830,41 +890,44 @@ app.post(
       "=========================================="
     );
 
-
     let orderId = null;
 
     try {
+
+      /* -----------------------------------------------------
+         CHECK OPENAI
+         ----------------------------------------------------- */
 
       if (
         !openaiConfigured ||
         !openai
       ) {
-
         return res.status(500).json({
-
           ok: false,
 
           error:
             "OpenAI API key is not configured."
-
         });
-
       }
 
 
+      /* -----------------------------------------------------
+         CHECK IMAGE
+         ----------------------------------------------------- */
+
       if (!req.file) {
-
         return res.status(400).json({
-
           ok: false,
 
           error:
             "No vehicle image was uploaded."
-
         });
-
       }
 
+
+      /* -----------------------------------------------------
+         READ FORM DATA
+         ----------------------------------------------------- */
 
       const design =
         req.body.design || "";
@@ -913,6 +976,16 @@ app.post(
       );
 
       console.log(
+        "📦 MIME type:",
+        req.file.mimetype
+      );
+
+      console.log(
+        "📏 File size:",
+        req.file.size
+      );
+
+      console.log(
         "🎨 Design:",
         design
       );
@@ -920,6 +993,11 @@ app.post(
       console.log(
         "🚗 Vehicle:",
         vehicle
+      );
+
+      console.log(
+        "🚪 Part:",
+        part
       );
 
 
@@ -930,7 +1008,6 @@ app.post(
       let originalImagePath = null;
 
       if (supabaseConfigured) {
-
         try {
 
           originalImagePath =
@@ -953,7 +1030,6 @@ app.post(
           );
 
         }
-
       }
 
 
@@ -962,12 +1038,10 @@ app.post(
          ----------------------------------------------------- */
 
       if (supabaseConfigured) {
-
         try {
 
           const created =
             await createOrder({
-
               customer_name:
                 customerName || null,
 
@@ -1006,13 +1080,10 @@ app.post(
 
               generated_image_path:
                 null
-
             });
-
 
           orderId =
             created?.id || null;
-
 
           console.log(
             "🛒 Order created:",
@@ -1027,16 +1098,14 @@ app.post(
           );
 
         }
-
       }
 
 
       /* -----------------------------------------------------
-         PROMPT
+         AI PROMPT
          ----------------------------------------------------- */
 
       const prompt = `
-
 You are a professional vehicle sticker
 and vinyl wrap designer.
 
@@ -1053,7 +1122,7 @@ IMPORTANT:
 - Keep the original camera perspective.
 - Keep the original background whenever possible.
 - Do not replace the vehicle.
-- Do not create a completely different car.
+- Do not create a completely different vehicle.
 - Apply the requested sticker naturally.
 - Make the sticker look professionally installed.
 - Follow the vehicle's body curves.
@@ -1063,6 +1132,8 @@ IMPORTANT:
 - Preserve realistic shadows.
 - Do not make the sticker float beside the vehicle.
 - The final result must look like a real photograph.
+- Make the requested artwork clearly visible.
+- Do not add unrelated artwork.
 
 Vehicle:
 ${vehicle}
@@ -1088,9 +1159,13 @@ customization preview.
         "🤖 Sending image to OpenAI..."
       );
 
+      console.log(
+        "🤖 Model: gpt-image-1"
+      );
+
 
       /* -----------------------------------------------------
-         OPENAI IMAGE EDIT
+         CONVERT UPLOAD TO OPENAI FILE
          ----------------------------------------------------- */
 
       const inputFile =
@@ -1104,9 +1179,17 @@ customization preview.
         );
 
 
+      console.log(
+        "✅ Image converted for OpenAI."
+      );
+
+
+      /* -----------------------------------------------------
+         OPENAI IMAGE EDIT
+         ----------------------------------------------------- */
+
       const imageResponse =
         await openai.images.edit({
-
           model:
             "gpt-image-1",
 
@@ -1117,7 +1200,6 @@ customization preview.
 
           size:
             "1024x1024"
-
         });
 
 
@@ -1126,16 +1208,18 @@ customization preview.
       );
 
 
+      /* -----------------------------------------------------
+         CHECK RESPONSE
+         ----------------------------------------------------- */
+
       if (
         !imageResponse ||
         !imageResponse.data ||
         !imageResponse.data[0]
       ) {
-
         throw new Error(
           "OpenAI did not return an image."
         );
-
       }
 
 
@@ -1144,11 +1228,9 @@ customization preview.
 
 
       if (!result.b64_json) {
-
         throw new Error(
           "OpenAI returned no base64 image."
         );
-
       }
 
 
@@ -1159,6 +1241,11 @@ customization preview.
         );
 
 
+      console.log(
+        "✅ Generated image decoded."
+      );
+
+
       /* -----------------------------------------------------
          SAVE GENERATED IMAGE
          ----------------------------------------------------- */
@@ -1166,22 +1253,16 @@ customization preview.
       let generatedImagePath =
         null;
 
-
       if (supabaseConfigured) {
 
         try {
 
           generatedImagePath =
             await uploadToStorage(
-
               generatedBuffer,
-
               "ai-preview.png",
-
               "image/png"
-
             );
-
 
           console.log(
             "✅ AI preview stored:",
@@ -1202,6 +1283,9 @@ customization preview.
               }
             );
 
+            console.log(
+              "✅ Order updated with generated image."
+            );
           }
 
         } catch (error) {
@@ -1212,24 +1296,30 @@ customization preview.
           );
 
         }
-
       }
 
+
+      /* -----------------------------------------------------
+         COMPLETE
+         ----------------------------------------------------- */
 
       console.log(
         "🎉 PREVIEW GENERATION COMPLETE"
       );
 
+      console.log(
+        "Order ID:",
+        orderId
+      );
+
 
       return res.json({
-
         ok: true,
 
         orderId,
 
         image:
           `data:image/png;base64,${result.b64_json}`
-
       });
 
 
@@ -1248,13 +1338,36 @@ customization preview.
       );
 
       console.error(
-        "Error:",
+        "Error name:",
+        error?.name
+      );
+
+      console.error(
+        "Error message:",
+        error?.message
+      );
+
+      console.error(
+        "Error status:",
+        error?.status
+      );
+
+      console.error(
+        "Error code:",
+        error?.code
+      );
+
+      console.error(
+        "Full error:",
         error
       );
 
 
-      if (orderId) {
+      /* -----------------------------------------------------
+         UPDATE ORDER AS CANCELLED
+         ----------------------------------------------------- */
 
+      if (orderId) {
         try {
 
           await updateOrder(
@@ -1265,38 +1378,52 @@ customization preview.
             }
           );
 
-        } catch {}
+          console.log(
+            "⚠️ Order marked as cancelled:",
+            orderId
+          );
 
+        } catch (updateError) {
+
+          console.error(
+            "⚠️ Could not update cancelled order:",
+            updateError.message
+          );
+
+        }
       }
 
 
-      return res.status(500).json({
+      /* -----------------------------------------------------
+         RETURN ERROR TO FRONTEND
+         ----------------------------------------------------- */
 
+      return res.status(500).json({
         ok: false,
 
         error:
-          error.message ||
+          error?.message ||
           "Image generation failed.",
 
         orderId
-
       });
-
     }
-
   }
 );
 
 
 /* =========================================================
-   404
+   404 HANDLER
    ========================================================= */
 
 app.use(
   (req, res) => {
 
-    res.status(404).json({
+    console.log(
+      `❌ 404 ROUTE NOT FOUND: ${req.method} ${req.path}`
+    );
 
+    res.status(404).json({
       ok: false,
 
       error:
@@ -1304,9 +1431,7 @@ app.use(
 
       path:
         req.path
-
     });
-
   }
 );
 
@@ -1327,21 +1452,18 @@ app.use(
     );
 
     res.status(500).json({
-
       ok: false,
 
       error:
-        error.message ||
+        error?.message ||
         "Server error"
-
     });
-
   }
 );
 
 
 /* =========================================================
-   START
+   START SERVER
    ========================================================= */
 
 app.listen(
@@ -1374,11 +1496,14 @@ app.listen(
     );
 
     console.log(
+      `📁 Public directory: ${PUBLIC_DIR}`
+    );
+
+    console.log(
       "=========================================="
     );
 
 
     await ensureStorageBucket();
-
   }
 );
