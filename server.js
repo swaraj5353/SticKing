@@ -1413,6 +1413,160 @@ customization preview.
 
 
 /* =========================================================
+   PRIVATE ADMIN PRINT PREP AGENT
+   ========================================================= */
+
+app.post(
+  "/api/admin/print-prep",
+  requireAdmin,
+  upload.single("image"),
+  async (req, res) => {
+    console.log("==========================================");
+    console.log("🖨️ PRINT PREP REQUEST RECEIVED");
+    console.log("==========================================");
+
+    try {
+      if (!openaiConfigured || !openai) {
+        return res.status(500).json({
+          ok: false,
+          error: "OpenAI API key is not configured."
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          ok: false,
+          error: "Please upload an image."
+        });
+      }
+
+      const quality =
+        req.body?.quality === "high" ? "high" : "medium";
+
+      const removeBackground =
+        String(req.body?.removeBackground ?? "true") !== "false";
+
+      console.log("📷 File:", req.file.originalname);
+      console.log("📦 Type:", req.file.mimetype);
+      console.log("📏 Size:", req.file.size);
+      console.log("🎚️ Quality:", quality);
+      console.log("🪄 Remove background:", removeBackground);
+
+      const inputFile = await toFile(
+        req.file.buffer,
+        req.file.originalname,
+        {
+          type: req.file.mimetype || "image/png"
+        }
+      );
+
+      const prepPrompt = `
+You are SticKing's private professional sticker PRINT PREPARATION agent.
+
+Your job is NOT to redesign the artwork.
+
+Prepare the uploaded artwork for physical sticker/vinyl production while preserving the original design as faithfully as possible.
+
+STRICT RULES:
+- Preserve the original artwork, composition and proportions.
+- Do NOT invent a new design.
+- Do NOT add decorative elements.
+- Do NOT change the customer's logo.
+- Preserve all readable text and lettering.
+- Preserve the original colors as closely as possible.
+- Remove unwanted background and excess surrounding material.
+- Remove obvious dust, scratches, compression artifacts and noise.
+- Clean rough, jagged and broken edges.
+- Make the artwork crisp and clean.
+- Keep thin details that are genuinely present in the source.
+- Do not hallucinate missing details.
+- Do not crop away any part of the actual artwork.
+- Do not distort the artwork.
+- The final image must be suitable as a clean sticker-production artwork preview.
+
+${
+  removeBackground
+    ? "Make the background fully transparent and return a PNG with transparency."
+    : "Keep the background only if it is part of the actual artwork; otherwise remove unnecessary background."
+}
+
+The goal is a clean, professional, production-ready artwork file, not a new artistic interpretation of the uploaded image.
+`;
+
+      console.log("🤖 Sending artwork to GPT-Image-2...");
+
+      const imageResponse = await openai.images.edit({
+        model: "gpt-image-2",
+        image: inputFile,
+        prompt: prepPrompt,
+        quality,
+        size: "1024x1024",
+        background: removeBackground ? "transparent" : "auto",
+        output_format: "png"
+      });
+
+      console.log("✅ GPT-Image-2 response received.");
+
+      if (
+        !imageResponse ||
+        !imageResponse.data ||
+        !imageResponse.data[0] ||
+        !imageResponse.data[0].b64_json
+      ) {
+        throw new Error("OpenAI did not return a PNG image.");
+      }
+
+      const b64 = imageResponse.data[0].b64_json;
+      const generatedBuffer = Buffer.from(b64, "base64");
+
+      let storedPath = null;
+
+      if (supabaseConfigured) {
+        try {
+          storedPath = await uploadToStorage(
+            generatedBuffer,
+            `print-ready-${Date.now()}.png`,
+            "image/png"
+          );
+
+          console.log("✅ Print-ready file stored:", storedPath);
+        } catch (storageError) {
+          console.error(
+            "⚠️ Print-ready storage failed:",
+            storageError.message
+          );
+        }
+      }
+
+      console.log("🎉 PRINT PREP COMPLETE");
+
+      return res.json({
+        ok: true,
+        image: `data:image/png;base64,${b64}`,
+        storedPath,
+        fileName: `sticking-print-ready-${Date.now()}.png`
+      });
+
+    } catch (error) {
+      console.error("==========================================");
+      console.error("❌ PRINT PREP FAILED");
+      console.error("==========================================");
+      console.error("Error name:", error?.name);
+      console.error("Error message:", error?.message);
+      console.error("Error status:", error?.status);
+      console.error("Error code:", error?.code);
+      console.error("Full error:", error);
+
+      return res.status(500).json({
+        ok: false,
+        error: error?.message || "Print preparation failed."
+      });
+    }
+  }
+);
+
+
+/* =========================================================
    404 HANDLER
    ========================================================= */
 
