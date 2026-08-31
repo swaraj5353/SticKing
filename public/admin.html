@@ -309,6 +309,31 @@
       border-radius: 10px;
     }
 
+    .print-prep {
+      background: rgba(17, 19, 27, .96);
+      border: 1px solid #303440;
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 25px;
+    }
+    .print-prep h2 { margin: 0 0 7px; font-size: 22px; }
+    .print-prep-subtitle { color: #9ea3b3; margin-bottom: 18px; line-height: 1.5; }
+    .prep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .prep-card { background: #0d0f15; border: 1px solid #292d37; border-radius: 14px; padding: 16px; }
+    .prep-label { display: block; font-size: 12px; color: #858b9a; text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
+    .prep-file { display: block; border: 1px dashed #4a4e5b; border-radius: 12px; padding: 18px; text-align: center; cursor: pointer; color: #c6cad5; background: #11131a; }
+    .prep-file:hover { border-color: #ff28bd; }
+    .prep-file input { display: none; }
+    .prep-options { display: grid; gap: 12px; }
+    .prep-option { display: flex; align-items: center; gap: 10px; color: #ddd; padding: 10px; border-radius: 10px; background: #11131a; border: 1px solid #292d37; }
+    .prep-option input { width: auto; accent-color: #ff24b5; }
+    .prep-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .prep-result { margin-top: 18px; display: none; background: #0d0f15; border: 1px solid #292d37; border-radius: 14px; padding: 16px; }
+    .prep-result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .prep-result img { width: 100%; max-height: 420px; object-fit: contain; border-radius: 10px; border: 1px solid #303440; background: #fff; }
+    .prep-status { margin-top: 12px; color: #9ea3b3; min-height: 20px; }
+    .prep-error { color: #ff8da6; background: #3a101b; border: 1px solid #7c243b; padding: 10px; border-radius: 9px; margin-top: 12px; display: none; }
+
     @media(max-width: 900px) {
       .stats {
         grid-template-columns: repeat(2, 1fr);
@@ -425,6 +450,84 @@
       </select>
 
     </div>
+
+
+    <section class="print-prep">
+      <h2>🖨️ Private Print Prep Agent</h2>
+      <div class="print-prep-subtitle">
+        Upload an approved customer design and prepare a clean PNG for sticker/vinyl production.
+      </div>
+
+      <div class="prep-grid">
+        <div class="prep-card">
+          <span class="prep-label">Artwork</span>
+          <label class="prep-file">
+            <input id="prepFile" type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onchange="showPrepFileName()">
+            <div id="prepFileName">📁 Click to choose artwork</div>
+            <div style="font-size:12px;color:#777;margin-top:7px">PNG, JPG or WebP</div>
+          </label>
+        </div>
+
+        <div class="prep-card">
+          <span class="prep-label">Processing</span>
+          <div class="prep-options">
+            <label class="prep-option">
+              <input type="radio" name="prepQuality" value="medium" checked>
+              <span><strong>Medium — Recommended</strong><br>
+                <small style="color:#8f94a3">Lower cost, good for normal production artwork</small>
+              </span>
+            </label>
+
+            <label class="prep-option">
+              <input type="radio" name="prepQuality" value="high">
+              <span><strong>High — Maximum Quality</strong><br>
+                <small style="color:#8f94a3">Use for important/difficult artwork</small>
+              </span>
+            </label>
+
+            <label class="prep-option">
+              <input id="removeBackground" type="checkbox" checked>
+              <span><strong>Remove background / excess material</strong><br>
+                <small style="color:#8f94a3">Return a transparent PNG</small>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="prep-actions">
+        <button id="prepButton" class="pink-btn" onclick="runPrintPrep()">
+          ✨ Clean & Prepare PNG
+        </button>
+        <button class="dark-btn" onclick="resetPrintPrep()">Reset</button>
+      </div>
+
+      <div id="prepStatus" class="prep-status"></div>
+      <div id="prepError" class="prep-error"></div>
+
+      <div id="prepResult" class="prep-result">
+        <h3 style="margin-top:0">✅ Print-ready preview</h3>
+        <div class="prep-result-grid">
+          <div>
+            <div class="prep-label">Original</div>
+            <img id="prepOriginalPreview" src="" alt="Original artwork">
+          </div>
+          <div>
+            <div class="prep-label">Prepared PNG</div>
+            <img id="prepResultPreview" src="" alt="Prepared artwork">
+          </div>
+        </div>
+        <div class="prep-actions">
+          <a id="prepDownload" class="pink-btn" href="#"
+             download="sticking-print-ready.png"
+             style="display:inline-block;text-decoration:none">
+            ⬇️ Download Print-ready PNG
+          </a>
+        </div>
+      </div>
+    </section>
 
 
     <div id="orders" class="orders">
@@ -929,6 +1032,114 @@ function closeImage() {
 
   document.getElementById("modalImage").src = "";
 
+}
+
+
+async function runPrintPrep() {
+  const fileInput = document.getElementById("prepFile");
+  const button = document.getElementById("prepButton");
+  const status = document.getElementById("prepStatus");
+  const errorBox = document.getElementById("prepError");
+  const resultBox = document.getElementById("prepResult");
+  const originalPreview = document.getElementById("prepOriginalPreview");
+  const resultPreview = document.getElementById("prepResultPreview");
+  const download = document.getElementById("prepDownload");
+
+  errorBox.style.display = "none";
+  errorBox.textContent = "";
+  resultBox.style.display = "none";
+
+  if (!fileInput.files || !fileInput.files[0]) {
+    errorBox.textContent = "Please choose an artwork image first.";
+    errorBox.style.display = "block";
+    return;
+  }
+
+  const file = fileInput.files[0];
+
+  if (!file.type.startsWith("image/")) {
+    errorBox.textContent = "Please upload a PNG, JPG or WebP image.";
+    errorBox.style.display = "block";
+    return;
+  }
+
+  const quality =
+    document.querySelector('input[name="prepQuality"]:checked')?.value || "medium";
+
+  const removeBackground =
+    document.getElementById("removeBackground").checked;
+
+  const formData = new FormData();
+  formData.append("image", file);
+  formData.append("quality", quality);
+  formData.append("removeBackground", removeBackground ? "true" : "false");
+
+  button.disabled = true;
+  button.textContent = "⏳ Preparing artwork...";
+  status.textContent =
+    `Processing with GPT-Image-2 (${quality})... This can take a little while.`;
+
+  originalPreview.src = URL.createObjectURL(file);
+
+  try {
+    const response = await fetch("/api/admin/print-prep", {
+      method: "POST",
+      headers: { "x-admin-password": adminPassword },
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (response.status === 401) {
+      logout();
+      return;
+    }
+
+    if (!response.ok || !data.ok || !data.image) {
+      throw new Error(data.error || "Print preparation failed.");
+    }
+
+    resultPreview.src = data.image;
+    download.href = data.image;
+    download.download = data.fileName || "sticking-print-ready.png";
+    resultBox.style.display = "block";
+    status.textContent =
+      "✅ Artwork prepared successfully. Review it before printing.";
+
+    resultBox.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    console.error("Print Prep error:", error);
+    errorBox.textContent =
+      error.message || "Could not prepare the artwork.";
+    errorBox.style.display = "block";
+    status.textContent = "";
+  } finally {
+    button.disabled = false;
+    button.textContent = "✨ Clean & Prepare PNG";
+  }
+}
+
+function showPrepFileName() {
+  const input = document.getElementById("prepFile");
+  const label = document.getElementById("prepFileName");
+
+  label.textContent =
+    input.files && input.files[0]
+      ? `📎 ${input.files[0].name}`
+      : "📁 Click to choose artwork";
+}
+
+function resetPrintPrep() {
+  document.getElementById("prepFile").value = "";
+  document.getElementById("prepFileName").textContent =
+    "📁 Click to choose artwork";
+  document.getElementById("prepStatus").textContent = "";
+  document.getElementById("prepError").style.display = "none";
+  document.getElementById("prepError").textContent = "";
+  document.getElementById("prepResult").style.display = "none";
+  document.getElementById("prepOriginalPreview").src = "";
+  document.getElementById("prepResultPreview").src = "";
+  document.getElementById("prepDownload").href = "#";
 }
 
 
