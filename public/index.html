@@ -1,179 +1,2711 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111827">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>SticKing | Vehicle Customizer</title>
+
 <style>
-:root{--bg:#f5f7fa;--card:#fff;--text:#18202b;--muted:#667085;--line:#e4e7ec;--blue:#2563eb;--blue2:#1d4ed8;--soft:#eff6ff;--green:#15803d;--red:#b42318;--dark:#111827}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
-button,input,select,textarea{font:inherit}button{cursor:pointer}.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
-.nav{max-width:960px;margin:auto;padding:11px 15px;display:flex;justify-content:space-between;align-items:center}.logo{font-weight:850;font-size:22px}.logo span{color:var(--blue)}.nav a{font-size:14px;color:var(--muted);text-decoration:none;margin-left:14px}
-.wrap{width:min(920px,100%);margin:auto;padding:18px 12px 60px}.hero{text-align:center;padding:8px 5px 18px}.tag{display:inline-block;padding:5px 9px;border-radius:999px;background:var(--soft);color:var(--blue);font-size:11px;font-weight:800;letter-spacing:1.3px}.hero h1{font-size:clamp(28px,6vw,44px);line-height:1.08;letter-spacing:-1px;margin:9px 0 7px}.hero p{max-width:680px;margin:auto;color:var(--muted);font-size:15px}
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:760px;margin:0 auto 16px}.step{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;font-size:11px;color:var(--muted)}.step.on{background:var(--soft);border-color:#bfdbfe;color:var(--blue);font-weight:800}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 22px rgba(16,24,40,.05);padding:18px;margin-bottom:14px}.card h2{font-size:20px;margin:0 0 5px}.sub{color:var(--muted);font-size:14px;margin:0 0 14px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.label{font-size:13px;font-weight:800;margin:12px 0 6px;display:block}
-input,select,textarea{width:100%;min-height:44px;border:1px solid #d0d5dd;border-radius:10px;background:#fff;color:var(--text);padding:10px 11px;outline:0}input:focus,select:focus,textarea:focus{border-color:#84adf8;box-shadow:0 0 0 3px var(--soft)}textarea{min-height:88px;resize:vertical}
-.vehicle-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.vehicle{border:1px solid var(--line);border-radius:11px;background:#fff;padding:10px 6px;text-align:center}.vehicle.active{background:var(--soft);border-color:#93c5fd}.vehicle strong{display:block;font-size:14px}.vehicle small{color:var(--muted);font-size:10px}
-.size-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}.size-mode{border:1px solid var(--line);border-radius:11px;background:#fff;padding:11px;cursor:pointer}.size-mode.active{background:var(--soft);border-color:#93c5fd}.size-mode input{display:none}.size-mode strong{display:block;font-size:14px}.size-mode small{color:var(--muted);font-size:11px}
-.smart{display:none;margin-top:11px;padding:13px;border:1px solid #bfdbfe;background:var(--soft);border-radius:12px}.smart b{display:block;color:var(--blue);font-size:11px;letter-spacing:1px;text-transform:uppercase}.smart .big{font-size:24px;font-weight:850;margin:3px 0}.smart small{color:#475467}
-.btn{border:0;border-radius:10px;padding:12px 15px;font-weight:800}.primary{background:var(--blue);color:#fff}.dark{background:var(--dark);color:#fff}.light{background:#fff;color:var(--text);border:1px solid var(--line)}.green{background:var(--green);color:#fff}.btn:disabled{opacity:.55;cursor:not-allowed}.full{width:100%}.actions{display:flex;gap:9px;flex-wrap:wrap}
-#cropBox{display:none;margin-top:12px}.cropwrap{overflow:hidden;background:#111827;border-radius:11px;border:1px solid var(--line)}#cropCanvas{display:block;width:100%;height:auto;touch-action:none}.hint{font-size:11px;color:var(--muted);margin-top:5px}
-.status{display:none;margin-top:12px;padding:11px;border-radius:10px;border:1px solid var(--line);font-size:14px}.status.work{display:block;background:#eff8ff;border-color:#b2ddff;color:#175cd3}.status.ok{display:block;background:#f0fdf4;border-color:#bbf7d0;color:var(--green)}.status.err{display:block;background:#fef3f2;border-color:#fecdca;color:var(--red)}
-#resultCard{display:none}.preview{display:block;width:100%;max-height:620px;object-fit:contain;border:1px solid var(--line);border-radius:11px;background:#f8fafc}.approved{display:none;margin-top:11px;padding:11px;border-radius:10px;background:#f0fdf4;border:1px solid #bbf7d0;color:var(--green);font-weight:800}
-#refine,#order{display:none;border-top:1px solid var(--line);margin-top:16px;padding-top:16px}.summary{display:grid;grid-template-columns:1fr auto;gap:7px;font-size:14px}.summary span:last-child{text-align:right;font-weight:800}.note{font-size:12px;color:var(--muted)}
-.selected{display:none;grid-template-columns:82px 1fr;gap:12px;align-items:center}.selected img{width:82px;height:66px;object-fit:contain;border:1px solid var(--line);border-radius:9px}.selected .name{font-weight:800;font-size:17px}
-footer{text-align:center;color:var(--muted);font-size:12px;margin-top:20px}
-@media(max-width:700px){.vehicle-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.wrap{padding:14px 9px 55px}.nav a{display:none}.card{padding:15px}.grid,.size-grid{grid-template-columns:1fr}.steps{gap:4px}.step{font-size:9px}.actions .btn{width:100%}input,select,textarea{font-size:16px;min-height:46px}.selected{grid-template-columns:68px 1fr}.selected img{width:68px;height:58px}}
+:root {
+    --bg:#05050a;
+    --panel:#101019;
+    --panel2:#151522;
+    --cyan:#00fff2;
+    --pink:#ff2ee6;
+    --red:#ff2b4e;
+    --green:#3dffa0;
+    --text:#f4f4ff;
+    --muted:#a8a8bd;
+    --border:rgba(0,255,242,.25);
+}
+
+* {
+    box-sizing:border-box;
+}
+
+body {
+    margin:0;
+    min-height:100vh;
+    padding:28px 15px 60px;
+    font-family:Arial,Helvetica,sans-serif;
+    color:var(--text);
+
+    background:
+        radial-gradient(
+            circle at 15% 10%,
+            rgba(255,46,230,.15),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 85% 15%,
+            rgba(0,255,242,.12),
+            transparent 30%
+        ),
+        linear-gradient(
+            180deg,
+            #07070d,
+            #090912 60%,
+            #040408
+        );
+}
+
+.container {
+    width:100%;
+    max-width:650px;
+    margin:auto;
+}
+
+.brand {
+    text-align:center;
+    margin-bottom:28px;
+}
+
+.brand-small {
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:5px;
+    color:var(--cyan);
+    text-shadow:
+        0 0 8px rgba(0,255,242,.7),
+        0 0 20px rgba(0,255,242,.3);
+    margin-bottom:8px;
+}
+
+.brand h1 {
+    margin:0;
+    font-size:34px;
+    font-weight:800;
+    color:white;
+    text-shadow:
+        0 0 8px rgba(0,255,242,.5),
+        0 0 30px rgba(255,46,230,.3);
+}
+
+.brand h1 span {
+    color:var(--pink);
+}
+
+.brand p {
+    color:var(--muted);
+    margin:9px 0 0;
+    font-size:14px;
+}
+
+.card {
+    padding:22px;
+    border-radius:18px;
+    border:1px solid var(--border);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(20,20,31,.97),
+            rgba(9,9,16,.97)
+        );
+
+    box-shadow:
+        0 0 25px rgba(0,255,242,.05),
+        0 0 50px rgba(255,46,230,.04);
+}
+
+h2 {
+    margin:0 0 7px;
+    font-size:22px;
+}
+
+.sub {
+    margin-top:0;
+    color:var(--muted);
+    line-height:1.5;
+    font-size:14px;
+}
+
+label {
+    display:block;
+    margin-top:18px;
+    font-size:14px;
+    font-weight:bold;
+}
+
+input,
+select,
+textarea {
+    width:100%;
+    margin-top:7px;
+    padding:12px;
+
+    border-radius:9px;
+    border:1px solid var(--border);
+
+    background:var(--panel);
+    color:white;
+
+    font-family:inherit;
+    font-size:14px;
+    outline:none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color:var(--cyan);
+
+    box-shadow:
+        0 0 12px rgba(0,255,242,.12);
+}
+
+textarea {
+    min-height:90px;
+    resize:vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color:#77778d;
+}
+
+select option {
+    background:#111119;
+    color:white;
+}
+
+.row {
+    display:flex;
+    gap:12px;
+}
+
+.row > div {
+    flex:1;
+}
+
+/* VEHICLE PREVIEW */
+
+#imagePreviewBox {
+    display:none;
+    margin-top:18px;
+}
+
+#imagePreview {
+    display:block;
+    width:100%;
+    max-height:450px;
+    object-fit:contain;
+
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#050509;
+}
+
+/* CROP */
+
+#cropSection {
+    display:none;
+    margin-top:18px;
+}
+
+.crop-wrapper {
+    position:relative;
+    width:100%;
+    border-radius:10px;
+    overflow:hidden;
+
+    border:1px solid var(--border);
+    background:#050509;
+}
+
+#cropCanvas {
+    display:block;
+    width:100%;
+    height:auto;
+    touch-action:none;
+}
+
+.crop-box {
+    position:absolute;
+
+    left:20%;
+    top:20%;
+
+    width:55%;
+    height:45%;
+
+    border:2px solid var(--cyan);
+
+    box-shadow:
+        0 0 12px rgba(0,255,242,.7),
+        inset 0 0 12px rgba(0,255,242,.12);
+
+    cursor:move;
+    background:rgba(0,255,242,.04);
+}
+
+.crop-handle {
+    position:absolute;
+
+    width:16px;
+    height:16px;
+
+    right:-8px;
+    bottom:-8px;
+
+    border-radius:50%;
+
+    background:var(--pink);
+    border:2px solid white;
+
+    cursor:nwse-resize;
+}
+
+.crop-hint {
+    color:var(--muted);
+    font-size:12px;
+    margin:7px 0 0;
+}
+
+/* BUTTON */
+
+button {
+    width:100%;
+    margin-top:20px;
+    padding:14px;
+
+    border:none;
+    border-radius:10px;
+
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--red),
+            var(--pink)
+        );
+
+    box-shadow:
+        0 0 12px rgba(255,43,78,.35),
+        0 0 25px rgba(255,46,230,.25);
+
+    transition:.15s ease;
+}
+
+button:hover:not(:disabled) {
+    transform:translateY(-1px);
+
+    box-shadow:
+        0 0 18px rgba(255,43,78,.65),
+        0 0 35px rgba(255,46,230,.4);
+}
+
+button:disabled {
+    background:#33333c;
+    color:#888;
+    cursor:not-allowed;
+    box-shadow:none;
+}
+
+/* STATUS */
+
+#status {
+    display:none;
+
+    margin-top:18px;
+    padding:14px;
+
+    border-radius:10px;
+
+    font-size:14px;
+    line-height:1.5;
+
+    border:1px solid rgba(0,255,242,.2);
+    background:rgba(0,255,242,.035);
+
+    white-space:pre-wrap;
+}
+
+.status-working {
+    color:var(--cyan);
+}
+
+.status-success {
+    color:var(--green);
+
+    border-color:
+        rgba(61,255,160,.35) !important;
+
+    background:
+        rgba(61,255,160,.05) !important;
+}
+
+.status-error {
+    color:#ff6b82;
+
+    border-color:
+        rgba(255,43,78,.4) !important;
+
+    background:
+        rgba(255,43,78,.05) !important;
+}
+
+/* RESULT */
+
+#result {
+    display:none;
+    margin-top:22px;
+    text-align:center;
+}
+
+#result h3 {
+    margin:0 0 12px;
+    color:var(--cyan);
+}
+
+#resultImage {
+    width:100%;
+    border-radius:12px;
+
+    border:1px solid var(--border);
+
+    box-shadow:
+        0 0 25px rgba(0,255,242,.15);
+}
+
+.download-btn {
+    display:inline-block;
+
+    margin-top:14px;
+    padding:11px 18px;
+
+    border-radius:8px;
+
+    color:var(--cyan);
+    text-decoration:none;
+
+    border:1px solid var(--cyan);
+}
+
+/* DEBUG */
+
+#debugBox {
+    display:none;
+
+    margin-top:18px;
+    padding:12px;
+
+    border-radius:9px;
+
+    background:#050509;
+
+    border:1px solid rgba(255,255,255,.08);
+
+    color:#77778c;
+
+    font-size:11px;
+
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+.debug-title {
+    color:var(--cyan);
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+.debug-line {
+    margin:3px 0;
+}
+
+/* SELECTED DESIGN */
+
+#selectedDesignBox {
+    display:none;
+
+    margin-bottom:22px;
+    padding:18px;
+
+    border-radius:17px;
+
+    border:
+        1px solid rgba(255,46,230,.35);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,46,230,.10),
+            rgba(0,255,242,.04)
+        );
+}
+
+.selected-title {
+    font-size:11px;
+    letter-spacing:3px;
+    color:var(--cyan);
+    font-weight:bold;
+    margin-bottom:13px;
+}
+
+.selected-content {
+    display:flex;
+    gap:15px;
+    align-items:center;
+}
+
+.selected-image {
+    width:135px;
+    height:95px;
+    object-fit:contain;
+
+    background:#050509;
+
+    border-radius:10px;
+
+    border:
+        1px solid rgba(0,255,242,.25);
+}
+
+.selected-info {
+    flex:1;
+}
+
+.selected-name {
+    font-size:21px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.selected-price {
+    display:inline-block;
+
+    padding:5px 10px;
+
+    border-radius:7px;
+
+    background:
+        rgba(255,46,230,.12);
+
+    border:
+        1px solid rgba(255,46,230,.35);
+
+    color:#ff6beb;
+
+    font-size:14px;
+    font-weight:bold;
+}
+
+.selected-category {
+    margin-top:8px;
+    color:var(--muted);
+    font-size:12px;
+}
+
+/* MOBILE */
+
+@media(max-width:600px) {
+
+    body {
+        padding:18px 11px 45px;
+    }
+
+    .brand h1 {
+        font-size:28px;
+    }
+
+    .card {
+        padding:17px;
+    }
+
+    .selected-content {
+        align-items:flex-start;
+    }
+
+    .selected-image {
+        width:105px;
+        height:78px;
+    }
+
+    .selected-name {
+        font-size:18px;
+    }
+
+    .row {
+        flex-direction:column;
+        gap:0;
+    }
+}
+
+/* =========================================================
+   STICKING SMART SIZE UI
+   ========================================================= */
+
+.vehicle-details-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:12px;
+}
+
+.size-mode-wrap {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:16px;
+}
+
+.size-mode {
+    margin-top:0;
+    padding:13px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:rgba(255,255,255,.025);
+    cursor:pointer;
+}
+
+.size-mode.active {
+    border-color:var(--cyan);
+    background:rgba(0,255,242,.05);
+}
+
+.size-mode input {
+    display:none;
+}
+
+.size-mode strong {
+    display:block;
+    font-size:13px;
+    color:white;
+}
+
+.size-mode small {
+    display:block;
+    margin-top:4px;
+    color:var(--muted);
+    font-size:11px;
+    font-weight:normal;
+}
+
+.smart-size-panel {
+    display:none;
+    margin-top:14px;
+    padding:14px;
+    border-radius:10px;
+    border:1px solid rgba(0,255,242,.22);
+    background:rgba(0,255,242,.035);
+}
+
+.smart-size-title {
+    color:var(--cyan);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:bold;
+}
+
+.smart-size-value {
+    margin-top:4px;
+    color:white;
+    font-size:24px;
+    font-weight:bold;
+}
+
+.smart-size-note {
+    margin-top:4px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.45;
+}
+
+.smart-size-panel button {
+    width:auto;
+    margin-top:10px;
+    padding:10px 14px;
+    font-size:13px;
+}
+
+@media(max-width:700px) {
+
+    .vehicle-details-grid {
+        grid-template-columns:1fr;
+    }
+
+    .size-mode-wrap {
+        grid-template-columns:1fr;
+    }
+
+}
+
 </style>
 </head>
+
 <body>
-<header class="top"><div class="nav"><div class="logo">Stic<span>King</span></div><div><a href="/">Home</a><a href="/gallery.html">Designs</a></div></div></header>
 
-<main class="wrap">
-<section class="hero">
-<div class="tag">STICKING STUDIO</div>
-<h1>Design it. Preview it. Make it yours.</h1>
-<p>Choose your vehicle, set the sticker size, and see a realistic AI preview before ordering.</p>
-</section>
+<div class="container">
 
-<div class="steps"><div id="step1" class="step on">1 · Vehicle</div><div id="step2" class="step">2 · Size</div><div id="step3" class="step">3 · Preview</div><div id="step4" class="step">4 · Approve</div></div>
+    <!-- BRAND -->
 
-<div id="selectedDesign" class="card selected"><img id="selectedImg" alt="Selected design"><div><div id="selectedName" class="name"></div><div id="selectedPrice" class="price"></div><div id="selectedCat" class="category"></div></div></div>
+    <div class="brand">
 
-<section class="card">
-<h2>1. Your vehicle & placement</h2><p class="sub">Tell us what you're customizing and where the sticker will go.</p>
-<div id="vehicleGrid" class="vehicle-grid">
-<div class="vehicle active" data-type="Car"><strong>🚗 Car</strong><small>Sedan / Hatchback</small></div>
-<div class="vehicle" data-type="SUV"><strong>🚙 SUV</strong><small>Large body</small></div>
-<div class="vehicle" data-type="Bike"><strong>🏍️ Bike</strong><small>Motorcycle</small></div>
-<div class="vehicle" data-type="Scooter"><strong>🛵 Scooter</strong><small>Two-wheeler</small></div>
-<div class="vehicle" data-type="Truck"><strong>🚚 Truck</strong><small>Cab / Body</small></div>
-<div class="vehicle" data-type="Van"><strong>🚐 Van</strong><small>MPV / Delivery</small></div>
-<div class="vehicle" data-type="Bus"><strong>🚌 Bus</strong><small>Coach / Bus</small></div>
-<div class="vehicle" data-type="Commercial"><strong>🚛 Commercial</strong><small>Fleet / Utility</small></div>
+        <div class="brand-small">
+            STICKING STUDIO
+        </div>
+
+        <h1>
+            Vehicle <span>Customizer</span>
+        </h1>
+
+        <p>
+            Create a realistic AI preview of your sticker or vinyl design on your vehicle.
+        </p>
+
+    </div>
+
+
+    <!-- SELECTED DESIGN -->
+
+    <div id="selectedDesignBox">
+
+        <div class="selected-title">
+            SELECTED DESIGN
+        </div>
+
+        <div class="selected-content">
+
+            <img
+                id="selectedDesignImage"
+                class="selected-image"
+                alt="Selected design"
+            >
+
+            <div class="selected-info">
+
+                <div
+                    id="selectedDesignName"
+                    class="selected-name">
+                </div>
+
+                <div
+                    id="selectedDesignPrice"
+                    class="selected-price">
+                </div>
+
+                <div
+                    id="selectedDesignCategory"
+                    class="selected-category">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- MAIN CARD -->
+
+    <div class="card">
+
+        <h2>
+            Preview Your Vehicle Design
+        </h2>
+
+        <p class="sub">
+            Upload a photo of your vehicle or a specific panel.
+            We'll create a realistic AI preview of your selected
+            sticker or vinyl design.
+        </p>
+
+
+        <!-- FORM -->
+
+        <form
+            id="previewForm"
+            enctype="multipart/form-data"
+        >
+
+
+            <!-- VEHICLE DETAILS -->
+            <div class="vehicle-details-grid">
+
+                <div>
+                    <label for="vehicleType">
+                        Vehicle Type
+                    </label>
+
+                    <select id="vehicleType">
+                        <option value="Car">Car</option>
+                        <option value="SUV">SUV</option>
+                        <option value="Bike">Bike / Motorcycle</option>
+                        <option value="Scooter">Scooter</option>
+                        <option value="Truck">Truck / Pickup</option>
+                        <option value="Van">Van / MPV</option>
+                        <option value="Bus">Bus</option>
+                        <option value="Commercial">Commercial Vehicle</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="vehicleMake">
+                        Make / Brand
+                    </label>
+
+                    <input
+                        id="vehicleMake"
+                        type="text"
+                        placeholder="e.g. Hyundai"
+                    >
+                </div>
+
+                <div>
+                    <label for="vehicleModel">
+                        Model
+                    </label>
+
+                    <input
+                        id="vehicleModel"
+                        type="text"
+                        placeholder="e.g. Creta"
+                    >
+                </div>
+
+            </div>
+
+            <div class="vehicle-details-grid">
+
+                <div>
+                    <label for="vehicleYear">
+                        Model Year
+                    </label>
+
+                    <input
+                        id="vehicleYear"
+                        type="number"
+                        min="1950"
+                        max="2100"
+                        placeholder="e.g. 2024"
+                    >
+                </div>
+
+            </div>
+
+            <label for="vehicleImage">
+                Photo of the vehicle or specific part
+            </label>
+
+            <input
+                type="file"
+                id="vehicleImage"
+                name="vehicleImage"
+                accept="image/jpeg,image/png,image/webp"
+                required
+            >
+
+
+            <!-- IMAGE PREVIEW -->
+
+            <div id="imagePreviewBox">
+
+                <img
+                    id="imagePreview"
+                    alt="Vehicle preview"
+                >
+
+            </div>
+
+
+            <!-- CROP -->
+
+            <div id="cropSection">
+
+                <label>
+                    Select the panel / area for the design
+                </label>
+
+                <div class="crop-wrapper">
+
+                    <canvas
+                        id="cropCanvas">
+                    </canvas>
+
+                    <div
+                        id="cropBox"
+                        class="crop-box">
+
+                        <div
+                            id="cropHandle"
+                            class="crop-handle">
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <p class="crop-hint">
+                    Drag the box to move it.
+                    Drag the pink handle to resize it.
+                </p>
+
+            </div>
+
+
+            <!-- PART -->
+
+            <label for="part">
+                Which part is this?
+            </label>
+
+            <select
+                id="part"
+                name="part">
+
+                <option value="bonnet">
+                    Bonnet
+                </option>
+
+                <option value="door">
+                    Door
+                </option>
+
+                <option value="fender">
+                    Fender
+                </option>
+
+                <option value="fuel tank">
+                    Fuel Tank
+                </option>
+
+                <option value="side panel">
+                    Side Panel
+                </option>
+
+                <option value="windshield">
+                    Windshield
+                </option>
+
+                <option value="window">
+                    Window
+                </option>
+
+                <option value="whole vehicle">
+                    Whole Vehicle
+                </option>
+
+                <option value="other">
+                    Other
+                </option>
+
+            </select>
+
+
+            <!-- DIMENSIONS -->
+
+            <div class="row">
+
+                <div>
+
+                    <label for="width">
+                        Width (cm)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="width"
+                        name="width"
+                        min="1"
+                        value="120"
+                        placeholder="e.g. 120"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label for="height">
+                        Height (cm)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="height"
+                        name="height"
+                        min="1"
+                        value="45"
+                        placeholder="e.g. 45"
+                    >
+
+                </div>
+
+
+            </div>
+
+            <!-- SIZE CHOICE -->
+            <div class="size-mode-wrap">
+
+                <label
+                    id="smartSizeChoice"
+                    class="size-mode active"
+                >
+                    <input
+                        type="radio"
+                        name="sizeMode"
+                        value="smart"
+                        checked
+                    >
+
+                    <strong>
+                        ✨ Suggest a size
+                    </strong>
+
+                    <small>
+                        AI-assisted starting estimate
+                    </small>
+                </label>
+
+                <label
+                    id="exactSizeChoice"
+                    class="size-mode"
+                >
+                    <input
+                        type="radio"
+                        name="sizeMode"
+                        value="exact"
+                    >
+
+                    <strong>
+                        📏 I know the exact size
+                    </strong>
+
+                    <small>
+                        Enter your own dimensions
+                    </small>
+                </label>
+
+            </div>
+
+            <div
+                id="smartSizePanel"
+                class="smart-size-panel"
+            >
+
+                <div class="smart-size-title">
+                    Recommended starting size
+                </div>
+
+                <div
+                    id="smartSizeValue"
+                    class="smart-size-value"
+                >
+                    Calculating...
+                </div>
+
+                <div
+                    id="smartSizeNote"
+                    class="smart-size-note"
+                >
+                    This is an estimate, not a verified factory measurement.
+                </div>
+
+                <button
+                    type="button"
+                    id="useSmartSize"
+                >
+                    Use suggested size
+                </button>
+
+            </div>
+
+
+            <!-- DESIGN -->
+
+            <label for="design">
+                Describe the tattoo/design
+            </label>
+
+            <textarea
+                id="design"
+                name="design"
+                placeholder="e.g. aggressive black panther with flowing lines and subtle red accents"
+                required
+            ></textarea>
+
+
+            <!-- EXTRA INSTRUCTIONS -->
+
+            <label for="description">
+                Additional instructions
+            </label>
+
+            <textarea
+                id="description"
+                name="description"
+                placeholder="e.g. keep the design toward the rear door, make it premium and realistic"
+            ></textarea>
+
+
+            <!-- GENERATE -->
+
+            <button
+                type="submit"
+                id="submitBtn">
+
+                Generate Preview
+
+            </button>
+
+        </form>
+
+
+        <!-- STATUS -->
+
+        <div id="status"></div>
+
+
+        <!-- RESULT -->
+
+        <div id="result">
+
+            <h3>
+                Your Vehicle Preview
+            </h3>
+
+            <img
+                id="resultImage"
+                alt="Generated vehicle preview"
+            >
+
+            <br>
+
+            <a
+                id="downloadLink"
+                class="download-btn"
+                download="sticking-vehicle-preview.png">
+
+                Save Preview
+
+            </a>
+
+        </div>
+
+
+        <!-- DEBUG -->
+
+        <div id="debugBox">
+
+            <div class="debug-title">
+                Connection Diagnostics
+            </div>
+
+            <div id="debugContent"></div>
+
+        </div>
+
+    </div>
+
 </div>
-<div class="grid">
-<div><span class="label">Make / Brand</span><input id="make" placeholder="e.g. Hyundai"></div>
-<div><span class="label">Model</span><input id="model" placeholder="e.g. Creta"></div>
-</div>
-<span class="label">Model year</span><input id="year" type="number" min="1950" max="2100" placeholder="e.g. 2024">
-<span class="label">Sticker placement</span>
-<select id="part">
-<option value="door">Front Door</option><option value="rear door">Rear Door</option><option value="side panel">Side Panel</option><option value="rear quarter panel">Rear Quarter Panel</option><option value="fender">Fender</option><option value="bonnet">Bonnet</option><option value="roof">Roof</option><option value="tailgate">Tailgate / Rear Panel</option><option value="windshield">Windshield</option><option value="window">Window</option><option value="fuel tank">Fuel Tank</option><option value="fairing">Fairing</option><option value="front apron">Front Apron</option><option value="cab door">Cab Door</option><option value="truck side body">Truck Side Body</option><option value="bus side panel">Bus Side Panel</option><option value="custom">Other / Custom</option>
-</select>
-</section>
 
-<section class="card">
-<h2>2. Sticker size</h2><p class="sub">Use a smart recommendation or enter the exact size yourself.</p>
-<div class="size-grid">
-<label id="smartMode" class="size-mode active"><input type="radio" name="sizeMode" value="smart" checked><strong>✨ Suggest a size</strong><small>AI-assisted starting estimate</small></label>
-<label id="exactMode" class="size-mode"><input type="radio" name="sizeMode" value="exact"><strong>📏 Exact size</strong><small>Enter your own measurements</small></label>
-</div>
-<div id="smartPanel" class="smart"><b>Recommended starting size</b><div id="smartSize" class="big">Calculating…</div><small id="smartNote">Estimate only. Verify the actual panel before production.</small><br><button id="useSmart" type="button" class="btn primary" style="margin-top:8px">Use suggested size</button></div>
-<div class="grid">
-<div><span class="label">Width (cm)</span><input id="width" type="number" min="1" step="0.1" placeholder="e.g. 75"></div>
-<div><span class="label">Height (cm)</span><input id="height" type="number" min="1" step="0.1" placeholder="e.g. 32"></div>
-</div>
-<div class="note">For final production, the customer's physical measurement should always override the estimate.</div>
-</section>
-
-<section class="card">
-<h2>Upload your vehicle</h2><p class="sub">A clear photo of the chosen panel gives the best result.</p>
-<span class="label">Vehicle photo</span><input id="vehicleImage" type="file" accept="image/jpeg,image/png,image/webp">
-<div id="cropBox"><span class="label">Select the exact area</span><div class="cropwrap"><canvas id="cropCanvas"></canvas></div><div class="hint">Drag the box to move it. Drag its lower-right corner to resize it.</div></div>
-<span class="label">Describe your sticker / decal</span><textarea id="design" placeholder="e.g. fierce black eagle with red accents, premium automotive style"></textarea>
-<span class="label">Additional instructions</span><textarea id="extra" placeholder="e.g. keep it toward the rear of the door and don't cover the handle"></textarea>
-<button id="generate" type="button" class="btn primary full">Generate Vehicle Preview</button>
-<div id="status" class="status"></div>
-</section>
-
-<section id="resultCard" class="card">
-<h2>3. Preview & refine</h2><p class="sub">Review the design and placement. Refine it before approving.</p>
-<img id="resultImage" class="preview" alt="AI vehicle preview">
-<div class="actions" style="margin-top:12px"><button id="approve" type="button" class="btn green">✓ Approve Preview</button><button id="restart" type="button" class="btn light">Start Again</button></div>
-<div id="approved" class="approved">✓ Preview approved.</div>
-<div id="refine"><span class="label">Want a change?</span><textarea id="refinement" placeholder="e.g. make it 15% smaller and move it toward the rear"></textarea><button id="refineBtn" type="button" class="btn dark full">Refine Preview</button></div>
-<div id="order"><h3>4. Final order summary</h3><div class="summary"><span>Vehicle</span><span id="sumVehicle">—</span><span>Panel</span><span id="sumPart">—</span><span>Sticker size</span><span id="sumSize">—</span><span>Size source</span><span id="sumSource">—</span><span>Design</span><span id="sumDesign">—</span></div><p class="note">This is a visual preview. Verify the final physical panel measurement before production.</p><button id="cart" type="button" class="btn primary full">Add Approved Design to Cart</button></div>
-</section>
-
-<footer>SticKing · Custom vehicle decals & skins</footer>
-</main>
 
 <script>
-let selectedVehicle="Car",suggested=null,sizeMode="smart",currentImage=null,loadedImage=null,scale=1,crop={x:0,y:0,w:0,h:0},drag=null,selectedDesign=null;
-const $=id=>document.getElementById(id);
-const typeButtons=[...document.querySelectorAll(".vehicle")];
-function step(n){for(let i=1;i<=4;i++)$("step"+i).classList.toggle("on",i===n)}
-function setStatus(t,c=""){const s=$("status");s.textContent=t;s.className="status "+c;s.style.display=t?"block":"none"}
 
-async function loadSelectedDesign(){
- const id=new URLSearchParams(location.search).get("design"); if(!id)return;
- try{const r=await fetch("/designs.json");if(!r.ok)return;const list=await r.json();selectedDesign=list.find(x=>x.id===id);if(!selectedDesign)return;
-  $("selectedDesign").style.display="grid";$("selectedImg").src=selectedDesign.imageUrl||selectedDesign.image||"";
-  $("selectedName").textContent=selectedDesign.name||id;$("selectedPrice").textContent=selectedDesign.price||"";$("selectedCat").textContent=selectedDesign.category||"";
-  $("design").value=selectedDesign.description||selectedDesign.name||"";
- }catch(e){}
+/* =========================================================
+   STICKING BACKEND
+   ========================================================= */
+
+const API_BASE_URL =
+    "https://sticking.onrender.com";
+
+const GENERATE_URL =
+    API_BASE_URL + "/generate-preview";
+
+const HEALTH_URL =
+    API_BASE_URL + "/health";
+
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const form =
+    document.getElementById("previewForm");
+
+const fileInput =
+    document.getElementById("vehicleImage");
+
+const imagePreview =
+    document.getElementById("imagePreview");
+
+const imagePreviewBox =
+    document.getElementById("imagePreviewBox");
+
+const cropSection =
+    document.getElementById("cropSection");
+
+const cropCanvas =
+    document.getElementById("cropCanvas");
+
+const cropBox =
+    document.getElementById("cropBox");
+
+const cropHandle =
+    document.getElementById("cropHandle");
+
+const submitBtn =
+    document.getElementById("submitBtn");
+
+const statusBox =
+    document.getElementById("status");
+
+const resultBox =
+    document.getElementById("result");
+
+const resultImage =
+    document.getElementById("resultImage");
+
+const downloadLink =
+    document.getElementById("downloadLink");
+
+const debugBox =
+    document.getElementById("debugBox");
+
+const debugContent =
+    document.getElementById("debugContent");
+
+
+/* =========================================================
+   DEBUG
+   ========================================================= */
+
+function debug(message) {
+
+    console.log("[SticKing]", message);
+
+    debugBox.style.display = "block";
+
+    const line =
+        document.createElement("div");
+
+    line.className = "debug-line";
+
+    line.textContent =
+        new Date().toLocaleTimeString() +
+        " — " +
+        message;
+
+    debugContent.appendChild(line);
 }
-loadSelectedDesign();
 
-typeButtons.forEach(b=>b.onclick=()=>{typeButtons.forEach(x=>x.classList.remove("active"));b.classList.add("active");selectedVehicle=b.dataset.type;requestSize()});
-["make","model","year","part"].forEach(id=>{$(id).addEventListener("change",requestSize);$(id).addEventListener("blur",requestSize)});
-document.querySelectorAll('input[name="sizeMode"]').forEach(r=>r.addEventListener("change",()=>{sizeMode=r.value;$("smartMode").classList.toggle("active",sizeMode==="smart");$("exactMode").classList.toggle("active",sizeMode==="exact");if(sizeMode==="smart")requestSize();else{$("width").value="";$("height").value="";$("width").focus()}}));
-["width","height"].forEach(id=>$(id).addEventListener("input",()=>sizeMode="exact"));
 
-async function requestSize(){
- $("smartPanel").style.display="block";$("smartSize").textContent="Calculating…";$("smartNote").textContent="Checking a recommended starting size…";
- try{const r=await fetch("/suggest-size",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({vehicleType:selectedVehicle,make:$("make").value.trim(),model:$("model").value.trim(),year:$("year").value.trim(),part:$("part").value})});
- const d=await r.json();if(!r.ok||!d.success)throw 0;suggested={width:d.widthCm,height:d.heightCm};$("smartSize").textContent=`${d.widthCm} × ${d.heightCm} cm`;$("smartNote").textContent=`${d.sourceLabel||"Smart estimate"} · estimate only, not a verified factory panel measurement.`;$("useSmart").disabled=false;
- if(sizeMode==="smart"){$("width").value=d.widthCm;$("height").value=d.heightCm}
- }catch(e){$("smartSize").textContent="Enter exact dimensions";$("smartNote").textContent="Vehicle-specific estimate unavailable. You can enter the exact size yourself.";$("useSmart").disabled=true}
+function clearDebug() {
+
+    debugContent.innerHTML = "";
+
+    debugBox.style.display = "none";
 }
-$("useSmart").onclick=()=>{if(!suggested)return;$("width").value=suggested.width;$("height").value=suggested.height;sizeMode="smart";setStatus("Suggested size applied. You can still edit it.","ok")};
-requestSize();
 
-$("vehicleImage").addEventListener("change",()=>{
- const f=$("vehicleImage").files[0];if(!f)return;const img=new Image();img.onload=()=>{loadedImage=img;scale=Math.min(1,760/img.width);$("cropCanvas").width=Math.round(img.width*scale);$("cropCanvas").height=Math.round(img.height*scale);crop.w=$("cropCanvas").width*.7;crop.h=$("cropCanvas").height*.6;crop.x=($("cropCanvas").width-crop.w)/2;crop.y=($("cropCanvas").height-crop.h)/2;$("cropBox").style.display="block";drawCrop();step(2)};img.src=URL.createObjectURL(f)
-});
-function drawCrop(){const c=$("cropCanvas").getContext("2d"),w=$("cropCanvas").width,h=$("cropCanvas").height;c.clearRect(0,0,w,h);c.drawImage(loadedImage,0,0,w,h);c.fillStyle="rgba(0,0,0,.48)";c.fillRect(0,0,w,crop.y);c.fillRect(0,crop.y+crop.h,w,h-crop.y-crop.h);c.fillRect(0,crop.y,crop.x,crop.h);c.fillRect(crop.x+crop.w,crop.y,w-crop.x-crop.w,crop.h);c.strokeStyle="#fff";c.lineWidth=2;c.strokeRect(crop.x,crop.y,crop.w,crop.h);c.fillStyle="#2563eb";c.fillRect(crop.x+crop.w-8,crop.y+crop.h-8,16,16)}
-function cp(e){const r=$("cropCanvas").getBoundingClientRect();return{x:(e.clientX-r.left)*$("cropCanvas").width/r.width,y:(e.clientY-r.top)*$("cropCanvas").height/r.height}}
-$("cropCanvas").addEventListener("pointerdown",e=>{const p=cp(e),h=Math.abs(p.x-(crop.x+crop.w))<18&&Math.abs(p.y-(crop.y+crop.h))<18;if(h)drag={m:"r",p,c:{...crop}};else if(p.x>crop.x&&p.x<crop.x+crop.w&&p.y>crop.y&&p.y<crop.y+crop.h)drag={m:"m",p,c:{...crop}};if(drag)$("cropCanvas").setPointerCapture(e.pointerId)});
-$("cropCanvas").addEventListener("pointermove",e=>{if(!drag)return;const p=cp(e),dx=p.x-drag.p.x,dy=p.y-drag.p.y,w=$("cropCanvas").width,h=$("cropCanvas").height;if(drag.m==="m"){crop.x=Math.max(0,Math.min(w-crop.w,drag.c.x+dx));crop.y=Math.max(0,Math.min(h-crop.h,drag.c.y+dy))}else{crop.w=Math.max(50,Math.min(w-crop.x,drag.c.w+dx));crop.h=Math.max(50,Math.min(h-crop.y,drag.c.h+dy))}drawCrop();e.preventDefault()});
-$("cropCanvas").addEventListener("pointerup",()=>drag=null);
-function cropBlob(){return new Promise(resolve=>{const sx=crop.x/scale,sy=crop.y/scale,sw=crop.w/scale,sh=crop.h/scale,c=document.createElement("canvas");c.width=Math.round(sw);c.height=Math.round(sh);c.getContext("2d").drawImage(loadedImage,sx,sy,sw,sh,0,0,c.width,c.height);c.toBlob(resolve,"image/png")})}
 
-function formValues(){return{part:$("part").value,widthCm:$("width").value,heightCm:$("height").value,design:$("design").value,description:$("description").value,extra:$("extra")?.value||"",vehicleType:selectedVehicle,make:$("make").value.trim(),model:$("model").value.trim(),year:$("year").value.trim()}}
+/* =========================================================
+   STATUS
+   ========================================================= */
 
-$("generate").onclick=async()=>{
- if(!loadedImage){setStatus("Please upload a vehicle photo first.","err");return}
- if(!$("design").value.trim()){setStatus("Please describe the sticker/design.","err");return}
- if(!$("width").value||!$("height").value){setStatus("Please choose a suggested size or enter exact dimensions.","err");return}
- $("generate").disabled=true;step(3);setStatus("Creating your AI vehicle preview… please wait.","work");
- try{const fd=new FormData();fd.append("vehicleImage",await cropBlob(),"vehicle-panel.png");const v=formValues();Object.entries(v).forEach(([k,val])=>fd.append(k,val));
-  const r=await fetch("/generate-preview",{method:"POST",body:fd});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.error||"Preview generation failed.");
-  currentImage=d.image;$("resultImage").src=d.image;$("resultCard").style.display="block";$("refine").style.display="block";$("order").style.display="none";$("approved").style.display="none";setStatus("Preview generated successfully.","ok");$("resultCard").scrollIntoView({behavior:"smooth"});
- }catch(e){setStatus(e.message||"Something went wrong.","err");step(2)}finally{$("generate").disabled=false}
-};
+function showStatus(
+    message,
+    type
+) {
 
-$("refineBtn").onclick=async()=>{
- const refinement=$("refinement").value.trim();if(!refinement||!currentImage){setStatus("Describe the change you want first.","err");return}
- $("refineBtn").disabled=true;setStatus("Updating your preview…","work");
- try{const r=await fetch("/refine-preview",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({previousImageBase64:currentImage,refinement,...formValues()})});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.error||"Refinement failed.");currentImage=d.image;$("resultImage").src=d.image;$("refinement").value="";$("order").style.display="none";$("approved").style.display="none";setStatus("Preview updated.","ok")}
- catch(e){setStatus(e.message||"Could not refine the preview.","err")}finally{$("refineBtn").disabled=false}
-};
+    statusBox.style.display = "block";
 
-$("approve").onclick=()=>{
- $("approved").style.display="block";$("order").style.display="block";step(4);
- $("sumVehicle").textContent=[selectedVehicle,$("make").value.trim(),$("model").value.trim(),$("year").value.trim()].filter(Boolean).join(" ");
- $("sumPart").textContent=$("part").value;$("sumSize").textContent=`${$("width").value} × ${$("height").value} cm`;$("sumSource").textContent=sizeMode==="exact"?"Customer entered":"AI-assisted / smart recommendation";$("sumDesign").textContent=selectedDesign?.name||"Custom design"
-};
+    statusBox.className = "";
 
-$("cart").onclick=()=>{
- const item={designId:new URLSearchParams(location.search).get("design"),design:selectedDesign?.name||"Custom design",price:selectedDesign?.price||"",preview:currentImage,...formValues(),sizeSource:sizeMode};
- localStorage.setItem("sticking_cart",JSON.stringify(item));setStatus("Approved design saved. Your next step is checkout.","ok")
-};
-$("restart").onclick=()=>location.reload();
+    if (type === "working") {
+
+        statusBox.classList.add(
+            "status-working"
+        );
+
+    }
+
+    if (type === "success") {
+
+        statusBox.classList.add(
+            "status-success"
+        );
+
+    }
+
+    if (type === "error") {
+
+        statusBox.classList.add(
+            "status-error"
+        );
+
+    }
+
+    statusBox.textContent =
+        message;
+}
+
+
+/* =========================================================
+   IMAGE PREVIEW
+   ========================================================= */
+
+let selectedFile = null;
+
+let vehicleImageObject = null;
+
+
+fileInput.addEventListener(
+    "change",
+    function() {
+
+        clearDebug();
+
+        const file =
+            fileInput.files[0];
+
+        if (!file) {
+
+            return;
+        }
+
+        selectedFile = file;
+
+        debug(
+            "Image selected: " +
+            file.name
+        );
+
+        debug(
+            "Image type: " +
+            file.type
+        );
+
+        debug(
+            "Image size: " +
+            file.size +
+            " bytes"
+        );
+
+        const reader =
+            new FileReader();
+
+        reader.onload =
+            function(event) {
+
+                imagePreview.src =
+                    event.target.result;
+
+                imagePreviewBox.style.display =
+                    "block";
+
+                vehicleImageObject =
+                    new Image();
+
+                vehicleImageObject.onload =
+                    function() {
+
+                        setupCropCanvas(
+                            vehicleImageObject
+                        );
+
+                    };
+
+                vehicleImageObject.src =
+                    event.target.result;
+
+            };
+
+        reader.readAsDataURL(file);
+
+    }
+);
+
+
+/* =========================================================
+   CROP CANVAS
+   ========================================================= */
+
+function setupCropCanvas(image) {
+
+    const maxWidth = 900;
+
+    const scale =
+        Math.min(
+            1,
+            maxWidth / image.width
+        );
+
+    cropCanvas.width =
+        Math.round(
+            image.width * scale
+        );
+
+    cropCanvas.height =
+        Math.round(
+            image.height * scale
+        );
+
+    const ctx =
+        cropCanvas.getContext("2d");
+
+    ctx.clearRect(
+        0,
+        0,
+        cropCanvas.width,
+        cropCanvas.height
+    );
+
+    ctx.drawImage(
+        image,
+        0,
+        0,
+        cropCanvas.width,
+        cropCanvas.height
+    );
+
+    cropSection.style.display =
+        "block";
+
+}
+
+
+/* =========================================================
+   CROP BOX MOVEMENT
+   ========================================================= */
+
+let dragging = false;
+
+let resizing = false;
+
+let startX = 0;
+
+let startY = 0;
+
+let startLeft = 0;
+
+let startTop = 0;
+
+let startWidth = 0;
+
+let startHeight = 0;
+
+
+cropBox.addEventListener(
+    "pointerdown",
+    function(event) {
+
+        if (
+            event.target ===
+            cropHandle
+        ) {
+
+            resizing = true;
+
+        } else {
+
+            dragging = true;
+
+        }
+
+        startX =
+            event.clientX;
+
+        startY =
+            event.clientY;
+
+        startLeft =
+            cropBox.offsetLeft;
+
+        startTop =
+            cropBox.offsetTop;
+
+        startWidth =
+            cropBox.offsetWidth;
+
+        startHeight =
+            cropBox.offsetHeight;
+
+        cropBox.setPointerCapture(
+            event.pointerId
+        );
+
+        event.preventDefault();
+
+    }
+);
+
+
+cropBox.addEventListener(
+    "pointermove",
+    function(event) {
+
+        if (
+            !dragging &&
+            !resizing
+        ) {
+
+            return;
+
+        }
+
+        const dx =
+            event.clientX -
+            startX;
+
+        const dy =
+            event.clientY -
+            startY;
+
+        const parentWidth =
+            cropBox.parentElement.clientWidth;
+
+        const parentHeight =
+            cropBox.parentElement.clientHeight;
+
+
+        if (dragging) {
+
+            let newLeft =
+                startLeft + dx;
+
+            let newTop =
+                startTop + dy;
+
+            newLeft =
+                Math.max(
+                    0,
+                    Math.min(
+                        newLeft,
+                        parentWidth -
+                        cropBox.offsetWidth
+                    )
+                );
+
+            newTop =
+                Math.max(
+                    0,
+                    Math.min(
+                        newTop,
+                        parentHeight -
+                        cropBox.offsetHeight
+                    )
+                );
+
+            cropBox.style.left =
+                newLeft + "px";
+
+            cropBox.style.top =
+                newTop + "px";
+
+        }
+
+
+        if (resizing) {
+
+            let newWidth =
+                startWidth + dx;
+
+            let newHeight =
+                startHeight + dy;
+
+            newWidth =
+                Math.max(
+                    60,
+                    Math.min(
+                        newWidth,
+                        parentWidth -
+                        startLeft
+                    )
+                );
+
+            newHeight =
+                Math.max(
+                    60,
+                    Math.min(
+                        newHeight,
+                        parentHeight -
+                        startTop
+                    )
+                );
+
+            cropBox.style.width =
+                newWidth + "px";
+
+            cropBox.style.height =
+                newHeight + "px";
+
+        }
+
+    }
+);
+
+
+cropBox.addEventListener(
+    "pointerup",
+    function() {
+
+        dragging = false;
+
+        resizing = false;
+
+    }
+);
+
+
+/* =========================================================
+   URL PARAMETERS
+   Allows Odoo/design pages to pass:
+   ?design=...
+========================================================= */
+
+function loadDesignFromURL() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const designName =
+        params.get("design");
+
+    const designDescription =
+        params.get("description");
+
+    const designCategory =
+        params.get("category");
+
+    const designPrice =
+        params.get("price");
+
+    const designImage =
+        params.get("image");
+
+
+    if (designName) {
+
+        document.getElementById(
+            "selectedDesignName"
+        ).textContent =
+            designName;
+
+        document.getElementById(
+            "selectedDesignPrice"
+        ).textContent =
+            designPrice ||
+            "";
+
+        document.getElementById(
+            "selectedDesignCategory"
+        ).textContent =
+            designCategory ||
+            "";
+
+        document.getElementById(
+            "selectedDesignImage"
+        ).src =
+            designImage ||
+            "";
+
+        document.getElementById(
+            "selectedDesignBox"
+        ).style.display =
+            "block";
+
+        document.getElementById(
+            "design"
+        ).value =
+            designDescription ||
+            designName;
+
+        debug(
+            "Design loaded from URL."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   HEALTH CHECK
+   ========================================================= */
+
+async function checkBackend() {
+
+    debug(
+        "Checking Render backend..."
+    );
+
+    try {
+
+        const response =
+            await fetch(
+                HEALTH_URL,
+                {
+                    method:"GET",
+                    mode:"cors",
+                    cache:"no-store"
+                }
+            );
+
+        debug(
+            "Health response: HTTP " +
+            response.status
+        );
+
+        const data =
+            await response.json();
+
+        debug(
+            "Backend status: " +
+            JSON.stringify(data)
+        );
+
+        if (
+            data &&
+            data.ok
+        ) {
+
+            debug(
+                "✅ Render backend is reachable."
+            );
+
+        }
+
+    } catch (error) {
+
+        debug(
+            "❌ Health check failed: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   SMART SIZE CONTROLS
+   ========================================================= */
+
+const vehicleTypeEl =
+    document.getElementById("vehicleType");
+
+const vehicleMakeEl =
+    document.getElementById("vehicleMake");
+
+const vehicleModelEl =
+    document.getElementById("vehicleModel");
+
+const vehicleYearEl =
+    document.getElementById("vehicleYear");
+
+const widthEl =
+    document.getElementById("width");
+
+const heightEl =
+    document.getElementById("height");
+
+const partEl =
+    document.getElementById("part");
+
+const smartSizePanel =
+    document.getElementById("smartSizePanel");
+
+const smartSizeValue =
+    document.getElementById("smartSizeValue");
+
+const smartSizeNote =
+    document.getElementById("smartSizeNote");
+
+const useSmartSize =
+    document.getElementById("useSmartSize");
+
+const smartSizeChoice =
+    document.getElementById("smartSizeChoice");
+
+const exactSizeChoice =
+    document.getElementById("exactSizeChoice");
+
+let sizeMode =
+    "smart";
+
+let suggestedSize =
+    null;
+
+
+function safeValue(
+    element
+) {
+
+    if (!element) {
+        return "";
+    }
+
+    return String(
+        element.value || ""
+    ).trim();
+}
+
+
+async function updateSmartSize() {
+
+    if (
+        !smartSizePanel ||
+        !smartSizeValue ||
+        !smartSizeNote
+    ) {
+        return;
+    }
+
+    smartSizePanel.style.display =
+        "block";
+
+    smartSizeValue.textContent =
+        "Calculating...";
+
+    smartSizeNote.textContent =
+        "Checking a recommended starting size...";
+
+
+    if (useSmartSize) {
+        useSmartSize.disabled =
+            true;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_BASE_URL +
+                "/suggest-size",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            vehicleType:
+                                safeValue(
+                                    vehicleTypeEl
+                                ),
+
+                            make:
+                                safeValue(
+                                    vehicleMakeEl
+                                ),
+
+                            model:
+                                safeValue(
+                                    vehicleModelEl
+                                ),
+
+                            year:
+                                safeValue(
+                                    vehicleYearEl
+                                ),
+
+                            part:
+                                safeValue(
+                                    partEl
+                                )
+
+                        })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            throw new Error(
+                data.error ||
+                "Size suggestion unavailable."
+            );
+
+        }
+
+
+        suggestedSize = {
+
+            width:
+                Number(
+                    data.widthCm
+                ),
+
+            height:
+                Number(
+                    data.heightCm
+                )
+
+        };
+
+
+        smartSizeValue.textContent =
+            suggestedSize.width +
+            " × " +
+            suggestedSize.height +
+            " cm";
+
+
+        smartSizeNote.textContent =
+            (
+                data.sourceLabel ||
+                "Smart estimate"
+            ) +
+            " · estimate only, not a verified factory panel measurement. " +
+            "Measure the actual usable area before production.";
+
+
+        if (
+            sizeMode ===
+            "smart"
+        ) {
+
+            if (widthEl) {
+                widthEl.value =
+                    suggestedSize.width;
+            }
+
+            if (heightEl) {
+                heightEl.value =
+                    suggestedSize.height;
+            }
+
+        }
+
+
+        if (useSmartSize) {
+            useSmartSize.disabled =
+                false;
+        }
+
+
+    } catch (error) {
+
+        smartSizeValue.textContent =
+            "Enter exact dimensions";
+
+
+        smartSizeNote.textContent =
+            "A vehicle-specific estimate could not be produced. " +
+            "You can enter the exact width and height yourself.";
+
+
+        if (useSmartSize) {
+            useSmartSize.disabled =
+                true;
+        }
+
+        console.warn(
+            "[SticKing] Smart size error:",
+            error
+        );
+
+    }
+
+}
+
+
+if (
+    vehicleTypeEl
+) {
+
+    vehicleTypeEl.addEventListener(
+        "change",
+        updateSmartSize
+    );
+
+}
+
+
+if (
+    vehicleMakeEl
+) {
+
+    vehicleMakeEl.addEventListener(
+        "change",
+        updateSmartSize
+    );
+
+    vehicleMakeEl.addEventListener(
+        "blur",
+        updateSmartSize
+    );
+
+}
+
+
+if (
+    vehicleModelEl
+) {
+
+    vehicleModelEl.addEventListener(
+        "change",
+        updateSmartSize
+    );
+
+    vehicleModelEl.addEventListener(
+        "blur",
+        updateSmartSize
+    );
+
+}
+
+
+if (
+    vehicleYearEl
+) {
+
+    vehicleYearEl.addEventListener(
+        "change",
+        updateSmartSize
+    );
+
+}
+
+
+if (
+    partEl
+) {
+
+    partEl.addEventListener(
+        "change",
+        updateSmartSize
+    );
+
+}
+
+
+document
+    .querySelectorAll(
+        'input[name="sizeMode"]'
+    )
+    .forEach(
+        function(radio) {
+
+            radio.addEventListener(
+                "change",
+                function() {
+
+                    sizeMode =
+                        radio.value;
+
+
+                    if (
+                        smartSizeChoice
+                    ) {
+
+                        smartSizeChoice.classList
+                            .toggle(
+                                "active",
+                                sizeMode ===
+                                "smart"
+                            );
+
+                    }
+
+
+                    if (
+                        exactSizeChoice
+                    ) {
+
+                        exactSizeChoice.classList
+                            .toggle(
+                                "active",
+                                sizeMode ===
+                                "exact"
+                            );
+
+                    }
+
+
+                    if (
+                        sizeMode ===
+                        "smart"
+                    ) {
+
+                        updateSmartSize();
+
+                    } else {
+
+                        if (widthEl) {
+                            widthEl.value =
+                                "";
+                        }
+
+                        if (heightEl) {
+                            heightEl.value =
+                                "";
+                        }
+
+                        if (widthEl) {
+                            widthEl.focus();
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+if (
+    widthEl
+) {
+
+    widthEl.addEventListener(
+        "input",
+        function() {
+
+            sizeMode =
+                "exact";
+
+        }
+    );
+
+}
+
+
+if (
+    heightEl
+) {
+
+    heightEl.addEventListener(
+        "input",
+        function() {
+
+            sizeMode =
+                "exact";
+
+        }
+    );
+
+}
+
+
+if (
+    useSmartSize
+) {
+
+    useSmartSize.addEventListener(
+        "click",
+        function() {
+
+            if (
+                !suggestedSize
+            ) {
+                return;
+            }
+
+
+            if (widthEl) {
+
+                widthEl.value =
+                    suggestedSize.width;
+
+            }
+
+
+            if (heightEl) {
+
+                heightEl.value =
+                    suggestedSize.height;
+
+            }
+
+
+            sizeMode =
+                "smart";
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   FORM SUBMISSION — NULL SAFE
+   ========================================================= */
+
+form.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+        clearDebug();
+
+        resultBox.style.display =
+            "none";
+
+
+        /* -------------------------------------------------
+           SAFE FIELD READER
+        ------------------------------------------------- */
+
+        function fieldValue(
+            id
+        ) {
+
+            const field =
+                document.getElementById(
+                    id
+                );
+
+
+            if (!field) {
+
+                debug(
+                    "⚠️ Optional field not found: " +
+                    id
+                );
+
+                return "";
+
+            }
+
+
+            return String(
+                field.value ||
+                ""
+            ).trim();
+
+        }
+
+
+        /* -------------------------------------------------
+           FILE
+        ------------------------------------------------- */
+
+        const file =
+            fileInput &&
+            fileInput.files
+                ? fileInput.files[0]
+                : null;
+
+
+        if (!file) {
+
+            showStatus(
+                "Please select a vehicle image first.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        /* -------------------------------------------------
+           FORM FIELDS
+        ------------------------------------------------- */
+
+        const design =
+            fieldValue(
+                "design"
+            );
+
+
+        const description =
+            fieldValue(
+                "description"
+            );
+
+
+        const part =
+            fieldValue(
+                "part"
+            );
+
+
+        const width =
+            fieldValue(
+                "width"
+            );
+
+
+        const height =
+            fieldValue(
+                "height"
+            );
+
+
+        const vehicleType =
+            fieldValue(
+                "vehicleType"
+            );
+
+
+        const make =
+            fieldValue(
+                "vehicleMake"
+            );
+
+
+        const model =
+            fieldValue(
+                "vehicleModel"
+            );
+
+
+        const year =
+            fieldValue(
+                "vehicleYear"
+            );
+
+
+        /* -------------------------------------------------
+           VALIDATION
+        ------------------------------------------------- */
+
+        if (!design) {
+
+            showStatus(
+                "Please describe the sticker/design.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if (
+            !width ||
+            !height
+        ) {
+
+            showStatus(
+                "Please enter the sticker width and height.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        /* -------------------------------------------------
+           START
+        ------------------------------------------------- */
+
+        submitBtn.disabled =
+            true;
+
+
+        submitBtn.textContent =
+            "Generating Preview...";
+
+
+        showStatus(
+            "Uploading your vehicle image and generating the AI preview. This may take 15–60 seconds...",
+            "working"
+        );
+
+
+        debug(
+            "================================"
+        );
+
+        debug(
+            "GENERATE PREVIEW STARTED"
+        );
+
+        debug(
+            "================================"
+        );
+
+        debug(
+            "Target URL: " +
+            GENERATE_URL
+        );
+
+        debug(
+            "File: " +
+            file.name
+        );
+
+        debug(
+            "Type: " +
+            file.type
+        );
+
+        debug(
+            "Size: " +
+            file.size +
+            " bytes"
+        );
+
+
+        /* -------------------------------------------------
+           FORM DATA
+        ------------------------------------------------- */
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "vehicleImage",
+            file
+        );
+
+
+        formData.append(
+            "part",
+            part
+        );
+
+
+        formData.append(
+            "width",
+            width
+        );
+
+
+        formData.append(
+            "height",
+            height
+        );
+
+
+        formData.append(
+            "design",
+            design
+        );
+
+
+        formData.append(
+            "description",
+            description
+        );
+
+
+        formData.append(
+            "vehicleType",
+            vehicleType
+        );
+
+
+        formData.append(
+            "make",
+            make
+        );
+
+
+        formData.append(
+            "model",
+            model
+        );
+
+
+        formData.append(
+            "year",
+            year
+        );
+
+
+        debug(
+            "✅ FormData created."
+        );
+
+
+        debug(
+            "✅ vehicleImage attached."
+        );
+
+
+        debug(
+            "🚀 Sending POST request to Render..."
+        );
+
+
+        /* -------------------------------------------------
+           REQUEST
+        ------------------------------------------------- */
+
+        let response;
+
+
+        try {
+
+            response =
+                await fetch(
+                    GENERATE_URL,
+                    {
+                        method:
+                            "POST",
+
+                        mode:
+                            "cors",
+
+                        body:
+                            formData
+                    }
+                );
+
+        } catch (
+            networkError
+        ) {
+
+            console.error(
+                "FETCH ERROR:",
+                networkError
+            );
+
+
+            debug(
+                "❌ FETCH FAILED: " +
+                networkError.message
+            );
+
+
+            showStatus(
+                "Connection to the AI server failed. See Connection Diagnostics below.",
+                "error"
+            );
+
+
+            submitBtn.disabled =
+                false;
+
+
+            submitBtn.textContent =
+                "Generate Preview";
+
+
+            return;
+
+        }
+
+
+        /* -------------------------------------------------
+           RESPONSE
+        ------------------------------------------------- */
+
+        debug(
+            "✅ Response received from Render."
+        );
+
+
+        debug(
+            "HTTP status: " +
+            response.status
+        );
+
+
+        let data;
+
+
+        try {
+
+            data =
+                await response.json();
+
+        } catch (
+            jsonError
+        ) {
+
+            debug(
+                "❌ Server returned invalid JSON."
+            );
+
+
+            showStatus(
+                "The server returned an unexpected response.",
+                "error"
+            );
+
+
+            submitBtn.disabled =
+                false;
+
+
+            submitBtn.textContent =
+                "Generate Preview";
+
+
+            return;
+
+        }
+
+
+        debug(
+            "Server response:"
+        );
+
+
+        debug(
+            JSON.stringify(
+                data,
+                null,
+                2
+            )
+        );
+
+
+        /* -------------------------------------------------
+           SERVER ERROR
+        ------------------------------------------------- */
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            const errorMessage =
+                data.error ||
+                (
+                    "Server returned HTTP " +
+                    response.status
+                );
+
+
+            debug(
+                "❌ SERVER ERROR: " +
+                errorMessage
+            );
+
+
+            showStatus(
+                "Preview could not be generated.\n\n" +
+                errorMessage,
+                "error"
+            );
+
+
+            submitBtn.disabled =
+                false;
+
+
+            submitBtn.textContent =
+                "Generate Preview";
+
+
+            return;
+
+        }
+
+
+        /* -------------------------------------------------
+           SUCCESS
+        ------------------------------------------------- */
+
+        if (
+            !data.image
+        ) {
+
+            debug(
+                "❌ Server reported success but returned no image."
+            );
+
+
+            showStatus(
+                "The AI server completed the request but did not return an image.",
+                "error"
+            );
+
+
+            submitBtn.disabled =
+                false;
+
+
+            submitBtn.textContent =
+                "Generate Preview";
+
+
+            return;
+
+        }
+
+
+        debug(
+            "🎉 AI IMAGE RECEIVED."
+        );
+
+
+        resultImage.src =
+            data.image;
+
+
+        downloadLink.href =
+            data.image;
+
+
+        resultBox.style.display =
+            "block";
+
+
+        showStatus(
+            "Your vehicle preview has been generated successfully!",
+            "success"
+        );
+
+
+        submitBtn.disabled =
+            false;
+
+
+        submitBtn.textContent =
+            "Generate Preview";
+
+
+        setTimeout(
+            function() {
+
+                resultBox.scrollIntoView({
+                    behavior:
+                        "smooth",
+
+                    block:
+                        "start"
+                });
+
+            },
+            200
+        );
+
+    }
+);
+
+
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+loadDesignFromURL();
+
+checkBackend();
+
+debug(
+    "SticKing frontend loaded."
+);
+
+debug(
+    "Backend: " +
+    API_BASE_URL
+);
+
 </script>
+
 </body>
 </html>
