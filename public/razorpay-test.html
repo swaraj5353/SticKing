@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>SticKing | Razorpay Test</title>
+
+    <!-- Razorpay Checkout -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at top left,
+                    rgba(98,231,224,.12),
+                    transparent 35%
+                ),
+
+                radial-gradient(
+                    circle at bottom right,
+                    rgba(217,107,204,.10),
+                    transparent 35%
+                ),
+
+                #080b10;
+
+            color: #ffffff;
+        }
+
+        .box {
+
+            width: 100%;
+            max-width: 480px;
+
+            padding: 28px;
+
+            border-radius: 18px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.10);
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(18,23,31,.98),
+                    rgba(10,14,20,.98)
+                );
+
+            box-shadow:
+                0 25px 70px
+                rgba(0,0,0,.45);
+        }
+
+        .brand {
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            letter-spacing: 3px;
+
+            color: #62e7e0;
+
+            text-transform: uppercase;
+
+            margin-bottom: 8px;
+        }
+
+        h1 {
+
+            margin:
+                0 0 8px;
+
+            font-size: 27px;
+
+            line-height: 1.15;
+        }
+
+        .intro {
+
+            color: #9aa4b2;
+
+            font-size: 13px;
+
+            line-height: 1.55;
+
+            margin-bottom: 22px;
+        }
+
+        .amount {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            padding: 15px;
+
+            margin-bottom: 18px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255,255,255,.035);
+
+            border:
+                1px solid
+                rgba(255,255,255,.07);
+        }
+
+        .amount span {
+
+            color: #9aa4b2;
+
+            font-size: 12px;
+        }
+
+        .amount strong {
+
+            font-size: 24px;
+        }
+
+        button {
+
+            width: 100%;
+
+            min-height: 48px;
+
+            padding: 12px 16px;
+
+            border: 0;
+
+            border-radius: 11px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2b7f92,
+                    #3555a4
+                );
+
+            color: #ffffff;
+
+            font-size: 14px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            transition:
+                transform .15s ease,
+                filter .15s ease;
+        }
+
+        button:hover:not(:disabled) {
+
+            transform:
+                translateY(-1px);
+
+            filter:
+                brightness(1.08);
+        }
+
+        button:disabled {
+
+            opacity: .55;
+
+            cursor: not-allowed;
+        }
+
+        #status {
+
+            display: none;
+
+            margin-top: 14px;
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            font-size: 12px;
+
+            line-height: 1.5;
+
+            white-space: pre-wrap;
+        }
+
+        .working {
+
+            display: block !important;
+
+            color: #62e7e0;
+
+            background:
+                rgba(98,231,224,.05);
+
+            border:
+                1px solid
+                rgba(98,231,224,.18);
+        }
+
+        .success {
+
+            display: block !important;
+
+            color: #54d7a5;
+
+            background:
+                rgba(84,215,165,.05);
+
+            border:
+                1px solid
+                rgba(84,215,165,.20);
+        }
+
+        .error {
+
+            display: block !important;
+
+            color: #f48c9a;
+
+            background:
+                rgba(232,91,109,.05);
+
+            border:
+                1px solid
+                rgba(232,91,109,.20);
+        }
+
+        .details {
+
+            display: none;
+
+            margin-top: 15px;
+
+            padding-top: 15px;
+
+            border-top:
+                1px solid
+                rgba(255,255,255,.07);
+
+            font-size: 11px;
+
+            color: #7e8997;
+
+            line-height: 1.6;
+        }
+
+        .details strong {
+
+            color: #ffffff;
+        }
+
+        @media(max-width:600px) {
+
+            body {
+                padding: 12px;
+            }
+
+            .box {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<div class="box">
+
+    <div class="brand">
+        STICKING PAYMENT TEST
+    </div>
+
+
+    <h1>
+        Razorpay Test Checkout
+    </h1>
+
+
+    <div class="intro">
+
+        This page tests your Razorpay integration
+        independently of OpenAI.
+
+        No AI image generation is required.
+
+    </div>
+
+
+    <div class="amount">
+
+        <span>
+            Test payment amount
+        </span>
+
+        <strong>
+            ₹500
+        </strong>
+
+    </div>
+
+
+    <button
+        id="payButton"
+        type="button"
+    >
+        Test Razorpay Payment
+    </button>
+
+
+    <div id="status"></div>
+
+
+    <div
+        id="details"
+        class="details"
+    ></div>
+
+</div>
+
+
+<script>
+
+const API_BASE =
+    "https://sticking.onrender.com";
+
+
+const payButton =
+    document.getElementById(
+        "payButton"
+    );
+
+
+const statusBox =
+    document.getElementById(
+        "status"
+    );
+
+
+const detailsBox =
+    document.getElementById(
+        "details"
+    );
+
+
+const TEST_AMOUNT_INR =
+    500;
+
+
+function setStatus(
+    message,
+    type
+) {
+
+    statusBox.className =
+        "";
+
+    statusBox.classList.add(
+        type
+    );
+
+    statusBox.textContent =
+        message;
+
+}
+
+
+function showDetails(
+    html
+) {
+
+    detailsBox.innerHTML =
+        html;
+
+    detailsBox.style.display =
+        "block";
+
+}
+
+
+/* =========================================================
+   CREATE RAZORPAY ORDER
+========================================================= */
+
+async function createOrder() {
+
+    const response =
+        await fetch(
+            API_BASE +
+            "/api/create-order",
+            {
+
+                method:
+                    "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json"
+
+                },
+
+                body:
+                    JSON.stringify({
+
+                        amount:
+                            TEST_AMOUNT_INR *
+                            100,
+
+                        currency:
+                            "INR",
+
+                        receipt:
+                            "sticking_test_" +
+                            Date.now()
+
+                    })
+
+            }
+        );
+
+
+    let data;
+
+
+    try {
+
+        data =
+            await response.json();
+
+    } catch {
+
+        throw new Error(
+            "Render returned an invalid response."
+        );
+
+    }
+
+
+    if (
+        !response.ok ||
+        !data.success
+    ) {
+
+        throw new Error(
+            data.error ||
+            "Could not create Razorpay order."
+        );
+
+    }
+
+
+    return data;
+
+}
+
+
+/* =========================================================
+   VERIFY PAYMENT
+========================================================= */
+
+async function verifyPayment(
+    paymentResponse
+) {
+
+    const response =
+        await fetch(
+            API_BASE +
+            "/api/verify-payment",
+            {
+
+                method:
+                    "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json"
+
+                },
+
+                body:
+                    JSON.stringify({
+
+                        razorpay_payment_id:
+                            paymentResponse
+                                .razorpay_payment_id,
+
+                        razorpay_order_id:
+                            paymentResponse
+                                .razorpay_order_id,
+
+                        razorpay_signature:
+                            paymentResponse
+                                .razorpay_signature
+
+                    })
+
+            }
+        );
+
+
+    let data;
+
+
+    try {
+
+        data =
+            await response.json();
+
+    } catch {
+
+        throw new Error(
+            "Verification endpoint returned invalid JSON."
+        );
+
+    }
+
+
+    if (
+        !response.ok ||
+        !data.success ||
+        !data.verified
+    ) {
+
+        throw new Error(
+            data.error ||
+            "Payment verification failed."
+        );
+
+    }
+
+
+    return data;
+
+}
+
+
+/* =========================================================
+   OPEN RAZORPAY
+========================================================= */
+
+async function startPayment() {
+
+    detailsBox.style.display =
+        "none";
+
+
+    payButton.disabled =
+        true;
+
+
+    payButton.textContent =
+        "Creating Secure Order...";
+
+
+    setStatus(
+        "Connecting to Razorpay...",
+        "working"
+    );
+
+
+    try {
+
+        if (
+            typeof window.Razorpay ===
+            "undefined"
+        ) {
+
+            throw new Error(
+                "Razorpay Checkout script did not load."
+            );
+
+        }
+
+
+        /*
+         * CREATE ORDER
+         */
+
+        const order =
+            await createOrder();
+
+
+        console.log(
+            "Razorpay order:",
+            order
+        );
+
+
+        setStatus(
+            "Order created successfully. Opening Razorpay...",
+            "working"
+        );
+
+
+        /*
+         * CHECKOUT OPTIONS
+         */
+
+        const options = {
+
+            key:
+                order.key_id,
+
+            amount:
+                order.amount,
+
+            currency:
+                order.currency,
+
+            name:
+                "SticKing",
+
+            description:
+                "SticKing test payment",
+
+            order_id:
+                order.order_id,
+
+            theme: {
+
+                color:
+                    "#3555a4"
+
+            },
+
+
+            /*
+             * PAYMENT SUCCESS
+             */
+
+            handler:
+                async function(
+                    paymentResponse
+                ) {
+
+                    console.log(
+                        "Payment response:",
+                        paymentResponse
+                    );
+
+
+                    setStatus(
+                        "Payment received. Verifying signature securely...",
+                        "working"
+                    );
+
+
+                    payButton.textContent =
+                        "Verifying Payment...";
+
+
+                    try {
+
+                        const verification =
+                            await verifyPayment(
+                                paymentResponse
+                            );
+
+
+                        if (
+                            verification.verified
+                        ) {
+
+                            setStatus(
+                                "✓ PAYMENT VERIFIED SUCCESSFULLY",
+                                "success"
+                            );
+
+
+                            showDetails(
+
+                                "<strong>Payment ID:</strong> " +
+                                paymentResponse
+                                    .razorpay_payment_id +
+
+                                "<br><strong>Order ID:</strong> " +
+                                paymentResponse
+                                    .razorpay_order_id +
+
+                                "<br><strong>Status:</strong> " +
+                                verification.status +
+
+                                "<br><br>Your Render → Razorpay → signature verification flow is working."
+
+                            );
+
+
+                            payButton.textContent =
+                                "Test Payment Successful";
+
+
+                            payButton.disabled =
+                                true;
+
+                        }
+
+                    } catch (
+                        verificationError
+                    ) {
+
+                        console.error(
+                            verificationError
+                        );
+
+
+                        setStatus(
+                            verificationError.message,
+                            "error"
+                        );
+
+
+                        payButton.disabled =
+                            false;
+
+
+                        payButton.textContent =
+                            "Try Again";
+
+                    }
+
+                }
+
+        };
+
+
+        /*
+         * CREATE CHECKOUT INSTANCE
+         */
+
+        const razorpay =
+            new window.Razorpay(
+                options
+            );
+
+
+        /*
+         * PAYMENT FAILED
+         */
+
+        razorpay.on(
+            "payment.failed",
+            function(
+                response
+            ) {
+
+                console.error(
+                    "Razorpay payment failed:",
+                    response
+                );
+
+
+                const message =
+                    response?.error?.description ||
+                    "Payment failed.";
+
+
+                setStatus(
+                    "Payment failed: " +
+                    message,
+                    "error"
+                );
+
+
+                showDetails(
+
+                    "<strong>Razorpay error code:</strong> " +
+                    (
+                        response?.error?.code ||
+                        "Unknown"
+                    ) +
+
+                    "<br><strong>Reason:</strong> " +
+                    message
+
+                );
+
+
+                payButton.disabled =
+                    false;
+
+
+                payButton.textContent =
+                    "Try Payment Again";
+
+            }
+        );
+
+
+        /*
+         * MODAL CLOSED
+         */
+
+        razorpay.on(
+            "modal.ondismiss",
+            function() {
+
+                setStatus(
+                    "Payment window closed. No payment was confirmed.",
+                    "working"
+                );
+
+
+                payButton.disabled =
+                    false;
+
+
+                payButton.textContent =
+                    "Test Razorpay Payment";
+
+            }
+        );
+
+
+        /*
+         * OPEN CHECKOUT
+         */
+
+        razorpay.open();
+
+
+    } catch (
+        error
+    ) {
+
+        console.error(
+            "Razorpay error:",
+            error
+        );
+
+
+        setStatus(
+            error.message ||
+            "Unable to start Razorpay checkout.",
+            "error"
+        );
+
+
+        payButton.disabled =
+            false;
+
+
+        payButton.textContent =
+            "Try Again";
+
+    }
+
+}
+
+
+/* =========================================================
+   BUTTON
+========================================================= */
+
+payButton.addEventListener(
+    "click",
+    startPayment
+);
+
+</script>
+
+</body>
+</html>
