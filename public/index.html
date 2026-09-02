@@ -638,6 +638,30 @@ button:disabled {
 }
 
 </style>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+<style>
+@media (max-width:600px){
+
+    #paymentCard{
+        padding:16px !important;
+        border-radius:15px !important;
+    }
+
+    #razorpayPayBtn{
+        min-height:48px !important;
+        font-size:14px !important;
+    }
+
+    #razorpayAmountText{
+        font-size:20px !important;
+    }
+
+}
+</style>
+
 </head>
 
 <body>
@@ -1089,6 +1113,117 @@ button:disabled {
             </a>
 
         </div>
+
+
+
+<!-- =========================================================
+     RAZORPAY CHECKOUT
+========================================================= -->
+
+<div
+    id="paymentCard"
+    style="
+        display:none;
+        margin-top:20px;
+        padding:20px;
+        border-radius:17px;
+        border:1px solid rgba(0,255,242,.20);
+        background:
+            linear-gradient(
+                145deg,
+                rgba(0,255,242,.045),
+                rgba(255,46,230,.035)
+            );
+    "
+>
+
+    <div
+        style="
+            color:#00fff2;
+            font-size:11px;
+            font-weight:bold;
+            letter-spacing:2px;
+            margin-bottom:7px;
+        "
+    >
+        CHECKOUT
+    </div>
+
+    <h3
+        style="
+            margin:0 0 6px;
+            color:#fff;
+            font-size:20px;
+        "
+    >
+        Ready to order?
+    </h3>
+
+    <p
+        style="
+            margin:0;
+            color:#aaaac0;
+            font-size:12px;
+            line-height:1.5;
+        "
+    >
+        Your approved vehicle preview is ready.
+        Continue securely with Razorpay.
+    </p>
+
+    <div
+        style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            margin-top:16px;
+            padding:13px 14px;
+            border-radius:11px;
+            background:rgba(255,255,255,.03);
+            border:1px solid rgba(255,255,255,.07);
+        "
+    >
+        <span
+            style="
+                color:#aaaac0;
+                font-size:12px;
+            "
+        >
+            Order amount
+        </span>
+
+        <strong
+            id="razorpayAmountText"
+            style="
+                color:#fff;
+                font-size:22px;
+            "
+        >
+            ₹500
+        </strong>
+    </div>
+
+    <button
+        type="button"
+        id="razorpayPayBtn"
+    >
+        Pay Securely with Razorpay
+    </button>
+
+    <div
+        id="razorpayStatus"
+        style="
+            display:none;
+            margin-top:12px;
+            padding:11px;
+            border-radius:10px;
+            font-size:12px;
+            line-height:1.5;
+        "
+    ></div>
+
+</div>
 
 
         <!-- DEBUG -->
@@ -2685,6 +2820,696 @@ form.addEventListener(
 
     }
 );
+
+
+
+
+/* =========================================================
+   RAZORPAY CHECKOUT
+========================================================= */
+
+const razorpayCheckoutScriptLoaded =
+    typeof window.Razorpay !==
+    "undefined";
+
+
+const razorpayPaymentCard =
+    document.getElementById(
+        "paymentCard"
+    );
+
+
+const razorpayPayBtn =
+    document.getElementById(
+        "razorpayPayBtn"
+    );
+
+
+const razorpayAmountText =
+    document.getElementById(
+        "razorpayAmountText"
+    );
+
+
+const razorpayStatus =
+    document.getElementById(
+        "razorpayStatus"
+    );
+
+
+let razorpayOrderData =
+    null;
+
+
+function setRazorpayStatus(
+    message,
+    type
+) {
+
+    if (!razorpayStatus) {
+        return;
+    }
+
+    razorpayStatus.style.display =
+        "block";
+
+    razorpayStatus.textContent =
+        message;
+
+    if (
+        type ===
+        "success"
+    ) {
+
+        razorpayStatus.style.color =
+            "#3dffa0";
+
+        razorpayStatus.style.background =
+            "rgba(61,255,160,.05)";
+
+        razorpayStatus.style.border =
+            "1px solid rgba(61,255,160,.20)";
+
+    } else if (
+        type ===
+        "error"
+    ) {
+
+        razorpayStatus.style.color =
+            "#ff8293";
+
+        razorpayStatus.style.background =
+            "rgba(255,43,78,.05)";
+
+        razorpayStatus.style.border =
+            "1px solid rgba(255,43,78,.20)";
+
+    } else {
+
+        razorpayStatus.style.color =
+            "#00fff2";
+
+        razorpayStatus.style.background =
+            "rgba(0,255,242,.04)";
+
+        razorpayStatus.style.border =
+            "1px solid rgba(0,255,242,.18)";
+    }
+}
+
+
+function extractPriceFromURL() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    const raw =
+        params.get(
+            "price"
+        );
+
+
+    if (!raw) {
+
+        return 500;
+    }
+
+
+    /*
+     * Handles:
+     *
+     * ₹500
+     * 500
+     * From ₹500
+     * Rs 500
+     */
+
+    const match =
+        String(raw).match(
+            /(\d+(?:\.\d+)?)/
+        );
+
+
+    const amount =
+        match
+            ? Number(match[1])
+            : 500;
+
+
+    if (
+        !Number.isFinite(
+            amount
+        ) ||
+        amount <= 0
+    ) {
+
+        return 500;
+    }
+
+
+    return amount;
+}
+
+
+function showRazorpayCard() {
+
+    if (
+        !razorpayPaymentCard
+    ) {
+
+        return;
+    }
+
+
+    const amount =
+        extractPriceFromURL();
+
+
+    razorpayAmountText.textContent =
+        "₹" +
+        amount.toLocaleString(
+            "en-IN",
+            {
+                maximumFractionDigits:
+                    2
+            }
+        );
+
+
+    razorpayPaymentCard.style.display =
+        "block";
+}
+
+
+async function createRazorpayOrder(
+    amountInRupees
+) {
+
+    const amountPaise =
+        Math.round(
+            Number(
+                amountInRupees
+            ) * 100
+        );
+
+
+    if (
+        !Number.isInteger(
+            amountPaise
+        ) ||
+        amountPaise < 100
+    ) {
+
+        throw new Error(
+            "Invalid order amount. Minimum is ₹1."
+        );
+    }
+
+
+    const designName =
+        document.getElementById(
+            "selectedDesignName"
+        )?.textContent?.trim() ||
+        "custom";
+
+
+    const receipt =
+        (
+            "stk_" +
+            Date.now() +
+            "_" +
+            designName
+        )
+        .replace(
+            /[^a-zA-Z0-9_-]/g,
+            ""
+        )
+        .slice(
+            0,
+            40
+        );
+
+
+    const response =
+        await fetch(
+            API_BASE_URL +
+            "/api/create-order",
+            {
+                method:
+                    "POST",
+
+                headers:{
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+
+                        amount:
+                            amountPaise,
+
+                        currency:
+                            "INR",
+
+                        receipt
+
+                    })
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (
+        !response.ok ||
+        !data.success
+    ) {
+
+        throw new Error(
+            data.error ||
+            "Could not create Razorpay order."
+        );
+    }
+
+
+    return data;
+}
+
+
+async function verifyRazorpayPayment(
+    response
+) {
+
+    const verifyResponse =
+        await fetch(
+            API_BASE_URL +
+            "/api/verify-payment",
+            {
+                method:
+                    "POST",
+
+                headers:{
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+
+                        razorpay_payment_id:
+                            response.razorpay_payment_id,
+
+                        razorpay_order_id:
+                            response.razorpay_order_id,
+
+                        razorpay_signature:
+                            response.razorpay_signature
+
+                    })
+            }
+        );
+
+
+    const data =
+        await verifyResponse.json();
+
+
+    if (
+        !verifyResponse.ok ||
+        !data.success ||
+        !data.verified
+    ) {
+
+        throw new Error(
+            data.error ||
+            "Payment verification failed."
+        );
+    }
+
+
+    return data;
+}
+
+
+async function openRazorpayCheckout() {
+
+    if (
+        !razorpayCheckoutScriptLoaded
+    ) {
+
+        setRazorpayStatus(
+            "Razorpay Checkout could not be loaded. Please refresh the page.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    if (
+        razorpayPayBtn
+    ) {
+
+        razorpayPayBtn.disabled =
+            true;
+
+        razorpayPayBtn.textContent =
+            "Preparing Secure Checkout...";
+    }
+
+
+    setRazorpayStatus(
+        "Creating a secure payment order...",
+        "working"
+    );
+
+
+    try {
+
+        const amount =
+            extractPriceFromURL();
+
+
+        const order =
+            await createRazorpayOrder(
+                amount
+            );
+
+
+        razorpayOrderData =
+            order;
+
+
+        const options = {
+
+            key:
+                order.key_id,
+
+            amount:
+                order.amount,
+
+            currency:
+                order.currency,
+
+            name:
+                "SticKing",
+
+            description:
+                "Custom vehicle sticker / decal",
+
+            order_id:
+                order.order_id,
+
+            prefill: {},
+
+            theme: {
+
+                color:
+                    "#3555a4"
+            },
+
+
+            /*
+             * Razorpay Standard Checkout handler.
+             */
+
+            handler:
+                async function(
+                    paymentResponse
+                ) {
+
+                    setRazorpayStatus(
+                        "Payment received. Verifying securely...",
+                        "working"
+                    );
+
+
+                    try {
+
+                        const verification =
+                            await verifyRazorpayPayment(
+                                paymentResponse
+                            );
+
+
+                        if (
+                            verification.captured
+                        ) {
+
+                            setRazorpayStatus(
+                                "✓ Payment successful and verified. Your order is confirmed.",
+                                "success"
+                            );
+
+
+                            if (
+                                razorpayPayBtn
+                            ) {
+
+                                razorpayPayBtn.textContent =
+                                    "Payment Successful";
+
+                                razorpayPayBtn.disabled =
+                                    true;
+                            }
+
+
+                            /*
+                             * Preserve payment details
+                             * locally for the next checkout/order
+                             * integration step.
+                             */
+
+                            localStorage.setItem(
+                                "sticking_payment",
+                                JSON.stringify({
+
+                                    verified:
+                                        true,
+
+                                    razorpay_payment_id:
+                                        paymentResponse.razorpay_payment_id,
+
+                                    razorpay_order_id:
+                                        paymentResponse.razorpay_order_id,
+
+                                    timestamp:
+                                        new Date().toISOString()
+                                })
+                            );
+
+
+                        } else {
+
+                            setRazorpayStatus(
+                                "Payment was authorised but is not captured yet. Please check the payment status before production.",
+                                "working"
+                            );
+
+                        }
+
+
+                    } catch (
+                        verificationError
+                    ) {
+
+                        console.error(
+                            verificationError
+                        );
+
+
+                        setRazorpayStatus(
+                            verificationError.message ||
+                            "Payment verification failed.",
+                            "error"
+                        );
+
+
+                        if (
+                            razorpayPayBtn
+                        ) {
+
+                            razorpayPayBtn.disabled =
+                                false;
+
+                            razorpayPayBtn.textContent =
+                                "Try Payment Again";
+                        }
+
+                    }
+
+                }
+
+        };
+
+
+        const checkout =
+            new window.Razorpay(
+                options
+            );
+
+
+        checkout.on(
+            "payment.failed",
+            function(
+                failure
+            ) {
+
+                console.error(
+                    "Razorpay payment failed:",
+                    failure
+                );
+
+
+                const description =
+                    failure?.error?.description ||
+                    "Payment could not be completed.";
+
+
+                setRazorpayStatus(
+                    description,
+                    "error"
+                );
+
+
+                if (
+                    razorpayPayBtn
+                ) {
+
+                    razorpayPayBtn.disabled =
+                        false;
+
+                    razorpayPayBtn.textContent =
+                        "Try Payment Again";
+                }
+
+            }
+        );
+
+
+        /*
+         * User closed the checkout modal.
+         */
+
+        checkout.on(
+            "modal.ondismiss",
+            function() {
+
+                setRazorpayStatus(
+                    "Payment window closed. No payment was confirmed.",
+                    "working"
+                );
+
+
+                if (
+                    razorpayPayBtn
+                ) {
+
+                    razorpayPayBtn.disabled =
+                        false;
+
+                    razorpayPayBtn.textContent =
+                        "Pay Securely with Razorpay";
+                }
+
+            }
+        );
+
+
+        checkout.open();
+
+
+    } catch (error) {
+
+        console.error(
+            "Razorpay checkout error:",
+            error
+        );
+
+
+        setRazorpayStatus(
+            error.message ||
+            "Unable to start payment.",
+            "error"
+        );
+
+
+        if (
+            razorpayPayBtn
+        ) {
+
+            razorpayPayBtn.disabled =
+                false;
+
+            razorpayPayBtn.textContent =
+                "Pay Securely with Razorpay";
+        }
+
+    }
+
+}
+
+
+if (
+    razorpayPayBtn
+) {
+
+    razorpayPayBtn.addEventListener(
+        "click",
+        openRazorpayCheckout
+    );
+
+}
+
+
+/*
+ * Show the payment card as soon as the existing
+ * AI preview result becomes visible.
+ *
+ * MutationObserver is used because generation may take
+ * much longer than a fixed timeout.
+ */
+if (resultBox && razorpayPaymentCard) {
+
+    const resultObserver =
+        new MutationObserver(
+            function () {
+
+                const visible =
+                    getComputedStyle(
+                        resultBox
+                    ).display !== "none";
+
+                if (visible) {
+                    showRazorpayCard();
+                    resultObserver.disconnect();
+                }
+            }
+        );
+
+    resultObserver.observe(
+        resultBox,
+        {
+            attributes: true,
+            attributeFilter: ["style", "class"]
+        }
+    );
+
+    if (
+        getComputedStyle(
+            resultBox
+        ).display !== "none"
+    ) {
+        showRazorpayCard();
+    }
+}
+
 
 
 
