@@ -662,6 +662,58 @@ button:disabled {
 }
 </style>
 
+
+<style>
+/* Customer shipping address */
+#shippingCard{
+  display:none;
+  margin-top:18px;
+  padding:18px;
+  border-radius:16px;
+  border:1px solid rgba(98,231,224,.17);
+  background:linear-gradient(145deg,rgba(98,231,224,.035),rgba(217,107,204,.025));
+}
+#shippingCard h3{
+  margin:0 0 5px;
+  font-size:19px;
+}
+.shipping-sub{
+  color:#9aa4b2;
+  font-size:12px;
+  line-height:1.5;
+  margin-bottom:14px;
+}
+.shipping-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.shipping-grid .full{
+  grid-column:1 / -1;
+}
+.shipping-error{
+  display:none;
+  margin-top:10px;
+  padding:10px 11px;
+  border-radius:9px;
+  color:#ff8a9b;
+  background:rgba(232,91,109,.05);
+  border:1px solid rgba(232,91,109,.22);
+  font-size:11px;
+}
+#shippingContinue{
+  margin-top:14px;
+}
+@media(max-width:600px){
+  .shipping-grid{
+    grid-template-columns:1fr;
+  }
+  .shipping-grid .full{
+    grid-column:auto;
+  }
+}
+</style>
+
 </head>
 
 <body>
@@ -1202,6 +1254,86 @@ button:disabled {
         >
             ₹500
         </strong>
+    </div>
+
+
+    <div id="shippingCard">
+
+        <h3>Where should we deliver it?</h3>
+
+        <div class="shipping-sub">
+            Enter your delivery address. We'll use it for your order and shipping label.
+        </div>
+
+        <div class="shipping-grid">
+
+            <div class="full">
+                <label for="shipName">Full Name *</label>
+                <input id="shipName" autocomplete="name" placeholder="Full name">
+            </div>
+
+            <div>
+                <label for="shipPhone">Mobile Number *</label>
+                <input id="shipPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="10-digit mobile number">
+            </div>
+
+            <div>
+                <label for="shipEmail">Email</label>
+                <input id="shipEmail" type="email" autocomplete="email" placeholder="you@example.com">
+            </div>
+
+            <div class="full">
+                <label for="shipLine1">House / Flat + Street / Area *</label>
+                <input id="shipLine1" autocomplete="street-address" placeholder="House no., street, area">
+            </div>
+
+            <div class="full">
+                <label for="shipLine2">Address Line 2</label>
+                <input id="shipLine2" placeholder="Apartment, colony, locality (optional)">
+            </div>
+
+            <div>
+                <label for="shipLandmark">Landmark</label>
+                <input id="shipLandmark" placeholder="Nearby landmark (optional)">
+            </div>
+
+            <div>
+                <label for="shipCity">City *</label>
+                <input id="shipCity" autocomplete="address-level2" placeholder="City">
+            </div>
+
+            <div>
+                <label for="shipState">State *</label>
+                <input id="shipState" autocomplete="address-level1" placeholder="State">
+            </div>
+
+            <div>
+                <label for="shipPincode">Pincode *</label>
+                <input id="shipPincode" type="text" inputmode="numeric" maxlength="6" autocomplete="postal-code" placeholder="6-digit pincode">
+            </div>
+
+            <div class="full">
+                <label for="shipMethod">Shipping method</label>
+                <select id="shipMethod">
+                    <option value="India Post">India Post — Economy</option>
+                    <option value="Speed Post">India Post — Speed Post</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div
+            id="shippingError"
+            class="shipping-error"
+        ></div>
+
+        <button
+            type="button"
+            id="shippingContinue"
+        >
+            Continue to Secure Payment
+        </button>
+
     </div>
 
     <button
@@ -2776,6 +2908,11 @@ form.addEventListener(
             "🎉 AI IMAGE RECEIVED."
         );
 
+        if (data.orderId) {
+            window.stickingLocalOrderId =
+                data.orderId;
+        }
+
 
         resultImage.src =
             data.image;
@@ -3192,6 +3329,15 @@ async function openRazorpayCheckout() {
 
     try {
 
+        window.stickingShipping = {
+            full_name:
+                document.getElementById("shipName")?.value?.trim() || "",
+            phone:
+                document.getElementById("shipPhone")?.value?.trim() || "",
+            email:
+                document.getElementById("shipEmail")?.value?.trim() || ""
+        };
+
         const amount =
             extractPriceFromURL();
 
@@ -3226,7 +3372,20 @@ async function openRazorpayCheckout() {
             order_id:
                 order.order_id,
 
-            prefill: {},
+            prefill: {
+                name:
+                    window.stickingShipping?.full_name ||
+                    document.getElementById("shipName")?.value?.trim() ||
+                    "",
+                email:
+                    window.stickingShipping?.email ||
+                    document.getElementById("shipEmail")?.value?.trim() ||
+                    "",
+                contact:
+                    window.stickingShipping?.phone ||
+                    document.getElementById("shipPhone")?.value?.trim() ||
+                    ""
+            },
 
             theme: {
 
@@ -3456,16 +3615,306 @@ async function openRazorpayCheckout() {
 }
 
 
-if (
-    razorpayPayBtn
-) {
+if (razorpayPayBtn) {
 
     razorpayPayBtn.addEventListener(
         "click",
-        openRazorpayCheckout
+        function () {
+
+            showShippingCard();
+
+        }
     );
 
 }
+
+const shippingContinue =
+    document.getElementById(
+        "shippingContinue"
+    );
+
+
+function shippingValue(id) {
+
+    return (
+        document
+            .getElementById(id)
+            ?.value ||
+        ""
+    ).trim();
+
+}
+
+
+function showShippingCard() {
+
+    const card =
+        document.getElementById(
+            "shippingCard"
+        );
+
+    if (!card) {
+        openRazorpayCheckout();
+        return;
+    }
+
+    card.style.display =
+        "block";
+
+    const existing =
+        localStorage.getItem(
+            "sticking_shipping_draft"
+        );
+
+    if (existing) {
+
+        try {
+
+            const s =
+                JSON.parse(existing);
+
+            document.getElementById("shipName").value =
+                s.full_name || "";
+
+            document.getElementById("shipPhone").value =
+                s.phone || "";
+
+            document.getElementById("shipEmail").value =
+                s.email || "";
+
+            document.getElementById("shipLine1").value =
+                s.line1 || "";
+
+            document.getElementById("shipLine2").value =
+                s.line2 || "";
+
+            document.getElementById("shipLandmark").value =
+                s.landmark || "";
+
+            document.getElementById("shipCity").value =
+                s.city || "";
+
+            document.getElementById("shipState").value =
+                s.state || "";
+
+            document.getElementById("shipPincode").value =
+                s.pincode || "";
+
+            document.getElementById("shipMethod").value =
+                s.shipping_method || "India Post";
+
+        } catch {}
+
+    }
+
+    card.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+    });
+
+}
+
+
+async function submitShippingAndPay() {
+
+    const errorBox =
+        document.getElementById(
+            "shippingError"
+        );
+
+
+    function showError(message) {
+
+        errorBox.textContent =
+            message;
+
+        errorBox.style.display =
+            "block";
+
+    }
+
+
+    errorBox.style.display =
+        "none";
+
+
+    const address = {
+
+        full_name:
+            shippingValue("shipName"),
+
+        phone:
+            shippingValue("shipPhone")
+                .replace(/\D/g, "")
+                .slice(-10),
+
+        email:
+            shippingValue("shipEmail"),
+
+        line1:
+            shippingValue("shipLine1"),
+
+        line2:
+            shippingValue("shipLine2"),
+
+        landmark:
+            shippingValue("shipLandmark"),
+
+        city:
+            shippingValue("shipCity"),
+
+        state:
+            shippingValue("shipState"),
+
+        pincode:
+            shippingValue("shipPincode"),
+
+        country:
+            "India",
+
+        shipping_method:
+            shippingValue("shipMethod") ||
+            "India Post"
+
+    };
+
+
+    if (!address.full_name) {
+        showError("Please enter your full name.");
+        return;
+    }
+
+    if (!/^[6-9][0-9]{9}$/.test(address.phone)) {
+        showError("Please enter a valid 10-digit Indian mobile number.");
+        return;
+    }
+
+    if (
+        address.email &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+            address.email
+        )
+    ) {
+        showError("Please enter a valid email address.");
+        return;
+    }
+
+    if (!address.line1) {
+        showError("Please enter your house/flat and street/area.");
+        return;
+    }
+
+    if (!address.city || !address.state) {
+        showError("Please enter your city and state.");
+        return;
+    }
+
+    if (!/^[1-9][0-9]{5}$/.test(address.pincode)) {
+        showError("Please enter a valid 6-digit pincode.");
+        return;
+    }
+
+
+    /*
+     * The preview endpoint returns the Supabase
+     * order id. The existing form handler stores it
+     * here when available.
+     */
+
+    const localOrderId =
+        window.stickingLocalOrderId ||
+        "";
+
+
+    localStorage.setItem(
+        "sticking_shipping_draft",
+        JSON.stringify(address)
+    );
+
+
+    if (localOrderId) {
+
+        try {
+
+            const saveResponse =
+                await fetch(
+                    API_BASE_URL +
+                    "/api/save-shipping",
+                    {
+                        method:
+                            "POST",
+
+                        headers:{
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+                                orderId:
+                                    localOrderId,
+
+                                ...address
+                            })
+                    }
+                );
+
+
+            const saveData =
+                await saveResponse.json();
+
+
+            if (
+                !saveResponse.ok ||
+                !saveData.success
+            ) {
+
+                showError(
+                    saveData.error ||
+                    "Could not save your shipping address."
+                );
+
+                return;
+
+            }
+
+        } catch (
+            error
+        ) {
+
+            showError(
+                "Could not connect to the order server. Please try again."
+            );
+
+            return;
+
+        }
+
+    }
+
+
+    document.getElementById(
+        "shippingCard"
+    ).style.display =
+        "none";
+
+
+    openRazorpayCheckout();
+
+}
+
+
+if (
+    shippingContinue
+) {
+
+    shippingContinue.addEventListener(
+        "click",
+        submitShippingAndPay
+    );
+
+}
+
 
 
 /*
