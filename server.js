@@ -8,10 +8,15 @@ const path = require("path");
 
 const app = express();
 
+/* =========================================================
+   CONFIGURATION
+========================================================= */
+
 const PORT =
   Number(process.env.PORT) || 10000;
 
-const HOST = "0.0.0.0";
+const HOST =
+  "0.0.0.0";
 
 const MAX_IMAGE_SIZE =
   20 * 1024 * 1024;
@@ -45,7 +50,7 @@ const RAZORPAY_MODE =
     "test"
   ).toLowerCase();
 
-const DEFAULT_PRICE_INR =
+const STICKING_DEFAULT_PRICE_INR =
   Number(
     process.env.STICKING_DEFAULT_PRICE_INR ||
     500
@@ -53,7 +58,7 @@ const DEFAULT_PRICE_INR =
 
 
 /* =========================================================
-   CONFIG STATUS
+   CONFIGURATION STATUS
 ========================================================= */
 
 const openaiConfigured =
@@ -72,7 +77,7 @@ const razorpayConfigured =
 
 
 /* =========================================================
-   OPENAI
+   OPENAI CLIENT
 ========================================================= */
 
 const openai =
@@ -85,19 +90,17 @@ const openai =
 
 
 /* =========================================================
-   RAZORPAY
+   RAZORPAY CLIENT
 ========================================================= */
 
 const razorpay =
   razorpayConfigured
     ? new Razorpay({
-
         key_id:
           RAZORPAY_KEY_ID,
 
         key_secret:
           RAZORPAY_KEY_SECRET
-
       })
     : null;
 
@@ -114,7 +117,7 @@ const PUBLIC_DIR =
 
 
 /* =========================================================
-   SUPABASE
+   SUPABASE BASE URL
 ========================================================= */
 
 const supabaseBaseUrl =
@@ -140,7 +143,7 @@ const STORAGE_BUCKET =
 
 
 /* =========================================================
-   LOG CONFIGURATION
+   STARTUP LOGS
 ========================================================= */
 
 console.log(
@@ -173,16 +176,15 @@ console.log(
 
 
 /* =========================================================
-   STATIC WEBSITE
+   STATIC FILES
 ========================================================= */
 
 app.use(
   express.static(
     PUBLIC_DIR,
     {
-      extensions: [
-        "html"
-      ],
+      extensions:
+        ["html"],
 
       index:
         "index.html"
@@ -196,11 +198,7 @@ app.use(
 ========================================================= */
 
 app.use(
-  (
-    req,
-    res,
-    next
-  ) => {
+  (req, res, next) => {
 
     const origin =
       req.headers.origin;
@@ -250,7 +248,8 @@ app.use(
 
 
     if (
-      req.method === "OPTIONS"
+      req.method ===
+      "OPTIONS"
     ) {
 
       return res
@@ -293,11 +292,7 @@ app.use(
 ========================================================= */
 
 app.use(
-  (
-    req,
-    res,
-    next
-  ) => {
+  (req, res, next) => {
 
     console.log(
       `➡️ ${req.method} ${req.path}`
@@ -310,7 +305,7 @@ app.use(
 
 
 /* =========================================================
-   MULTER UPLOAD
+   IMAGE UPLOAD
 ========================================================= */
 
 const upload =
@@ -381,7 +376,13 @@ function cleanText(
   maxLength
 ) {
 
-  if (!value) {
+  if (
+    value ===
+    undefined ||
+
+    value ===
+    null
+  ) {
 
     return "";
 
@@ -514,7 +515,7 @@ async function supabaseRequest(
 
 
 /* =========================================================
-   ENSURE STORAGE BUCKET
+   STORAGE BUCKET
 ========================================================= */
 
 async function ensureStorageBucket() {
@@ -564,7 +565,8 @@ async function ensureStorageBucket() {
 
     if (
       response.ok ||
-      response.status === 409
+      response.status ===
+        409
     ) {
 
       console.log(
@@ -600,7 +602,7 @@ async function ensureStorageBucket() {
 
 
 /* =========================================================
-   STORAGE UPLOAD
+   UPLOAD FILE TO SUPABASE
 ========================================================= */
 
 async function uploadToStorage(
@@ -618,7 +620,7 @@ async function uploadToStorage(
   }
 
 
-  const safeName =
+  const safeFileName =
     String(
       fileName ||
       "upload"
@@ -633,7 +635,7 @@ async function uploadToStorage(
     `${new Date().getFullYear()}/` +
     `${Date.now()}-` +
     `${crypto.randomUUID()}-` +
-    `${safeName}`;
+    `${safeFileName}`;
 
 
   const response =
@@ -799,10 +801,10 @@ async function createSignedUrl(
 
 
 /* =========================================================
-   CREATE ORDER IN SUPABASE
+   SUPABASE ORDER HELPERS
 ========================================================= */
 
-async function createSupabaseOrder(
+async function createOrder(
   order
 ) {
 
@@ -835,11 +837,7 @@ async function createSupabaseOrder(
 }
 
 
-/* =========================================================
-   UPDATE ORDER
-========================================================= */
-
-async function updateSupabaseOrder(
+async function updateOrder(
   id,
   updates
 ) {
@@ -877,15 +875,12 @@ async function updateSupabaseOrder(
 
 
 /* =========================================================
-   HEALTH
+   HEALTH CHECK
 ========================================================= */
 
 app.get(
   "/health",
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     res.json({
 
@@ -921,10 +916,7 @@ app.get(
 
 app.get(
   "/",
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     res.sendFile(
       path.join(
@@ -943,10 +935,7 @@ app.get(
 
 app.get(
   "/gallery",
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     res.sendFile(
       path.join(
@@ -961,10 +950,7 @@ app.get(
 
 app.get(
   "/gallery.html",
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     res.sendFile(
       path.join(
@@ -983,10 +969,7 @@ app.get(
 
 app.get(
   "/admin",
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     res.sendFile(
       path.join(
@@ -1001,10 +984,7 @@ app.get(
 
 app.get(
   "/admin.html",
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     res.sendFile(
       path.join(
@@ -1023,10 +1003,7 @@ app.get(
 
 app.post(
   "/api/admin/login",
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     if (
       !adminConfigured
@@ -1302,7 +1279,7 @@ app.patch(
 
 
       const updated =
-        await updateSupabaseOrder(
+        await updateOrder(
 
           req.params.id,
 
@@ -1328,7 +1305,7 @@ app.patch(
     ) {
 
       console.error(
-        "❌ ORDER STATUS ERROR:",
+        "❌ UPDATE ORDER ERROR:",
         error
       );
 
@@ -1353,7 +1330,7 @@ app.patch(
 
 
 /* =========================================================
-   CREATE SUPABASE ORDER
+   CREATE ORDER
 ========================================================= */
 
 app.post(
@@ -1389,7 +1366,7 @@ app.post(
 
 
       const created =
-        await createSupabaseOrder({
+        await createOrder({
 
           customer_name:
             body.customer_name ||
@@ -1457,7 +1434,7 @@ app.post(
     ) {
 
       console.error(
-        "❌ CREATE SUPABASE ORDER ERROR:",
+        "❌ CREATE ORDER ERROR:",
         error
       );
 
@@ -1482,7 +1459,497 @@ app.post(
 
 
 /* =========================================================
-   GENERATE PREVIEW
+   SMART STICKER SIZE SUGGESTION
+========================================================= */
+
+app.post(
+  "/suggest-size",
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const vehicleType =
+        cleanText(
+          req.body?.vehicleType,
+          50
+        );
+
+
+      const make =
+        cleanText(
+          req.body?.make,
+          80
+        );
+
+
+      const model =
+        cleanText(
+          req.body?.model,
+          100
+        );
+
+
+      const year =
+        cleanText(
+          req.body?.year,
+          10
+        );
+
+
+      const part =
+        cleanText(
+          req.body?.part,
+          100
+        );
+
+
+      if (
+        !vehicleType ||
+        !part
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            success:
+              false,
+
+            error:
+              "Vehicle type and panel are required."
+
+          });
+
+      }
+
+
+      /*
+       * These are conservative starting estimates.
+       * They are NOT factory measurements.
+       */
+
+      const fallback = {
+
+        Car: {
+
+          door:
+            [75, 32],
+
+          "rear door":
+            [70, 30],
+
+          "side panel":
+            [90, 36],
+
+          "rear quarter panel":
+            [70, 32],
+
+          fender:
+            [48, 25],
+
+          bonnet:
+            [120, 55],
+
+          roof:
+            [130, 80],
+
+          tailgate:
+            [105, 50],
+
+          windshield:
+            [95, 28],
+
+          window:
+            [55, 25]
+
+        },
+
+
+        SUV: {
+
+          door:
+            [80, 35],
+
+          "rear door":
+            [75, 32],
+
+          "side panel":
+            [100, 40],
+
+          "rear quarter panel":
+            [78, 34],
+
+          fender:
+            [50, 26],
+
+          bonnet:
+            [130, 58],
+
+          roof:
+            [145, 85],
+
+          tailgate:
+            [110, 52],
+
+          windshield:
+            [100, 30],
+
+          window:
+            [58, 26]
+
+        },
+
+
+        Bike: {
+
+          "fuel tank":
+            [28, 18],
+
+          "side panel":
+            [24, 16],
+
+          fairing:
+            [45, 22],
+
+          fender:
+            [25, 14]
+
+        },
+
+
+        Scooter: {
+
+          "front apron":
+            [36, 22],
+
+          "side panel":
+            [30, 18],
+
+          fender:
+            [26, 14]
+
+        },
+
+
+        Truck: {
+
+          "cab door":
+            [75, 35],
+
+          door:
+            [75, 35],
+
+          "truck side body":
+            [180, 70],
+
+          "side panel":
+            [140, 55],
+
+          bonnet:
+            [110, 45],
+
+          windshield:
+            [110, 35]
+
+        },
+
+
+        Van: {
+
+          "side panel":
+            [140, 55],
+
+          door:
+            [75, 35],
+
+          "rear door":
+            [100, 45],
+
+          tailgate:
+            [110, 50],
+
+          window:
+            [65, 30]
+
+        },
+
+
+        Bus: {
+
+          "bus side panel":
+            [220, 80],
+
+          "side panel":
+            [220, 80],
+
+          window:
+            [100, 35]
+
+        },
+
+
+        Commercial: {
+
+          "side panel":
+            [160, 60],
+
+          door:
+            [80, 35],
+
+          "rear panel":
+            [120, 50]
+
+        },
+
+
+        Other: {
+
+          "side panel":
+            [80, 35],
+
+          door:
+            [70, 30]
+
+        }
+
+      };
+
+
+      const vehicleMap =
+        fallback[
+          vehicleType
+        ] ||
+        fallback.Other;
+
+
+      let size =
+        vehicleMap[
+          part
+        ] ||
+        vehicleMap[
+          "side panel"
+        ] ||
+        [80, 35];
+
+
+      let widthCm =
+        size[0];
+
+
+      let heightCm =
+        size[1];
+
+
+      let sourceLabel =
+        "General vehicle/panel estimate";
+
+
+      /*
+       * AI assistance is optional.
+       * If make + model are supplied,
+       * ask the model for a conservative estimate.
+       */
+
+      if (
+        openaiConfigured &&
+        openai &&
+        make &&
+        model
+      ) {
+
+        try {
+
+          const ai =
+            await openai.chat.completions.create({
+
+              model:
+                "gpt-4.1-mini",
+
+              temperature:
+                0.1,
+
+              response_format:
+                {
+                  type:
+                    "json_object"
+                },
+
+              messages: [
+
+                {
+
+                  role:
+                    "system",
+
+                  content:
+                    "Estimate a conservative starting vinyl decal size in centimetres for a specified vehicle panel. This is NOT an exact factory measurement. Return only JSON with widthCm and heightCm."
+
+                },
+
+                {
+
+                  role:
+                    "user",
+
+                  content:
+                    JSON.stringify({
+
+                      vehicleType,
+
+                      make,
+
+                      model,
+
+                      year,
+
+                      panel:
+                        part,
+
+                      fallbackWidthCm:
+                        widthCm,
+
+                      fallbackHeightCm:
+                        heightCm
+
+                    })
+
+                }
+
+              ]
+
+            });
+
+
+          const raw =
+            ai
+              ?.choices?.[0]
+              ?.message
+              ?.content;
+
+
+          if (
+            raw
+          ) {
+
+            const parsed =
+              JSON.parse(
+                raw
+              );
+
+
+            const w =
+              Number(
+                parsed.widthCm
+              );
+
+
+            const h =
+              Number(
+                parsed.heightCm
+              );
+
+
+            if (
+
+              Number.isFinite(
+                w
+              ) &&
+
+              Number.isFinite(
+                h
+              ) &&
+
+              w >= 5 &&
+              w <= 400 &&
+
+              h >= 5 &&
+              h <= 200
+
+            ) {
+
+              widthCm =
+                Math.round(
+                  w * 10
+                ) / 10;
+
+
+              heightCm =
+                Math.round(
+                  h * 10
+                ) / 10;
+
+
+              sourceLabel =
+                "AI-assisted estimate";
+
+            }
+
+          }
+
+        } catch (
+          error
+        ) {
+
+          console.warn(
+            "⚠️ Smart size AI unavailable; using fallback.",
+            error.message
+          );
+
+        }
+
+      }
+
+
+      res.json({
+
+        success:
+          true,
+
+        widthCm,
+
+        heightCm,
+
+        sourceLabel,
+
+        verified:
+          false
+
+      });
+
+    } catch (
+      error
+    ) {
+
+      console.error(
+        "❌ SMART SIZE ERROR:",
+        error
+      );
+
+
+      res
+        .status(500)
+        .json({
+
+          success:
+            false,
+
+          error:
+            error.message ||
+            "Could not calculate sticker size."
+
+        });
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   GENERATE VEHICLE PREVIEW
 ========================================================= */
 
 app.post(
@@ -1560,6 +2027,13 @@ app.post(
         );
 
 
+      const extra =
+        cleanText(
+          req.body?.extra,
+          1500
+        );
+
+
       const part =
         cleanText(
           req.body?.part,
@@ -1580,13 +2054,6 @@ app.post(
           req.body?.height ||
           req.body?.heightCm,
           30
-        );
-
-
-      const extra =
-        cleanText(
-          req.body?.extra,
-          1500
         );
 
 
@@ -1630,9 +2097,9 @@ app.post(
           .join(" ");
 
 
-      /* -----------------------------------------------------
-         STORAGE
-      ----------------------------------------------------- */
+      /*
+       * Store original image.
+       */
 
       let originalImagePath =
         null;
@@ -1649,19 +2116,20 @@ app.post(
 
               req.file.buffer,
 
-              req.file.originalname,
+              req.file.originalname ||
+              "vehicle.png",
 
               req.file.mimetype
 
             );
 
         } catch (
-          storageError
+          error
         ) {
 
           console.warn(
-            "⚠️ Original image storage failed:",
-            storageError.message
+            "⚠️ Original image could not be stored:",
+            error.message
           );
 
         }
@@ -1669,9 +2137,9 @@ app.post(
       }
 
 
-      /* -----------------------------------------------------
-         CREATE ORDER
-      ----------------------------------------------------- */
+      /*
+       * Create preliminary Supabase order.
+       */
 
       if (
         supabaseConfigured
@@ -1680,7 +2148,7 @@ app.post(
         try {
 
           const created =
-            await createSupabaseOrder({
+            await createOrder({
 
               customer_name:
                 null,
@@ -1735,12 +2203,12 @@ app.post(
             null;
 
         } catch (
-          orderError
+          error
         ) {
 
           console.warn(
-            "⚠️ Could not create Supabase order:",
-            orderError.message
+            "⚠️ Preliminary order could not be created:",
+            error.message
           );
 
         }
@@ -1748,67 +2216,85 @@ app.post(
       }
 
 
-      /* -----------------------------------------------------
-         PROMPT
-      ----------------------------------------------------- */
+      /*
+       * AI PROMPT
+       */
 
-      const prompt = [
+      const prompt = `
 
-        "You are a professional automotive vinyl decal designer.",
+You are a professional automotive vinyl
+decal preview designer.
 
-        "Edit the uploaded vehicle photograph to create a realistic preview of the requested sticker or decal.",
+Edit the uploaded vehicle photograph
+to create a realistic preview of the
+requested sticker/decal.
 
-        "Preserve the original vehicle and keep it recognizable.",
+IMPORTANT:
 
-        "Do not replace the vehicle.",
+Keep the original vehicle.
 
-        "Do not redesign the vehicle.",
+Do not replace the vehicle.
 
-        "Preserve the vehicle body shape and proportions.",
+Keep the exact vehicle model whenever
+it is visible.
 
-        "Preserve camera angle and perspective.",
+Preserve the body shape and proportions.
 
-        "Preserve the environment as much as possible.",
+Preserve the original camera perspective.
 
-        "Apply the artwork naturally to the requested vehicle panel.",
+Preserve the original environment as
+much as possible.
 
-        "Respect doors, handles, body curves, fuel tanks, windows, fenders, bonnets and panel lines.",
+Apply the requested sticker naturally
+to the requested panel.
 
-        "Make the decal follow the vehicle's actual perspective and surface.",
+Follow real vehicle curves.
 
-        "Keep realistic lighting, shadows and reflections.",
+Respect doors, handles, windows,
+fenders, bonnets, fuel tanks and
+body panel lines.
 
-        "Do not create a rectangular pasted image.",
+Preserve realistic reflections.
 
-        "Do not place the decal outside the vehicle.",
+Preserve realistic lighting.
 
-        "Do not add unrelated artwork.",
+Preserve realistic shadows.
 
-        "Make the result look like a professionally installed vinyl decal.",
+Do not create a rectangular pasted image.
 
-        `Vehicle type: ${vehicleType || "not specified"}.`,
+Do not make the sticker float beside
+the vehicle.
 
-        `Vehicle make: ${make || "not specified"}.`,
+Do not add unrelated artwork.
 
-        `Vehicle model: ${model || "not specified"}.`,
+The sticker should look professionally
+installed.
 
-        `Vehicle year: ${year || "not specified"}.`,
+Vehicle type:
+${vehicleType}
 
-        `Vehicle: ${vehicle || "not specified"}.`,
+Vehicle:
+${vehicle}
 
-        `Requested panel: ${part || "not specified"}.`,
+Selected panel:
+${part}
 
-        `Sticker width: ${width || "not specified"} cm.`,
+Sticker dimensions:
+${width} cm × ${height} cm
 
-        `Sticker height: ${height || "not specified"} cm.`,
+Design requested:
+${design || description}
 
-        `Requested design: ${design || description || "custom sticker"}.`,
+Customer description:
+${description}
 
-        `Design description: ${description || "none"}.`,
+Additional placement instructions:
+${extra}
 
-        `Additional instructions: ${extra || "none"}.`
+Create a premium realistic
+vehicle customization preview.
 
-      ].join(" ");
+`;
 
 
       console.log(
@@ -1832,11 +2318,16 @@ app.post(
         );
 
 
-      const result =
+      /*
+       * CUSTOMER PREVIEW:
+       * GPT-Image-1 Mini
+       */
+
+      const imageResponse =
         await openai.images.edit({
 
           model:
-            "gpt-image-1",
+            "gpt-image-1-mini",
 
           image:
             inputFile,
@@ -1850,7 +2341,7 @@ app.post(
 
 
       if (
-        !result?.data?.[0]?.b64_json
+        !imageResponse?.data?.[0]?.b64_json
       ) {
 
         throw new Error(
@@ -1861,7 +2352,7 @@ app.post(
 
 
       const base64Image =
-        result
+        imageResponse
           .data[0]
           .b64_json;
 
@@ -1873,7 +2364,11 @@ app.post(
         );
 
 
-      let generatedPath =
+      /*
+       * Store AI preview.
+       */
+
+      let generatedImagePath =
         null;
 
 
@@ -1883,7 +2378,7 @@ app.post(
 
         try {
 
-          generatedPath =
+          generatedImagePath =
             await uploadToStorage(
 
               generatedBuffer,
@@ -1899,14 +2394,14 @@ app.post(
             orderId
           ) {
 
-            await updateSupabaseOrder(
+            await updateOrder(
 
               orderId,
 
               {
 
                 generated_image_path:
-                  generatedPath,
+                  generatedImagePath,
 
                 status:
                   "new"
@@ -1929,6 +2424,11 @@ app.post(
         }
 
       }
+
+
+      console.log(
+        "🎉 VEHICLE PREVIEW COMPLETE"
+      );
 
 
       res.json({
@@ -1964,7 +2464,7 @@ app.post(
 
         try {
 
-          await updateSupabaseOrder(
+          await updateOrder(
 
             orderId,
 
@@ -2005,7 +2505,7 @@ app.post(
 
 
 /* =========================================================
-   REFINE PREVIEW
+   REFINE VEHICLE PREVIEW
 ========================================================= */
 
 app.post(
@@ -2048,6 +2548,57 @@ app.post(
         cleanText(
           req.body?.refinement,
           1500
+        );
+
+
+      const vehicleType =
+        cleanText(
+          req.body?.vehicleType,
+          50
+        );
+
+
+      const make =
+        cleanText(
+          req.body?.make,
+          80
+        );
+
+
+      const model =
+        cleanText(
+          req.body?.model,
+          100
+        );
+
+
+      const year =
+        cleanText(
+          req.body?.year,
+          10
+        );
+
+
+      const part =
+        cleanText(
+          req.body?.part,
+          100
+        );
+
+
+      const width =
+        cleanText(
+          req.body?.width ||
+          req.body?.widthCm,
+          30
+        );
+
+
+      const height =
+        cleanText(
+          req.body?.height ||
+          req.body?.heightCm,
+          30
         );
 
 
@@ -2095,19 +2646,19 @@ app.post(
       }
 
 
-      const base64 =
+      const cleanBase64 =
         String(
           previousImageBase64
         )
           .replace(
-            /^data:image\/\w+;base64,/,
+            /^data:image\/[^;]+;base64,/,
             ""
           );
 
 
       const buffer =
         Buffer.from(
-          base64,
+          cleanBase64,
           "base64"
         );
 
@@ -2134,29 +2685,6 @@ app.post(
       }
 
 
-      if (
-        buffer.length >
-        MAX_IMAGE_SIZE
-      ) {
-
-        return res
-          .status(413)
-          .json({
-
-            ok:
-              false,
-
-            success:
-              false,
-
-            error:
-              "Previous preview is too large."
-
-          });
-
-      }
-
-
       const inputFile =
         await toFile(
 
@@ -2172,30 +2700,52 @@ app.post(
         );
 
 
-      const prompt = [
+      const prompt = `
 
-        "Refine the existing vehicle decal preview.",
+Refine the existing vehicle decal preview.
 
-        "Preserve the same vehicle.",
+IMPORTANT:
 
-        "Preserve the vehicle model and body.",
+Keep the same vehicle.
 
-        "Preserve camera perspective.",
+Keep the same vehicle model.
 
-        "Preserve the existing decal identity.",
+Keep the same body shape.
 
-        "Do not redesign unrelated parts.",
+Keep the same camera perspective.
 
-        `Requested change: ${refinement}.`
+Keep the existing design recognizable.
 
-      ].join(" ");
+Do not redesign unrelated parts.
+
+Do not replace the vehicle.
+
+Requested vehicle:
+${vehicleType} ${make} ${model} ${year}
+
+Panel:
+${part}
+
+Sticker dimensions:
+${width} cm × ${height} cm
+
+Requested refinement:
+${refinement}
+
+Make only the requested changes.
+
+Maintain realistic vinyl application,
+perspective, lighting, reflections
+and shadows.
+
+`;
 
 
       const result =
         await openai.images.edit({
 
           model:
-            "gpt-image-1",
+            "gpt-image-1-mini",
 
           image:
             inputFile,
@@ -2237,6 +2787,7 @@ app.post(
           `data:image/png;base64,${base64Image}`
 
       });
+
 
     } catch (
       error
@@ -2335,49 +2886,52 @@ app.post(
       }
 
 
-      const prompt = [
+      const prompt = `
 
-        "Create a standalone professional vehicle decal graphic.",
+Create a standalone professional
+vehicle decal/tattoo graphic.
 
-        `Design: ${description}.`,
+Design:
+${description}
 
-        "Clean vinyl decal artwork.",
+Requirements:
 
-        "Bold shapes and clear outlines.",
+Clean vinyl decal artwork.
 
-        "Practical for sticker production.",
+Bold clear shapes.
 
-        "No vehicle.",
+Clean outlines.
 
-        "No mockup.",
+Suitable for sticker production.
 
-        "No road.",
+No vehicle.
 
-        "No floor.",
+No mockup.
 
-        "No unrelated objects.",
+No road.
 
-        "No rectangular background.",
+No floor.
 
-        "Isolated artwork.",
+No unrelated objects.
 
-        "Transparent background.",
+No rectangular background.
 
-        "Suitable for PNG decal production."
+Isolated artwork only.
 
-      ].join(" ");
+Transparent background.
+
+Suitable for PNG decal production.
+
+`;
 
 
       const result =
         await openai.images.generate({
 
           model:
-            "gpt-image-1",
+            "gpt-image-1-mini",
 
           prompt,
-
-          background:
-            "transparent",
 
           size:
             "1024x1024"
@@ -2411,9 +2965,13 @@ app.post(
           true,
 
         image:
-          `data:image/png;base64,${base64Image}`
+          `data:image/png;base64,${base64Image}`,
+
+        fileName:
+          `sticking-decal-${Date.now()}.png`
 
       });
+
 
     } catch (
       error
@@ -2448,7 +3006,7 @@ app.post(
 
 
 /* =========================================================
-   ADMIN PRINT PREP
+   PRIVATE ADMIN PRINT PREP AGENT
 ========================================================= */
 
 app.post(
@@ -2514,7 +3072,8 @@ app.post(
         String(
           req.body?.removeBackground ??
           "true"
-        ) !== "false";
+        ) !==
+        "false";
 
 
       const inputFile =
@@ -2536,60 +3095,64 @@ app.post(
       const prompt = `
 
 You are SticKing's private
-professional sticker print
-preparation agent.
+professional sticker print-preparation
+agent.
 
-Prepare the uploaded artwork
-for physical vinyl/sticker
-production.
+Your job is to prepare the uploaded
+artwork for sticker/vinyl production.
 
-DO NOT redesign the artwork.
+Do NOT redesign the artwork.
 
-Preserve the original design.
+Preserve the original composition.
 
 Preserve proportions.
 
-Preserve composition.
+Preserve logos.
+
+Preserve text.
 
 Preserve colours as closely as possible.
-
-Preserve logos and text.
 
 Remove unwanted background.
 
 Remove excess surrounding material.
 
-Remove obvious dust.
+Reduce obvious noise.
 
-Reduce noise and compression artifacts.
+Reduce compression artifacts.
+
+Clean jagged edges.
 
 Clean rough edges.
 
-Reduce jagged edges.
-
 Make the artwork crisp.
 
-Do not invent new artwork.
+Do not invent new details.
 
-Do not add decorative elements.
+Do not add unrelated artwork.
 
 Do not crop actual artwork.
 
 Do not distort the artwork.
 
+Do not turn the design into a different
+artistic interpretation.
+
 ${
   removeBackground
-    ? "Return the final artwork with a fully transparent background."
-    : "Keep the original background."
+    ? "Return the artwork with a transparent background."
+    : "Keep the background only where it genuinely belongs to the artwork."
 }
-
-The result must remain faithful
-to the uploaded artwork.
 
 `;
 
 
-      const result =
+      /*
+       * Higher-quality internal
+       * production-prep step.
+       */
+
+      const imageResponse =
         await openai.images.edit({
 
           model:
@@ -2617,7 +3180,7 @@ to the uploaded artwork.
 
 
       if (
-        !result?.data?.[0]?.b64_json
+        !imageResponse?.data?.[0]?.b64_json
       ) {
 
         throw new Error(
@@ -2628,9 +3191,51 @@ to the uploaded artwork.
 
 
       const base64Image =
-        result
+        imageResponse
           .data[0]
           .b64_json;
+
+
+      const generatedBuffer =
+        Buffer.from(
+          base64Image,
+          "base64"
+        );
+
+
+      let storedPath =
+        null;
+
+
+      if (
+        supabaseConfigured
+      ) {
+
+        try {
+
+          storedPath =
+            await uploadToStorage(
+
+              generatedBuffer,
+
+              `print-ready-${Date.now()}.png`,
+
+              "image/png"
+
+            );
+
+        } catch (
+          error
+        ) {
+
+          console.warn(
+            "⚠️ Print-ready storage failed:",
+            error.message
+          );
+
+        }
+
+      }
 
 
       res.json({
@@ -2641,10 +3246,13 @@ to the uploaded artwork.
         image:
           `data:image/png;base64,${base64Image}`,
 
+        storedPath,
+
         fileName:
           `sticking-print-ready-${Date.now()}.png`
 
       });
+
 
     } catch (
       error
@@ -2718,9 +3326,9 @@ app.post(
 
 
       /*
-       * Amount is sent in paise.
-       *
-       * ₹1 = 100 paise.
+       * If frontend doesn't send
+       * an amount, use the Render
+       * configured default.
        */
 
       if (
@@ -2731,25 +3339,20 @@ app.post(
           100
       ) {
 
-        /*
-         * Only use fallback when amount
-         * wasn't supplied at all.
-         */
-
         if (
           req.body?.amount ===
-          undefined ||
+            undefined ||
 
           req.body?.amount ===
-          null ||
+            null ||
 
           req.body?.amount ===
-          ""
+            ""
         ) {
 
           amountPaise =
             Math.round(
-              DEFAULT_PRICE_INR *
+              STICKING_DEFAULT_PRICE_INR *
               100
             );
 
@@ -2784,6 +3387,10 @@ app.post(
       }
 
 
+      /*
+       * Safety cap.
+       */
+
       if (
         amountPaise >
           1000000000
@@ -2815,36 +3422,25 @@ app.post(
         `sticking_${Date.now()}`;
 
 
-      const options = {
-
-        amount:
-          amountPaise,
-
-        currency:
-          "INR",
-
-        receipt:
-
-          receipt
-
-      };
-
-
       console.log(
-        "💳 Creating Razorpay order..."
+        "💳 Creating Razorpay order:",
+        amountPaise,
+        "paise"
       );
 
 
       const order =
-        await razorpay.orders.create(
-          options
-        );
+        await razorpay.orders.create({
 
+          amount:
+            amountPaise,
 
-      console.log(
-        "✅ Razorpay order created:",
-        order.id
-      );
+          currency:
+            "INR",
+
+          receipt
+
+        });
 
 
       res.json({
@@ -2875,6 +3471,7 @@ app.post(
 
       });
 
+
     } catch (
       error
     ) {
@@ -2893,7 +3490,6 @@ app.post(
           401
 
           ? 401
-
           : 500;
 
 
@@ -3007,18 +3603,17 @@ app.post(
 
 
       /*
-       * Fetch the order from Razorpay.
+       * Fetch order from Razorpay.
        */
 
-      const order =
+      const serverOrder =
         await razorpay.orders.fetch(
           orderId
         );
 
 
       if (
-        !order ||
-        !order.id
+        !serverOrder?.id
       ) {
 
         return res
@@ -3053,9 +3648,9 @@ app.post(
 
 
       if (
-        !payment ||
+        !payment?.order_id ||
         payment.order_id !==
-          order.id
+          serverOrder.id
       ) {
 
         return res
@@ -3080,13 +3675,13 @@ app.post(
 
 
       /*
-       * REQUIRED SIGNATURE:
+       * REQUIRED RAZORPAY SIGNATURE:
        *
-       * order_id + "|" + payment_id
+       * order_id|payment_id
        */
 
       const payload =
-        `${order.id}|${paymentId}`;
+        `${serverOrder.id}|${paymentId}`;
 
 
       const expectedSignature =
@@ -3163,7 +3758,9 @@ app.post(
 
 
       console.log(
-        `✅ Razorpay payment verified: ${paymentId}`
+        captured
+          ? "✅ Razorpay payment captured."
+          : `⚠️ Razorpay payment status: ${payment.status}`
       );
 
 
@@ -3187,9 +3784,10 @@ app.post(
           paymentId,
 
         razorpay_order_id:
-          order.id
+          serverOrder.id
 
       });
+
 
     } catch (
       error
@@ -3233,8 +3831,8 @@ app.post(
 
 
 /* =========================================================
-   RAZORPAY CONFIG
-   PUBLIC KEY ONLY
+   RAZORPAY PUBLIC CONFIG
+   Only the public Key ID is exposed.
 ========================================================= */
 
 app.get(
@@ -3294,7 +3892,7 @@ app.use(
   ) => {
 
     console.log(
-      `❌ 404 ROUTE NOT FOUND: ${req.method} ${req.path}`
+      `❌ 404: ${req.method} ${req.path}`
     );
 
 
@@ -3352,7 +3950,7 @@ app.use(
             false,
 
           error:
-            "Image is too large. Maximum size is 20 MB."
+            "Image is too large. Maximum allowed size is 20 MB."
 
         });
 
@@ -3410,46 +4008,37 @@ app.listen(
       "=========================================="
     );
 
-
     console.log(
       "🚀 SticKing server started"
     );
-
 
     console.log(
       `🌐 http://0.0.0.0:${PORT}`
     );
 
-
     console.log(
       `🔑 OpenAI configured: ${openaiConfigured}`
     );
-
 
     console.log(
       `🗄️ Supabase configured: ${supabaseConfigured}`
     );
 
-
     console.log(
       `👑 Admin configured: ${adminConfigured}`
     );
-
 
     console.log(
       `💳 Razorpay configured: ${razorpayConfigured}`
     );
 
-
     console.log(
       `💳 Razorpay mode: ${RAZORPAY_MODE}`
     );
 
-
     console.log(
       `📁 Public directory: ${PUBLIC_DIR}`
     );
-
 
     console.log(
       "=========================================="
