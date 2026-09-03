@@ -401,6 +401,85 @@ function cleanText(
 }
 
 
+
+/* =========================================================
+   SHIPPING ADDRESS HELPERS
+   Stored in the existing orders.description field so
+   no new database table is required.
+========================================================= */
+
+const SHIPPING_MARKER =
+  "\n\n[STICKING_SHIPPING_ADDRESS]\n";
+
+function buildShippingMarker(address) {
+  return SHIPPING_MARKER +
+    JSON.stringify({
+      full_name: address.full_name || "",
+      phone: address.phone || "",
+      email: address.email || "",
+      line1: address.line1 || "",
+      line2: address.line2 || "",
+      landmark: address.landmark || "",
+      city: address.city || "",
+      state: address.state || "",
+      pincode: address.pincode || "",
+      country: address.country || "India",
+      shipping_method: address.shipping_method || "India Post",
+      tracking_number: address.tracking_number || "",
+      shipping_status: address.shipping_status || "pending"
+    });
+}
+
+function extractShippingAddress(description) {
+  if (!description || typeof description !== "string") {
+    return null;
+  }
+
+  const index = description.lastIndexOf(SHIPPING_MARKER);
+  if (index < 0) {
+    return null;
+  }
+
+  const jsonText =
+    description
+      .slice(index + SHIPPING_MARKER.length)
+      .trim();
+
+  try {
+    return JSON.parse(jsonText);
+  } catch {
+    return null;
+  }
+}
+
+function stripShippingMarker(description) {
+  if (!description || typeof description !== "string") {
+    return "";
+  }
+
+  const index = description.lastIndexOf(SHIPPING_MARKER);
+
+  if (index < 0) {
+    return description;
+  }
+
+  return description.slice(0, index).trim();
+}
+
+function validateIndianPincode(pincode) {
+  return /^[1-9][0-9]{5}$/.test(
+    String(pincode || "").trim()
+  );
+}
+
+function validateIndianPhone(phone) {
+  return /^[6-9][0-9]{9}$/.test(
+    String(phone || "")
+      .replace(/\D/g, "")
+      .slice(-10)
+  );
+}
+
 /* =========================================================
    SUPABASE HEADERS
 ========================================================= */
@@ -1173,6 +1252,16 @@ app.get(
 
                   ...order,
 
+                  shipping_address:
+                    extractShippingAddress(
+                      order.description || ""
+                    ),
+
+                  customer_instructions:
+                    stripShippingMarker(
+                      order.description || ""
+                    ),
+
                   original_image_url:
                     originalUrl,
 
@@ -1245,6 +1334,10 @@ app.patch(
         "new",
 
         "processing",
+
+        "paid",
+
+        "shipped",
 
         "completed",
 
@@ -1325,6 +1418,294 @@ app.patch(
 
     }
 
+  }
+);
+
+
+
+/* =========================================================
+   SAVE CUSTOMER SHIPPING ADDRESS
+========================================================= */
+
+app.post(
+  "/api/save-shipping",
+  async (req, res) => {
+
+    try {
+
+      if (!supabaseConfigured) {
+        return res.status(500).json({
+          ok: false,
+          success: false,
+          error: "Supabase is not configured."
+        });
+      }
+
+      const orderId =
+        cleanText(
+          req.body?.orderId ||
+          req.body?.localOrderId,
+          100
+        );
+
+      if (!orderId) {
+        return res.status(400).json({
+          ok: false,
+          success: false,
+          error: "Order ID is required."
+        });
+      }
+
+      const address = {
+        full_name:
+          cleanText(req.body?.full_name, 120),
+
+        phone:
+          cleanText(req.body?.phone, 30),
+
+        email:
+          cleanText(req.body?.email, 160),
+
+        line1:
+          cleanText(req.body?.line1, 200),
+
+        line2:
+          cleanText(req.body?.line2, 200),
+
+        landmark:
+          cleanText(req.body?.landmark, 160),
+
+        city:
+          cleanText(req.body?.city, 100),
+
+        state:
+          cleanText(req.body?.state, 100),
+
+        pincode:
+          cleanText(req.body?.pincode, 6),
+
+        country:
+          cleanText(req.body?.country, 50) ||
+          "India",
+
+        shipping_method:
+          cleanText(req.body?.shipping_method, 80) ||
+          "India Post",
+
+        tracking_number:
+          cleanText(req.body?.tracking_number, 80),
+
+        shipping_status:
+          "pending"
+      };
+
+      if (!address.full_name) {
+        return res.status(400).json({
+          ok: false,
+          success: false,
+          error: "Full name is required."
+        });
+      }
+
+      if (!validateIndianPhone(address.phone)) {
+        return res.status(400).json({
+          ok: false,
+          success: false,
+          error: "Please enter a valid 10-digit Indian mobile number."
+        });
+      }
+
+      if (address.email &&
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
+        return res.status(400).json({
+          ok: false,
+          success: false,
+          error: "Please enter a valid email address."
+        });
+      }
+
+      if (!address.line1) {
+        return res.status(400).json({
+          ok: false,
+          success: false,
+          error: "House/flat and street address are required."
+        });
+      }
+
+      if (!address.city || !address.state) {
+        return res.status(400).json({
+          ok: false,
+          success: false,
+          error: "City and state are required."
+        });
+      }
+
+      if (!validateIndianPincode(address.pincode)) {
+        return res.status(400).json({
+          ok: false,
+          success: false,
+          error: "Please enter a valid 6-digit Indian pincode."
+        });
+      }
+
+      const existing =
+        await supabaseRequest(
+          `/rest/v1/orders?id=eq.${encodeURIComponent(orderId)}&select=id,description`,
+          { method: "GET" }
+        );
+
+      if (!Array.isArray(existing) || !existing[0]) {
+        return res.status(404).json({
+          ok: false,
+          success: false,
+          error: "Order not found."
+        });
+      }
+
+      const baseDescription =
+        stripShippingMarker(
+          existing[0].description || ""
+        );
+
+      const newDescription =
+        baseDescription +
+        buildShippingMarker(address);
+
+      const updated =
+        await updateOrder(
+          orderId,
+          {
+            customer_name:
+              address.full_name,
+
+            customer_phone:
+              address.phone,
+
+            customer_email:
+              address.email || null,
+
+            description:
+              newDescription
+          }
+        );
+
+      res.json({
+        ok: true,
+        success: true,
+        order: updated,
+        shipping_address: address
+      });
+
+    } catch (error) {
+
+      console.error(
+        "❌ SAVE SHIPPING ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        ok: false,
+        success: false,
+        error:
+          error.message ||
+          "Could not save shipping address."
+      });
+    }
+  }
+);
+
+
+/* =========================================================
+   ADMIN SHIPPING UPDATE
+========================================================= */
+
+app.patch(
+  "/api/admin/orders/:id/shipping",
+  requireAdmin,
+  async (req, res) => {
+
+    try {
+
+      const orderId =
+        cleanText(
+          req.params.id,
+          100
+        );
+
+      const existing =
+        await supabaseRequest(
+          `/rest/v1/orders?id=eq.${encodeURIComponent(orderId)}&select=id,description`,
+          { method: "GET" }
+        );
+
+      if (!Array.isArray(existing) || !existing[0]) {
+        return res.status(404).json({
+          ok: false,
+          error: "Order not found."
+        });
+      }
+
+      const current =
+        extractShippingAddress(
+          existing[0].description || ""
+        ) || {};
+
+      const shipping = {
+        ...current,
+
+        shipping_status:
+          cleanText(
+            req.body?.shipping_status,
+            40
+          ) || current.shipping_status || "pending",
+
+        tracking_number:
+          cleanText(
+            req.body?.tracking_number,
+            80
+          ) || current.tracking_number || "",
+
+        shipping_method:
+          cleanText(
+            req.body?.shipping_method,
+            80
+          ) || current.shipping_method || "India Post"
+      };
+
+      const description =
+        stripShippingMarker(
+          existing[0].description || ""
+        ) +
+        buildShippingMarker(shipping);
+
+      const updated =
+        await updateOrder(
+          orderId,
+          {
+            description
+          }
+        );
+
+      res.json({
+        ok: true,
+        order: updated,
+        shipping_address: shipping
+      });
+
+    } catch (error) {
+
+      console.error(
+        "❌ ADMIN SHIPPING UPDATE ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        ok: false,
+        error:
+          error.message ||
+          "Could not update shipping details."
+      });
+    }
   }
 );
 
