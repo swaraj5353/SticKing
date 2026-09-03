@@ -359,6 +359,73 @@
       }
     }
   </style>
+
+<style>
+/* SticKing shipping-address UI */
+.shipping-section{
+  grid-column:1 / -1;
+  background:linear-gradient(145deg,rgba(43,127,146,.08),rgba(217,107,204,.05));
+  border:1px solid rgba(98,231,224,.14);
+  border-radius:12px;
+  padding:14px;
+}
+.shipping-section .shipping-title{
+  color:#62e7e0;
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-weight:800;
+  margin-bottom:9px;
+}
+.shipping-address{
+  color:#e9edf2;
+  line-height:1.6;
+  white-space:pre-line;
+  font-size:13px;
+}
+.shipping-meta{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+.shipping-meta div{
+  background:#0b0d12;
+  border:1px solid #252a34;
+  border-radius:8px;
+  padding:8px 9px;
+}
+.shipping-meta small{
+  display:block;
+  color:#858b9a;
+  text-transform:uppercase;
+  font-size:9px;
+  margin-bottom:3px;
+}
+.shipping-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:11px;
+}
+.shipping-actions button,
+.shipping-actions input,
+.shipping-actions select{
+  min-height:38px;
+}
+.shipping-actions input{
+  flex:1;
+  min-width:170px;
+}
+@media(max-width:600px){
+  .shipping-meta{grid-template-columns:1fr}
+  .shipping-actions{flex-direction:column}
+  .shipping-actions button,
+  .shipping-actions input,
+  .shipping-actions select{width:100%;max-width:none}
+}
+</style>
+
 </head>
 
 <body>
@@ -738,7 +805,14 @@ function renderOrders() {
       order.vehicle,
       order.design,
       order.part,
-      order.description
+      order.description,
+      order.shipping_address?.full_name,
+      order.shipping_address?.phone,
+      order.shipping_address?.line1,
+      order.shipping_address?.line2,
+      order.shipping_address?.city,
+      order.shipping_address?.state,
+      order.shipping_address?.pincode
     ]
       .filter(Boolean)
       .join(" ")
@@ -913,6 +987,127 @@ function renderOrders() {
             </div>
 
 
+
+            <div class="shipping-section">
+
+              <div class="shipping-title">
+                📦 Shipping Address
+              </div>
+
+              ${
+                order.shipping_address
+                ?
+                `
+                <div class="shipping-address">
+                  ${escapeHtml(
+                    [
+                      order.shipping_address.full_name,
+                      order.shipping_address.line1,
+                      order.shipping_address.line2,
+                      order.shipping_address.landmark
+                        ? "Landmark: " + order.shipping_address.landmark
+                        : "",
+                      [
+                        order.shipping_address.city,
+                        order.shipping_address.state,
+                        order.shipping_address.pincode
+                      ].filter(Boolean).join(", "),
+                      order.shipping_address.country || "India"
+                    ].filter(Boolean).join("\n")
+                  )}
+                </div>
+
+                <div class="shipping-meta">
+
+                  <div>
+                    <small>Phone</small>
+                    <span>
+                      ${escapeHtml(order.shipping_address.phone || "-")}
+                    </span>
+                  </div>
+
+                  <div>
+                    <small>Email</small>
+                    <span>
+                      ${escapeHtml(order.shipping_address.email || "-")}
+                    </span>
+                  </div>
+
+                  <div>
+                    <small>Method</small>
+                    <span>
+                      ${escapeHtml(order.shipping_address.shipping_method || "India Post")}
+                    </span>
+                  </div>
+
+                  <div>
+                    <small>Shipping status</small>
+                    <span>
+                      ${escapeHtml(order.shipping_address.shipping_status || "pending")}
+                    </span>
+                  </div>
+
+                </div>
+
+                <div class="shipping-actions">
+
+                  <input
+                    id="tracking-${escapeHtml(order.id)}"
+                    placeholder="India Post tracking number"
+                    value="${escapeHtml(order.shipping_address.tracking_number || "")}"
+                  >
+
+                  <select
+                    id="shipstatus-${escapeHtml(order.id)}"
+                  >
+                    <option value="pending"
+                      ${order.shipping_address.shipping_status === "pending" ? "selected" : ""}>
+                      Pending
+                    </option>
+
+                    <option value="packed"
+                      ${order.shipping_address.shipping_status === "packed" ? "selected" : ""}>
+                      Packed
+                    </option>
+
+                    <option value="shipped"
+                      ${order.shipping_address.shipping_status === "shipped" ? "selected" : ""}>
+                      Shipped
+                    </option>
+
+                    <option value="delivered"
+                      ${order.shipping_address.shipping_status === "delivered" ? "selected" : ""}>
+                      Delivered
+                    </option>
+                  </select>
+
+                  <button
+                    class="dark-btn"
+                    onclick="updateShipping('${escapeHtml(order.id)}')"
+                  >
+                    💾 Save Shipping
+                  </button>
+
+                  <button
+                    class="dark-btn"
+                    onclick="copyShipping('${escapeHtml(order.id)}')"
+                  >
+                    📋 Copy Address
+                  </button>
+
+                </div>
+                `
+                :
+                `
+                <div class="shipping-address">
+                  Customer has not entered a shipping address yet.
+                </div>
+                `
+              }
+
+            </div>
+
+
             <div class="detail description">
 
               <div class="detail-label">
@@ -921,7 +1116,7 @@ function renderOrders() {
 
               <div class="detail-value">
                 ${escapeHtml(
-                  order.description ||
+                  order.customer_instructions ||
                   "No instructions provided."
                 )}
               </div>
@@ -1140,6 +1335,191 @@ function resetPrintPrep() {
   document.getElementById("prepOriginalPreview").src = "";
   document.getElementById("prepResultPreview").src = "";
   document.getElementById("prepDownload").href = "#";
+}
+
+
+
+async function updateShipping(id) {
+
+  const tracking =
+    document.getElementById(
+      "tracking-" + id
+    )?.value?.trim() || "";
+
+  const status =
+    document.getElementById(
+      "shipstatus-" + id
+    )?.value || "pending";
+
+
+  try {
+
+    const response =
+      await fetch(
+        `/api/admin/orders/${encodeURIComponent(id)}/shipping`,
+        {
+          method:
+            "PATCH",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            "x-admin-password":
+              adminPassword
+          },
+
+          body:
+            JSON.stringify({
+              tracking_number:
+                tracking,
+
+              shipping_status:
+                status
+            })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      response.status ===
+      401
+    ) {
+
+      logout();
+      return;
+
+    }
+
+
+    if (
+      !response.ok ||
+      !data.ok
+    ) {
+
+      alert(
+        data.error ||
+        "Could not update shipping details."
+      );
+
+      return;
+
+    }
+
+
+    alert(
+      "Shipping details saved."
+    );
+
+
+    await loadOrders();
+
+  } catch (
+    error
+  ) {
+
+    alert(
+      "Connection error while saving shipping details."
+    );
+
+  }
+
+}
+
+
+function copyShipping(id) {
+
+  const order =
+    allOrders.find(
+      x =>
+        String(x.id) ===
+        String(id)
+    );
+
+
+  if (
+    !order ||
+    !order.shipping_address
+  ) {
+
+    alert(
+      "No shipping address available."
+    );
+
+    return;
+
+  }
+
+
+  const s =
+    order.shipping_address;
+
+
+  const text = [
+
+    s.full_name,
+
+    s.phone,
+
+    s.email,
+
+    s.line1,
+
+    s.line2,
+
+    s.landmark
+      ? "Landmark: " + s.landmark
+      : "",
+
+    [
+      s.city,
+      s.state,
+      s.pincode
+    ]
+      .filter(Boolean)
+      .join(", "),
+
+    s.country ||
+      "India"
+
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+
+  if (
+    navigator.clipboard
+  ) {
+
+    navigator.clipboard
+      .writeText(text)
+      .then(
+        () =>
+          alert(
+            "Shipping address copied."
+          )
+      )
+      .catch(
+        () =>
+          prompt(
+            "Copy this address:",
+            text
+          )
+      );
+
+  } else {
+
+    prompt(
+      "Copy this address:",
+      text
+    );
+
+  }
+
 }
 
 
