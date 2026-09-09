@@ -480,6 +480,43 @@ function validateIndianPhone(phone) {
   );
 }
 
+
+
+function normalizeDecalStyle(value) {
+
+  const style =
+    cleanText(
+      value,
+      50
+    )
+      .toLowerCase()
+      .trim();
+
+  if (style === "die-cut") {
+    return "die-cut";
+  }
+
+  if (style === "full-vinyl") {
+    return "full-vinyl";
+  }
+
+  return "";
+}
+
+
+function decalStyleLabel(style) {
+
+  if (style === "die-cut") {
+    return "Die-Cut / Backgroundless";
+  }
+
+  if (style === "full-vinyl") {
+    return "Full Vinyl Sticker";
+  }
+
+  return "Not specified";
+}
+
 /* =========================================================
    SUPABASE HEADERS
 ========================================================= */
@@ -1745,6 +1782,11 @@ app.post(
       const body =
         req.body || {};
 
+      const decalStyle =
+        normalizeDecalStyle(
+          body.decalStyle
+        );
+
 
       const created =
         await createOrder({
@@ -1787,7 +1829,17 @@ app.post(
             null,
 
           description:
-            body.description ||
+            (
+              (
+                decalStyle
+                  ? `[DECAL_STYLE: ${decalStyleLabel(decalStyle)}]\n`
+                  : ""
+              ) +
+              (
+                body.description ||
+                ""
+              )
+            ).trim() ||
             null,
 
           amount:
@@ -2400,6 +2452,30 @@ app.post(
           2000
         );
 
+      const decalStyle =
+        normalizeDecalStyle(
+          req.body?.decalStyle
+        );
+
+      if (!decalStyle) {
+
+        return res
+          .status(400)
+          .json({
+
+            ok:
+              false,
+
+            success:
+              false,
+
+            error:
+              "Please select a valid decal style."
+
+          });
+
+      }
+
 
       const description =
         cleanText(
@@ -2561,7 +2637,10 @@ app.post(
                 null,
 
               description:
-                description ||
+                (
+                  `[DECAL_STYLE: ${decalStyleLabel(decalStyle)}]\n` +
+                  (description || "")
+                ).trim() ||
                 null,
 
               amount:
@@ -2659,6 +2738,16 @@ ${vehicle}
 
 Selected panel:
 ${part}
+
+Decal style:
+${decalStyleLabel(decalStyle)}
+
+DECAL STYLE RULES:
+- If the decal style is "Full Vinyl Sticker", show the design as a complete printed vinyl piece with its visible vinyl background or defined outer shape.
+- If the decal style is "Die-Cut / Backgroundless", contour-cut the vinyl tightly around the actual artwork and remove the surrounding unused vinyl.
+- For die-cut, do not show a rectangular, square, white, black or colored vinyl background behind the artwork unless the artwork itself is intentionally that shape.
+- Make the die-cut result look like only the graphic remains on the vehicle.
+- Preserve the actual design and do not invent unrelated graphics.
 
 Sticker dimensions:
 ${width} cm × ${height} cm
