@@ -420,6 +420,59 @@ button:disabled {
     margin:3px 0;
 }
 
+/* =========================================================
+   DECAL STYLE
+========================================================= */
+
+#decalStyleCard{
+    margin-bottom:22px;
+    padding:18px;
+    border-radius:17px;
+    border:1px solid rgba(0,255,242,.22);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(0,255,242,.045),
+            rgba(255,46,230,.04)
+        );
+}
+
+.decal-style-kicker{
+    color:var(--cyan);
+    font-size:10px;
+    letter-spacing:3px;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+.decal-style-name{
+    font-size:21px;
+    font-weight:bold;
+    margin-bottom:5px;
+}
+
+.decal-style-description{
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.45;
+}
+
+.decal-style-change{
+    display:inline-block;
+    margin-top:10px;
+    padding:8px 11px;
+    border-radius:8px;
+    border:1px solid rgba(0,255,242,.25);
+    color:var(--cyan);
+    text-decoration:none;
+    font-size:11px;
+    font-weight:bold;
+}
+
+.decal-style-change:hover{
+    background:rgba(0,255,242,.05);
+}
+
 /* SELECTED DESIGN */
 
 #selectedDesignBox {
@@ -735,6 +788,36 @@ button:disabled {
         <p>
             Create a realistic AI preview of your sticker or vinyl design on your vehicle.
         </p>
+
+    </div>
+
+
+    <!-- SELECTED DECAL STYLE -->
+
+    <div id="decalStyleCard">
+
+        <div class="decal-style-kicker">
+            DECAL STYLE
+        </div>
+
+        <div
+            id="decalStyleName"
+            class="decal-style-name">
+            Loading...
+        </div>
+
+        <div
+            id="decalStyleDescription"
+            class="decal-style-description">
+            Your selected decal style will be used for the AI preview.
+        </div>
+
+        <a
+            id="decalStyleChange"
+            class="decal-style-change"
+            href="gallery.html">
+            Change Decal Style
+        </a>
 
     </div>
 
@@ -1828,6 +1911,142 @@ cropBox.addEventListener(
    ?design=...
 ========================================================= */
 
+const DECAL_STYLES = {
+    "full-vinyl": {
+        name:
+            "Full Vinyl Sticker",
+        description:
+            "Your design with a visible vinyl background."
+    },
+
+    "die-cut": {
+        name:
+            "Die-Cut / Backgroundless",
+        description:
+            "Only your artwork remains on the vehicle."
+    }
+};
+
+
+let selectedDecalStyle =
+    null;
+
+
+function loadDecalStyleFromURL() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const fromURL =
+        params.get("decalStyle");
+
+    const fromStorage =
+        localStorage.getItem(
+            "selectedStickingDecalStyle"
+        );
+
+    const candidate =
+        fromURL ||
+        fromStorage ||
+        "";
+
+    if (
+        DECAL_STYLES[candidate]
+    ) {
+
+        selectedDecalStyle =
+            candidate;
+
+        localStorage.setItem(
+            "selectedStickingDecalStyle",
+            candidate
+        );
+
+    } else {
+
+        selectedDecalStyle =
+            null;
+
+    }
+
+    renderDecalStyle();
+
+}
+
+
+function renderDecalStyle() {
+
+    const name =
+        document.getElementById(
+            "decalStyleName"
+        );
+
+    const description =
+        document.getElementById(
+            "decalStyleDescription"
+        );
+
+    const changeBtn =
+        document.getElementById(
+            "decalStyleChange"
+        );
+
+    if (
+        !name ||
+        !description
+    ) {
+        return;
+    }
+
+
+    if (
+        !selectedDecalStyle ||
+        !DECAL_STYLES[selectedDecalStyle]
+    ) {
+
+        name.textContent =
+            "Please select a decal style";
+
+        description.textContent =
+            "Choose Full Vinyl or Die-Cut / Backgroundless before continuing.";
+
+        if (changeBtn) {
+            changeBtn.href =
+                "gallery.html";
+            changeBtn.textContent =
+                "Choose Decal Style";
+        }
+
+        return;
+
+    }
+
+
+    const style =
+        DECAL_STYLES[selectedDecalStyle];
+
+    name.textContent =
+        style.name;
+
+    description.textContent =
+        style.description;
+
+    if (changeBtn) {
+        changeBtn.href =
+            "gallery.html?decalStyle=" +
+            encodeURIComponent(
+                selectedDecalStyle
+            );
+
+        changeBtn.textContent =
+            "Change Decal Style";
+    }
+
+}
+
+
 function loadDesignFromURL() {
 
     const params =
@@ -2543,6 +2762,18 @@ form.addEventListener(
            VALIDATION
         ------------------------------------------------- */
 
+        if (!selectedDecalStyle) {
+
+            showStatus(
+                "Please select Full Vinyl Sticker or Die-Cut / Backgroundless first.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
         if (!design) {
 
             showStatus(
@@ -2687,6 +2918,11 @@ form.addEventListener(
         formData.append(
             "year",
             year
+        );
+
+        formData.append(
+            "decalStyle",
+            selectedDecalStyle || ""
         );
 
 
@@ -3966,6 +4202,7 @@ if (resultBox && razorpayPaymentCard) {
    INITIALIZE
    ========================================================= */
 
+loadDecalStyleFromURL();
 loadDesignFromURL();
 
 checkBackend();
