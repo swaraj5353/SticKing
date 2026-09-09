@@ -194,6 +194,87 @@
         0 0 15px var(--cyan);
     }
 
+    /* Decal style banner */
+    .decal-style-banner {
+      width: min(1150px, 92%);
+      margin: 10px auto 6px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      border: 1px solid rgba(255,20,147,0.34);
+      border-radius: 14px;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(255,20,147,0.09),
+          rgba(0,245,255,0.045)
+        );
+      box-shadow:
+        0 14px 35px rgba(0,0,0,0.28),
+        inset 0 1px rgba(255,255,255,0.04);
+    }
+
+    .decal-style-kicker {
+      color: var(--cyan);
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+
+    .decal-style-title {
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .decal-style-description {
+      margin-top: 4px;
+      color: #8f98aa;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .decal-style-actions {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex-shrink: 0;
+    }
+
+    .decal-style-chip {
+      padding: 8px 11px;
+      border-radius: 8px;
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      border: 1px solid rgba(0,245,255,0.25);
+      background: rgba(0,245,255,0.06);
+    }
+
+    .decal-style-chip.unset {
+      color: #9da6b8;
+      border-color: rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .change-style-btn {
+      text-decoration: none;
+      color: white;
+      padding: 8px 11px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,20,147,0.42);
+      background: rgba(255,20,147,0.07);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .change-style-btn:hover {
+      background: rgba(255,20,147,0.14);
+      box-shadow: 0 0 18px rgba(255,20,147,0.18);
+    }
+
     /* Category navigation */
     .categories {
       max-width: 1150px;
@@ -531,6 +612,15 @@
     }
 
     @media (max-width: 760px) {
+
+      .decal-style-banner {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .decal-style-actions {
+        justify-content: space-between;
+      }
       .topbar {
         padding: 0 20px;
       }
@@ -643,6 +733,49 @@
     </p>
 
     <div class="hero-line"></div>
+
+  </section>
+
+
+  <!-- SELECTED DECAL STYLE -->
+  <section class="decal-style-banner">
+
+    <div class="decal-style-copy">
+
+      <div class="decal-style-kicker">
+        YOUR DECAL STYLE
+      </div>
+
+      <div
+        id="decalStyleTitle"
+        class="decal-style-title">
+        Select Your Decal Style
+      </div>
+
+      <div
+        id="decalStyleDescription"
+        class="decal-style-description">
+        Choose your decal style before selecting a design.
+      </div>
+
+    </div>
+
+    <div class="decal-style-actions">
+
+      <div
+        id="decalStyleChip"
+        class="decal-style-chip unset">
+        Style not selected
+      </div>
+
+      <a
+        id="changeStyleBtn"
+        class="change-style-btn"
+        href="https://sticking.onrender.com/gallery.html">
+        Change Style
+      </a>
+
+    </div>
 
   </section>
 
@@ -944,6 +1077,19 @@
   let currentCategory = "car-skin";
   let selectedDesign = null;
 
+  const decalStyles = {
+    "full-vinyl": {
+      name: "Full Vinyl Sticker",
+      description: "Your design with a visible vinyl background."
+    },
+    "die-cut": {
+      name: "Die-Cut / Backgroundless",
+      description: "Only your artwork remains on the vehicle."
+    }
+  };
+
+  let selectedDecalStyle = null;
+
 
   const categoryNames = {
 
@@ -1011,13 +1157,11 @@
 
   /*
    ============================================================
-   READ CATEGORY FROM URL
-   Example:
-   gallery.html?category=bike-decal
+   READ URL PARAMETERS
    ============================================================
   */
 
-  function readCategoryFromURL() {
+  function readParametersFromURL() {
 
     const params =
       new URLSearchParams(window.location.search);
@@ -1036,12 +1180,44 @@
       currentCategory = category;
     }
 
+    const decalStyle =
+      params.get("decalStyle");
+
+    if (
+      decalStyle &&
+      decalStyles[decalStyle]
+    ) {
+
+      selectedDecalStyle =
+        decalStyle;
+
+      localStorage.setItem(
+        "selectedStickingDecalStyle",
+        decalStyle
+      );
+
+      return;
+    }
+
+    const storedStyle =
+      localStorage.getItem(
+        "selectedStickingDecalStyle"
+      );
+
+    if (
+      storedStyle &&
+      decalStyles[storedStyle]
+    ) {
+      selectedDecalStyle =
+        storedStyle;
+    }
+
   }
 
 
   /*
    ============================================================
-   UPDATE URL
+   UPDATE CATEGORY URL
    ============================================================
   */
 
@@ -1055,7 +1231,131 @@
       category
     );
 
+    if (selectedDecalStyle) {
+      url.searchParams.set(
+        "decalStyle",
+        selectedDecalStyle
+      );
+    }
+
     window.history.pushState(
+      {},
+      "",
+      url
+    );
+
+  }
+
+
+  /*
+   ============================================================
+   DISPLAY SELECTED DECAL STYLE
+   ============================================================
+  */
+
+  function updateDecalStyleUI() {
+
+    const title =
+      document.getElementById(
+        "decalStyleTitle"
+      );
+
+    const description =
+      document.getElementById(
+        "decalStyleDescription"
+      );
+
+    const chip =
+      document.getElementById(
+        "decalStyleChip"
+      );
+
+    if (
+      !title ||
+      !description ||
+      !chip
+    ) {
+      return;
+    }
+
+    if (
+      !selectedDecalStyle ||
+      !decalStyles[selectedDecalStyle]
+    ) {
+
+      title.textContent =
+        "Select Your Decal Style";
+
+      description.textContent =
+        "Choose your decal style before selecting a design.";
+
+      chip.textContent =
+        "Style not selected";
+
+      chip.className =
+        "decal-style-chip unset";
+
+      return;
+    }
+
+    const style =
+      decalStyles[selectedDecalStyle];
+
+    title.textContent =
+      style.name;
+
+    description.textContent =
+      style.description;
+
+    chip.textContent =
+      style.name;
+
+    chip.className =
+      "decal-style-chip";
+
+  }
+
+
+  /*
+   ============================================================
+   CHANGE DECAL STYLE
+   ============================================================
+  */
+
+  function changeDecalStyle(style) {
+
+    if (
+      !decalStyles[style]
+    ) {
+      return;
+    }
+
+    selectedDecalStyle =
+      style;
+
+    localStorage.setItem(
+      "selectedStickingDecalStyle",
+      style
+    );
+
+    updateDecalStyleUI();
+
+    const url =
+      new URL(window.location.href);
+
+    url.searchParams.set(
+      "decalStyle",
+      style
+    );
+
+    if (currentCategory) {
+      url.searchParams.set(
+        "category",
+        currentCategory
+      );
+    }
+
+    window.history.replaceState(
       {},
       "",
       url
@@ -1359,18 +1659,27 @@
         JSON.stringify(selectedDesign)
       );
 
+      if (!selectedDecalStyle) {
+        alert(
+          "Please select your decal style first."
+        );
 
-      /*
-       Go back to your main customization page.
+        return;
+      }
 
-       If your preview/customizer is on
-       another page, change index.html here.
-      */
+      localStorage.setItem(
+        "selectedStickingDecalStyle",
+        selectedDecalStyle
+      );
 
       window.location.href =
         "index.html?design=" +
         encodeURIComponent(
           selectedDesign.id
+        ) +
+        "&decalStyle=" +
+        encodeURIComponent(
+          selectedDecalStyle
         );
 
     });
@@ -1424,7 +1733,36 @@
    ============================================================
   */
 
-  readCategoryFromURL();
+  readParametersFromURL();
+  updateDecalStyleUI();
+
+  const changeStyleBtn =
+    document.getElementById(
+      "changeStyleBtn"
+    );
+
+  if (changeStyleBtn) {
+
+    changeStyleBtn.addEventListener(
+      "click",
+      function(event) {
+
+        event.preventDefault();
+
+        const nextStyle =
+          selectedDecalStyle ===
+          "die-cut"
+            ? "full-vinyl"
+            : "die-cut";
+
+        changeDecalStyle(
+          nextStyle
+        );
+
+      }
+    );
+
+  }
 
   loadDesigns();
 
