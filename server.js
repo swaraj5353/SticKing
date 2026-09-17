@@ -5,6 +5,7 @@ const { toFile } = require("openai/uploads");
 const crypto = require("crypto");
 const Razorpay = require("razorpay");
 const path = require("path");
+const fs = require("fs");
 
 const app = express();
 
@@ -172,6 +173,356 @@ console.log(
 
 console.log(
   `📁 Public directory: ${PUBLIC_DIR}`
+);
+
+
+/* =========================================================
+   STICKING DESIGN LIBRARY / DESIGN MANAGER
+   - Existing public/designs.json remains a fallback/source.
+   - Supabase public.designs stores admin-managed changes.
+   - New images are stored inside the existing vehicle-orders bucket
+     under designs/ so no new Supabase Storage bucket is required.
+   ========================================================= */
+
+const DESIGN_TABLE = "designs";
+const DESIGN_STORAGE_PREFIX = "designs";
+
+const DESIGN_CATEGORIES = [
+  "car-skin",
+  "windshield-window",
+  "body-sticker",
+  "bike-decal",
+  "truck-decal",
+  "commercial",
+  "other"
+];
+
+function parsePriceInr(value) {
+  if (value === undefined || value === null || value === "") {
+    return 0;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.max(0, Math.round(value));
+  }
+
+  const digits = String(value).replace(/[^0-9.]/g, "");
+  if (!digits) return 0;
+
+  const parsed = Number(digits);
+  if (!Number.isFinite(parsed)) return 0;
+
+  return Math.max(0, Math.round(parsed));
+}
+
+function formatPriceInr(value) {
+  const amount = parsePriceInr(value);
+  return `₹${new Intl.NumberFormat("en-IN", {
+    maximumFractionDigits: 0
+  }).format(amount)}`;
+}
+
+function slugifyDesignId(value) {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function normalizeDesignCategory(value) {
+  const category = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (DESIGN_CATEGORIES.includes(category)) {
+    return category;
+  }
+
+  return "other";
+}
+
+function readLocalDesigns() {
+  try {
+    const filePath = path.join(PUBLIC_DIR, "designs.json");
+
+    if (!fs.existsSync(filePath)) {
+      return [];
+    }
+
+    const raw = fs.readFileSync(filePath, "utf8");
+    const parsed = JSON.parse(raw);
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .map((design) => {
+        if (!design || !design.id) return null;
+
+        const priceInr = parsePriceInr(
+          design.priceInr ??
+          design.price_inr ??
+          design.price
+        );
+
+        return {
+          id: String(design.id),
+          name: cleanText(design.name, 160) || String(design.id),
+          imageUrl:
+            design.imageUrl ||
+            design.image ||
+            design.image_url ||
+            "",
+          imagePath:
+            design.imagePath ||
+            design.image_path ||
+            "",
+          priceInr,
+          price: formatPriceInr(priceInr),
+          category: normalizeDesignCategory(design.category),
+          decalStyle: cleanText(
+            design.decalStyle || design.decal_style || "both",
+            50
+          ) || "both",
+          description: cleanText(design.description, 2000),
+          active: design.active !== false,
+          source: "local"
+        };
+      })
+      .filter(Boolean);
+  } catch (error) {
+    console.warn(
+      "⚠️ Could not read public/designs.json:",
+      error.message
+    );
+
+    return [];
+  }
+}
+
+function normalizeDatabaseDesign(row) {
+  if (!row || !row.id) return null;
+
+  const priceInr = parsePriceInr(row.price_inr);
+
+  return {
+    id: String(row.id),
+    name: cleanText(row.name, 160) || String(row.id),
+    imageUrl: cleanText(row.image_url, 3000),
+    imagePath: cleanText(row.image_path, 1000),
+    priceInr,
+    price: formatPriceInr(priceInr),
+    category: normalizeDesignCategory(row.category),
+    decalStyle:
+      cleanText(row.decal_style, 50) || "both",
+    description: cleanText(row.description, 2000),
+    active: row.active !== false,
+    source: "database",
+    created_at: row.created_at || null,
+    updated_at: row.updated_at || null
+  };
+}
+
+async function getDatabaseDesignRows() {
+  if (!supabaseConfigured) {
+    return [];
+  }
+
+  try {
+    const rows = await supabaseRequest(
+      `/rest/v1/${DESIGN_TABLE}?select=*&order=created_at.asc`
+    );
+
+    return Array.isArray(rows) ? rows : [];
+  } catch (error) {
+    console.warn(
+      "⚠️ Designs table unavailable; using designs.json fallback:",
+      error.message
+    );
+
+    return [];
+  }
+}
+
+async function getMergedDesigns(includeInactive = false) {
+  const localDesigns = readLocalDesigns();
+  const localMap = new Map(
+    localDesigns.map((design) => [design.id, design])
+  );
+
+  const dbRows = await getDatabaseDesignRows();
+  const dbMap = new Map();
+
+  for (const row of dbRows) {
+    const design = normalizeDatabaseDesign(row);
+    if (!design) continue;
+
+    dbMap.set(design.id, design);
+  }
+
+  const merged = [];
+
+  for (const local of localDesigns) {
+    const override = dbMap.get(local.id);
+
+    if (override) {
+      if (includeInactive || override.active) {
+        merged.push(override);
+      }
+    } else if (includeInactive || local.active) {
+      merged.push(local);
+    }
+  }
+
+  for (const [id, dbDesign] of dbMap.entries()) {
+    if (localMap.has(id)) continue;
+
+    if (includeInactive || dbDesign.active) {
+      merged.push(dbDesign);
+    }
+  }
+
+  return merged;
+}
+
+async function getPublicDesigns() {
+  const designs = await getMergedDesigns(false);
+
+  return await Promise.all(
+    designs.map(async (design) => {
+      let imageUrl = design.imageUrl || "";
+
+      if (design.imagePath) {
+        const signedUrl = await createSignedUrl(design.imagePath);
+        if (signedUrl) {
+          imageUrl = signedUrl;
+        }
+      }
+
+      return {
+        id: design.id,
+        name: design.name,
+        imageUrl,
+        price: design.price,
+        priceInr: design.priceInr,
+        category: design.category,
+        decalStyle: design.decalStyle,
+        description: design.description || ""
+      };
+    })
+  );
+}
+
+async function getAdminDesigns() {
+  const designs = await getMergedDesigns(true);
+
+  return await Promise.all(
+    designs.map(async (design) => {
+      let imageUrl = design.imageUrl || "";
+
+      if (design.imagePath) {
+        const signedUrl = await createSignedUrl(design.imagePath);
+        if (signedUrl) {
+          imageUrl = signedUrl;
+        }
+      }
+
+      return {
+        ...design,
+        imageUrl
+      };
+    })
+  );
+}
+
+async function findDesignById(id) {
+  const designs = await getMergedDesigns(true);
+  return designs.find((design) => design.id === id) || null;
+}
+
+async function upsertDesignRow(row) {
+  const result = await supabaseRequest(
+    `/rest/v1/${DESIGN_TABLE}?on_conflict=id`,
+    {
+      method: "POST",
+      headers: {
+        Prefer:
+          "resolution=merge-duplicates,return=representation"
+      },
+      body: JSON.stringify(row)
+    }
+  );
+
+  return Array.isArray(result) ? result[0] : result;
+}
+
+function validateDesignPayload(body, requireNameAndPrice = true) {
+  const name = cleanText(body?.name, 160);
+  const category = normalizeDesignCategory(body?.category);
+  const description = cleanText(body?.description, 2000);
+  const decalStyle =
+    cleanText(body?.decalStyle || body?.decal_style || "both", 50) ||
+    "both";
+  const priceInr = parsePriceInr(
+    body?.priceInr ??
+    body?.price_inr ??
+    body?.price
+  );
+
+  if (requireNameAndPrice && !name) {
+    return { error: "Design name is required." };
+  }
+
+  if (requireNameAndPrice && priceInr < 0) {
+    return { error: "Price cannot be negative." };
+  }
+
+  if (priceInr > 10000000) {
+    return { error: "Price is too large." };
+  }
+
+  return {
+    name,
+    category,
+    description,
+    decalStyle,
+    priceInr
+  };
+}
+
+/* =========================================================
+   PUBLIC DYNAMIC designs.json
+   IMPORTANT: This route is intentionally registered before
+   express.static() so it can override the physical JSON file.
+   ========================================================= */
+
+app.get(
+  "/designs.json",
+  async (req, res) => {
+    try {
+      const designs = await getPublicDesigns();
+
+      res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, proxy-revalidate"
+      );
+
+      res.json(designs);
+    } catch (error) {
+      console.error(
+        "❌ PUBLIC DESIGNS ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        ok: false,
+        error: "Could not load designs."
+      });
+    }
+  }
 );
 
 
@@ -1238,6 +1589,366 @@ function requireAdmin(
   next();
 
 }
+
+
+/* =========================================================
+   ADMIN DESIGN LIBRARY
+   ========================================================= */
+
+app.get(
+  "/api/admin/designs",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const designs = await getAdminDesigns();
+
+      res.json({
+        ok: true,
+        designs
+      });
+    } catch (error) {
+      console.error(
+        "❌ ADMIN DESIGNS GET ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        ok: false,
+        error:
+          error.message ||
+          "Could not load design library."
+      });
+    }
+  }
+);
+
+app.post(
+  "/api/admin/designs",
+  requireAdmin,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      if (!supabaseConfigured) {
+        return res.status(500).json({
+          ok: false,
+          error: "Supabase is not configured."
+        });
+      }
+
+      const payload = validateDesignPayload(req.body, true);
+
+      if (payload.error) {
+        return res.status(400).json({
+          ok: false,
+          error: payload.error
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          ok: false,
+          error: "Please select a design image."
+        });
+      }
+
+      const baseId = slugifyDesignId(
+        req.body?.id || payload.name
+      );
+
+      if (!baseId) {
+        return res.status(400).json({
+          ok: false,
+          error: "Please use a valid design name."
+        });
+      }
+
+      const existing = await findDesignById(baseId);
+      if (existing && existing.active) {
+        return res.status(409).json({
+          ok: false,
+          error:
+            "A design with this name/ID already exists. Use a different name."
+        });
+      }
+
+      const storagePath =
+        `${DESIGN_STORAGE_PREFIX}/${new Date().getFullYear()}/` +
+        `${Date.now()}-${crypto.randomUUID()}-` +
+        String(req.file.originalname || "design.png").replace(/[^a-zA-Z0-9._-]/g, "_");
+
+      await uploadToStorage(
+        req.file.buffer,
+        storagePath,
+        req.file.mimetype
+      );
+
+      const row = {
+        id: baseId,
+        name: payload.name,
+        image_url: null,
+        image_path: storagePath,
+        price_inr: payload.priceInr,
+        category: payload.category,
+        decal_style: payload.decalStyle,
+        description: payload.description,
+        active: true
+      };
+
+      const created = await upsertDesignRow(row);
+
+      res.json({
+        ok: true,
+        design: normalizeDatabaseDesign(created || row)
+      });
+    } catch (error) {
+      console.error(
+        "❌ ADMIN DESIGN CREATE ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        ok: false,
+        error:
+          error.message ||
+          "Could not create design."
+      });
+    }
+  }
+);
+
+app.patch(
+  "/api/admin/designs/:id",
+  requireAdmin,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      if (!supabaseConfigured) {
+        return res.status(500).json({
+          ok: false,
+          error: "Supabase is not configured."
+        });
+      }
+
+      const id = slugifyDesignId(req.params.id);
+      if (!id) {
+        return res.status(400).json({
+          ok: false,
+          error: "Invalid design ID."
+        });
+      }
+
+      const current = await findDesignById(id);
+      if (!current) {
+        return res.status(404).json({
+          ok: false,
+          error: "Design not found."
+        });
+      }
+
+      const payload = validateDesignPayload(req.body, false);
+
+      if (payload.error) {
+        return res.status(400).json({
+          ok: false,
+          error: payload.error
+        });
+      }
+
+      const row = {
+        id,
+        name:
+          payload.name ||
+          current.name ||
+          id,
+        image_url:
+          current.imagePath
+            ? null
+            : (current.imageUrl || null),
+        image_path:
+          current.source === "database"
+            ? (current.imagePath || null)
+            : null,
+        price_inr:
+          req.body?.priceInr !== undefined ||
+          req.body?.price_inr !== undefined ||
+          req.body?.price !== undefined
+            ? payload.priceInr
+            : current.priceInr,
+        category:
+          req.body?.category !== undefined
+            ? payload.category
+            : current.category,
+        decal_style:
+          req.body?.decalStyle !== undefined ||
+          req.body?.decal_style !== undefined
+            ? payload.decalStyle
+            : (current.decalStyle || "both"),
+        description:
+          req.body?.description !== undefined
+            ? payload.description
+            : (current.description || ""),
+        active:
+          req.body?.active !== undefined
+            ? String(req.body.active).toLowerCase() !== "false"
+            : current.active !== false
+      };
+
+      if (req.file) {
+        const storagePath =
+          `${DESIGN_STORAGE_PREFIX}/${new Date().getFullYear()}/` +
+          `${Date.now()}-${crypto.randomUUID()}-` +
+          String(req.file.originalname || "design.png").replace(/[^a-zA-Z0-9._-]/g, "_");
+
+        await uploadToStorage(
+          req.file.buffer,
+          storagePath,
+          req.file.mimetype
+        );
+
+        row.image_path = storagePath;
+        row.image_url = null;
+      }
+
+      const updated = await upsertDesignRow(row);
+
+      res.json({
+        ok: true,
+        design: normalizeDatabaseDesign(updated || row)
+      });
+    } catch (error) {
+      console.error(
+        "❌ ADMIN DESIGN UPDATE ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        ok: false,
+        error:
+          error.message ||
+          "Could not update design."
+      });
+    }
+  }
+);
+
+app.delete(
+  "/api/admin/designs/:id",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      if (!supabaseConfigured) {
+        return res.status(500).json({
+          ok: false,
+          error: "Supabase is not configured."
+        });
+      }
+
+      const id = slugifyDesignId(req.params.id);
+      const current = await findDesignById(id);
+
+      if (!current) {
+        return res.status(404).json({
+          ok: false,
+          error: "Design not found."
+        });
+      }
+
+      const hidden = await upsertDesignRow({
+        id,
+        name: current.name,
+        image_url:
+          current.source === "local"
+            ? (current.imageUrl || null)
+            : null,
+        image_path:
+          current.imagePath || null,
+        price_inr: current.priceInr,
+        category: current.category,
+        decal_style: current.decalStyle || "both",
+        description: current.description || "",
+        active: false
+      });
+
+      res.json({
+        ok: true,
+        message: "Design hidden from the customer gallery.",
+        design: normalizeDatabaseDesign(hidden)
+      });
+    } catch (error) {
+      console.error(
+        "❌ ADMIN DESIGN DELETE ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        ok: false,
+        error:
+          error.message ||
+          "Could not hide design."
+      });
+    }
+  }
+);
+
+/* Restore a previously hidden design */
+app.post(
+  "/api/admin/designs/:id/restore",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      if (!supabaseConfigured) {
+        return res.status(500).json({
+          ok: false,
+          error: "Supabase is not configured."
+        });
+      }
+
+      const id = slugifyDesignId(req.params.id);
+      const current = await findDesignById(id);
+
+      if (!current) {
+        return res.status(404).json({
+          ok: false,
+          error: "Design not found."
+        });
+      }
+
+      const restored = await upsertDesignRow({
+        id,
+        name: current.name,
+        image_url:
+          current.source === "local"
+            ? (current.imageUrl || null)
+            : null,
+        image_path:
+          current.imagePath || null,
+        price_inr: current.priceInr,
+        category: current.category,
+        decal_style: current.decalStyle || "both",
+        description: current.description || "",
+        active: true
+      });
+
+      res.json({
+        ok: true,
+        message: "Design restored to the customer gallery.",
+        design: normalizeDatabaseDesign(restored)
+      });
+    } catch (error) {
+      console.error(
+        "❌ ADMIN DESIGN RESTORE ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        ok: false,
+        error:
+          error.message ||
+          "Could not restore design."
+      });
+    }
+  }
+);
 
 
 /* =========================================================
