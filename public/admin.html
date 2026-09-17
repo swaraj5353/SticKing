@@ -358,6 +358,198 @@
         flex-direction: column;
       }
     }
+
+
+    /* =========================================================
+       DESIGN CATALOG MANAGER
+    ========================================================= */
+    .design-manager {
+      background: rgba(17, 19, 27, .96);
+      border: 1px solid #303440;
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 25px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.20);
+    }
+
+    .design-manager-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .design-manager h2 {
+      margin: 0 0 7px;
+      font-size: 22px;
+    }
+
+    .design-manager-subtitle {
+      color: #9ea3b3;
+      line-height: 1.5;
+    }
+
+    .design-form {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      background: #0d0f15;
+      border: 1px solid #292d37;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    .design-form .full {
+      grid-column: 1 / -1;
+    }
+
+    .design-field label {
+      display: block;
+      color: #858b9a;
+      text-transform: uppercase;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .9px;
+      margin-bottom: 7px;
+    }
+
+    .design-file {
+      display: block;
+      min-height: 45px;
+      padding: 13px;
+      border-radius: 9px;
+      border: 1px dashed #4a4e5b;
+      background: #11131a;
+      color: #c6cad5;
+      cursor: pointer;
+    }
+
+    .design-file:hover {
+      border-color: #ff28bd;
+    }
+
+    .design-file input {
+      display: none;
+    }
+
+    .design-form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .design-message {
+      display: none;
+      margin-bottom: 15px;
+      padding: 11px 13px;
+      border-radius: 9px;
+      background: #102f4a;
+      border: 1px solid #1f628e;
+      color: #8bd2ff;
+    }
+
+    .design-message.error {
+      background: #3a101b;
+      border-color: #7c243b;
+      color: #ff8da6;
+    }
+
+    .design-toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .design-toolbar input {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .design-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    .design-card {
+      background: #0d0f15;
+      border: 1px solid #292d37;
+      border-radius: 14px;
+      overflow: hidden;
+      transition: transform .16s ease, border-color .16s ease;
+    }
+
+    .design-card:hover {
+      transform: translateY(-2px);
+      border-color: #4b4f5c;
+    }
+
+    .design-card-image {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display: block;
+      background: #08090d;
+    }
+
+    .design-card-body {
+      padding: 13px;
+    }
+
+    .design-card-name {
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.25;
+      min-height: 32px;
+    }
+
+    .design-card-price {
+      color: #ff4bc9;
+      font-weight: 900;
+      margin-top: 7px;
+    }
+
+    .design-card-meta {
+      margin-top: 7px;
+      color: #8f94a3;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .design-card-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 11px;
+    }
+
+    .design-card-actions button {
+      padding: 9px 8px;
+      font-size: 12px;
+    }
+
+    @media(max-width: 1100px) {
+      .design-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media(max-width: 800px) {
+      .design-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .design-form { grid-template-columns: 1fr; }
+      .design-form .full { grid-column: auto; }
+      .design-form-actions { grid-column: auto; }
+    }
+
+    @media(max-width: 520px) {
+      .design-manager { padding: 15px; }
+      .design-grid { grid-template-columns: 1fr; }
+      .design-card-actions { grid-template-columns: 1fr 1fr; }
+    }
+
   </style>
 
 <style>
@@ -518,6 +710,92 @@
 
     </div>
 
+
+
+
+    <section class="design-manager">
+      <div class="design-manager-head">
+        <div>
+          <h2>🎨 Design Catalog</h2>
+          <div class="design-manager-subtitle">
+            Add, edit or remove designs and change their customer-facing prices without editing code.
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="dark-btn" onclick="seedLocalDesigns()">
+            ↻ Sync Existing Designs
+          </button>
+          <button class="dark-btn" onclick="resetDesignForm()">
+            + New Design
+          </button>
+        </div>
+      </div>
+
+      <div id="designMessage" class="design-message"></div>
+
+      <div class="design-form">
+        <input id="editingDesignId" type="hidden" value="">
+
+        <div class="design-field">
+          <label>Design Name</label>
+          <input id="designName" type="text" placeholder="e.g. Cosmic Trishul">
+        </div>
+
+        <div class="design-field">
+          <label>Price (₹)</label>
+          <input id="designPrice" type="number" min="0" step="1" placeholder="700">
+        </div>
+
+        <div class="design-field">
+          <label>Category</label>
+          <select id="designCategory">
+            <option value="car-skin">Car Skin</option>
+            <option value="windshield-window">Windshield & Window</option>
+            <option value="body-sticker">Body Sticker</option>
+            <option value="bike-decal">Bike Decal</option>
+          </select>
+        </div>
+
+        <div class="design-field">
+          <label>Decal Style</label>
+          <select id="designStyle">
+            <option value="both">Both</option>
+            <option value="full-vinyl">Full Vinyl</option>
+            <option value="die-cut">Die-Cut / Backgroundless</option>
+          </select>
+        </div>
+
+        <div class="design-field full">
+          <label>Image</label>
+          <label class="design-file">
+            <input id="designImage" type="file" accept="image/png,image/jpeg,image/webp" onchange="showDesignFileName()">
+            <span id="designFileName">📁 Choose design image</span>
+          </label>
+        </div>
+
+        <div class="design-field full">
+          <label>Description</label>
+          <input id="designDescription" type="text" placeholder="Optional short description">
+        </div>
+
+        <div class="design-form-actions">
+          <button id="saveDesignButton" class="pink-btn" onclick="saveDesign()">
+            + Add Design
+          </button>
+          <button id="cancelDesignButton" class="dark-btn" onclick="resetDesignForm()">
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="design-toolbar">
+        <input id="designSearch" type="text" placeholder="Search designs..." oninput="renderDesigns()">
+      </div>
+
+      <div id="designGrid" class="design-grid">
+        <div class="loading">Loading designs...</div>
+      </div>
+    </section>
 
     <section class="print-prep">
       <h2>🖨️ Private Print Prep Agent</h2>
@@ -685,6 +963,7 @@ function showDashboard() {
   document.getElementById("dashboard").style.display = "block";
 
   loadOrders();
+  loadDesigns();
 
 }
 
@@ -1227,6 +1506,299 @@ function closeImage() {
 
   document.getElementById("modalImage").src = "";
 
+}
+
+
+
+
+/* =========================================================
+   DESIGN CATALOG MANAGER
+========================================================= */
+
+let allDesigns = [];
+
+const designCategoryLabels = {
+  "car-skin": "Car Skin",
+  "windshield-window": "Windshield & Window",
+  "body-sticker": "Body Sticker",
+  "bike-decal": "Bike Decal"
+};
+
+const designStyleLabels = {
+  both: "Both",
+  "full-vinyl": "Full Vinyl",
+  "die-cut": "Die-Cut / Backgroundless"
+};
+
+function showDesignMessage(message, isError = false) {
+  const box = document.getElementById("designMessage");
+  if (!box) return;
+
+  box.textContent = message;
+  box.className = isError
+    ? "design-message error"
+    : "design-message";
+  box.style.display = "block";
+
+  if (!isError) {
+    setTimeout(() => {
+      if (box) box.style.display = "none";
+    }, 3500);
+  }
+}
+
+async function loadDesigns() {
+  const grid = document.getElementById("designGrid");
+  if (!grid) return;
+
+  grid.innerHTML = '<div class="loading">Loading designs...</div>';
+
+  try {
+    const response = await fetch("/api/admin/designs", {
+      headers: { "x-admin-password": adminPassword }
+    });
+
+    const data = await response.json();
+
+    if (response.status === 401) {
+      logout();
+      return;
+    }
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Could not load designs.");
+    }
+
+    allDesigns = data.designs || [];
+    renderDesigns();
+  } catch (error) {
+    grid.innerHTML = `<div class="empty">${escapeHtml(error.message || "Could not load designs.")}</div>`;
+  }
+}
+
+function renderDesigns() {
+  const grid = document.getElementById("designGrid");
+  const search = document.getElementById("designSearch")?.value?.trim().toLowerCase() || "";
+  if (!grid) return;
+
+  const filtered = allDesigns.filter(design => {
+    const haystack = [
+      design.name,
+      design.price,
+      design.category,
+      design.description
+    ].filter(Boolean).join(" ").toLowerCase();
+
+    return !search || haystack.includes(search);
+  });
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty">No designs found.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(design => `
+    <article class="design-card">
+      <img
+        class="design-card-image"
+        src="${escapeHtml(design.imageUrl || "")}" 
+        alt="${escapeHtml(design.name)}"
+        loading="lazy"
+        onclick="openImage('${escapeHtml(design.imageUrl || "")}')"
+        onerror="this.style.opacity='.25'"
+      >
+      <div class="design-card-body">
+        <div class="design-card-name">${escapeHtml(design.name)}</div>
+        <div class="design-card-price">${escapeHtml(design.price)}</div>
+        <div class="design-card-meta">
+          ${escapeHtml(designCategoryLabels[design.category] || design.category || "")}
+          · ${escapeHtml(designStyleLabels[design.decalStyle] || "Both")}
+        </div>
+        ${design.description ? `<div class="design-card-meta">${escapeHtml(design.description)}</div>` : ""}
+        <div class="design-card-actions">
+          <button class="dark-btn" onclick="editDesign('${escapeHtml(design.id)}')">✏️ Edit</button>
+          <button class="dark-btn" onclick="deleteDesign('${escapeHtml(design.id)}')">🗑️ Delete</button>
+        </div>
+      </div>
+    </article>
+  `).join("");
+}
+
+function showDesignFileName() {
+  const input = document.getElementById("designImage");
+  const label = document.getElementById("designFileName");
+  if (!input || !label) return;
+
+  label.textContent = input.files?.[0]
+    ? `📎 ${input.files[0].name}`
+    : "📁 Choose design image";
+}
+
+function editDesign(id) {
+  const design = allDesigns.find(item => String(item.id) === String(id));
+  if (!design) return;
+
+  document.getElementById("editingDesignId").value = design.id;
+  document.getElementById("designName").value = design.name || "";
+  document.getElementById("designPrice").value = design.priceInr ?? "";
+  document.getElementById("designCategory").value = design.category || "car-skin";
+  document.getElementById("designStyle").value = design.decalStyle || "both";
+  document.getElementById("designDescription").value = design.description || "";
+  document.getElementById("designImage").value = "";
+  document.getElementById("designFileName").textContent = "📁 Leave empty to keep the current image";
+  document.getElementById("saveDesignButton").textContent = "💾 Save Changes";
+
+  document.querySelector(".design-manager")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function resetDesignForm() {
+  const id = document.getElementById("editingDesignId");
+  if (id) id.value = "";
+
+  document.getElementById("designName").value = "";
+  document.getElementById("designPrice").value = "";
+  document.getElementById("designCategory").value = "car-skin";
+  document.getElementById("designStyle").value = "both";
+  document.getElementById("designDescription").value = "";
+  document.getElementById("designImage").value = "";
+  document.getElementById("designFileName").textContent = "📁 Choose design image";
+  document.getElementById("saveDesignButton").textContent = "+ Add Design";
+}
+
+async function saveDesign() {
+  const editingId = document.getElementById("editingDesignId").value.trim();
+  const name = document.getElementById("designName").value.trim();
+  const price = document.getElementById("designPrice").value.trim();
+  const category = document.getElementById("designCategory").value;
+  const decalStyle = document.getElementById("designStyle").value;
+  const description = document.getElementById("designDescription").value.trim();
+  const file = document.getElementById("designImage").files?.[0] || null;
+  const button = document.getElementById("saveDesignButton");
+
+  if (!name) {
+    showDesignMessage("Please enter a design name.", true);
+    return;
+  }
+
+  if (price === "" || Number(price) < 0) {
+    showDesignMessage("Please enter a valid price.", true);
+    return;
+  }
+
+  if (!editingId && !file) {
+    showDesignMessage("Please choose the design image.", true);
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("name", name);
+  formData.append("price", price);
+  formData.append("category", category);
+  formData.append("decalStyle", decalStyle);
+  formData.append("description", description);
+  if (file) formData.append("image", file);
+
+  button.disabled = true;
+  button.textContent = editingId ? "Saving..." : "Adding...";
+
+  try {
+    const url = editingId
+      ? `/api/admin/designs/${encodeURIComponent(editingId)}`
+      : "/api/admin/designs";
+
+    const response = await fetch(url, {
+      method: editingId ? "PATCH" : "POST",
+      headers: { "x-admin-password": adminPassword },
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (response.status === 401) {
+      logout();
+      return;
+    }
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Could not save design.");
+    }
+
+    showDesignMessage(editingId ? "Design updated successfully." : "Design added successfully.");
+    resetDesignForm();
+    await loadDesigns();
+  } catch (error) {
+    showDesignMessage(error.message || "Could not save design.", true);
+  } finally {
+    button.disabled = false;
+    button.textContent = editingId ? "💾 Save Changes" : "+ Add Design";
+  }
+}
+
+async function deleteDesign(id) {
+  const design = allDesigns.find(item => String(item.id) === String(id));
+  if (!design) return;
+
+  const confirmed = confirm(
+    `Delete "${design.name}"?\n\nThis removes it from the customer gallery.`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch(
+      `/api/admin/designs/${encodeURIComponent(id)}`,
+      {
+        method: "DELETE",
+        headers: { "x-admin-password": adminPassword }
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.status === 401) {
+      logout();
+      return;
+    }
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Could not delete design.");
+    }
+
+    showDesignMessage("Design deleted.");
+    await loadDesigns();
+  } catch (error) {
+    showDesignMessage(error.message || "Could not delete design.", true);
+  }
+}
+
+async function seedLocalDesigns() {
+  try {
+    const response = await fetch("/api/admin/designs/seed", {
+      method: "POST",
+      headers: { "x-admin-password": adminPassword }
+    });
+
+    const data = await response.json();
+
+    if (response.status === 401) {
+      logout();
+      return;
+    }
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.error || "Could not sync existing designs.");
+    }
+
+    showDesignMessage(
+      data.added
+        ? `Added ${data.added} existing design${data.added === 1 ? "" : "s"}.`
+        : "All existing designs are already synced."
+    );
+
+    await loadDesigns();
+  } catch (error) {
+    showDesignMessage(error.message || "Could not sync existing designs.", true);
+  }
 }
 
 
